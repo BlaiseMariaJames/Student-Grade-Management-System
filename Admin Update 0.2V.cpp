@@ -831,13 +831,37 @@ void main_menu(){
 void table_creation(sqlite3 *db){
    int rc;
    char *zErrMsg, *sql;
-   sql = strdup("CREATE TABLE FACULTY(ID VARCHAR (5) PRIMARY KEY, NAME  VARCHAR (30) NOT NULL, COURSE VARCHAR (30) NOT NULL, CODE VARCHAR (10) NOT NULL);");
+   sql = strdup("CREATE TABLE FACULTY(ID VARCHAR2 (5) PRIMARY KEY, NAME  VARCHAR2 (30) NOT NULL, COURSE VARCHAR2 (30) NOT NULL, CODE VARCHAR2 (10) NOT NULL);");
    rc = sqlite3_exec(db, sql, create_insert_table, 0, &zErrMsg);
    if( rc != SQLITE_OK ){
    fprintf(stderr, "SQL error: %s\n", zErrMsg);
    sqlite3_free(zErrMsg);
    }
-   sql = strdup("CREATE TABLE STUDENT(ID VARCHAR (8) PRIMARY KEY, NAME  VARCHAR (20) NOT NULL);");
+   sql = strdup("CREATE TABLE STUDENT(ID VARCHAR2 (8) PRIMARY KEY, NAME  VARCHAR2 (20) NOT NULL);");
+   rc = sqlite3_exec(db, sql, create_insert_table, 0, &zErrMsg);
+   if( rc != SQLITE_OK ){
+   fprintf(stderr, "SQL error: %s\n", zErrMsg);
+   sqlite3_free(zErrMsg);
+   }
+   sql = strdup("CREATE TABLE BRANCH(BRANCHID VARCHAR2 (3) PRIMARY KEY, BRANCHNAME  VARCHAR2 (40) NOT NULL);");
+   rc = sqlite3_exec(db, sql, create_insert_table, 0, &zErrMsg);
+   if( rc != SQLITE_OK ){
+   fprintf(stderr, "SQL error: %s\n", zErrMsg);
+   sqlite3_free(zErrMsg);
+   }
+   sql = strdup(
+   		 "INSERT INTO BRANCH VALUES ('CS', 'Computer Science & Engineering'); \
+          INSERT INTO BRANCH VALUES ('AI', 'Computer Science & Engineering (Artificial Intelligence & Machine Learning)'); \
+          INSERT INTO BRANCH VALUES ('CN', 'Computer Science & Engineering (Networks)'); \
+          INSERT INTO BRANCH VALUES ('IN', 'Computer Science & Engineering (Internet Of Things)'); \
+          INSERT INTO BRANCH VALUES ('IT', 'Information Technology'); \
+          INSERT INTO BRANCH VALUES ('EC', 'Electronics & Communication Engineering'); \
+          INSERT INTO BRANCH VALUES ('EE', 'Electrical & Electronics Engineering'); \
+          INSERT INTO BRANCH VALUES ('CI', 'Electronics Communication & Instrumentation'); \
+          INSERT INTO BRANCH VALUES ('ME', 'Mechanical Engineering'); \
+          INSERT INTO BRANCH VALUES ('CE', 'Civil Engineering'); \
+          INSERT INTO BRANCH VALUES ('MH', 'Mathematics'); \
+          INSERT INTO BRANCH VALUES ('EN', 'English');");
    rc = sqlite3_exec(db, sql, create_insert_table, 0, &zErrMsg);
    if( rc != SQLITE_OK ){
    fprintf(stderr, "SQL error: %s\n", zErrMsg);
