@@ -5,6 +5,9 @@
 #include<sqlite3.h>
 using namespace std;
 
+string excp = "";
+bool roc = false;
+
 class student{
 	protected:
 	int gradepoint[10];
@@ -46,7 +49,7 @@ class course_teacher : public class_teacher{
 };
 
 class admin{
-	int id, password;
+	string id, password;
 	public:
 	void login_master();
 	void add_faculty();
@@ -61,6 +64,16 @@ class admin{
     void master_student_menu(admin &a);
 	void master_main_menu(admin &a);
 };
+
+bool check_exception(string exp){
+	int len = exp.size();
+	for(int i = 0; i < len; i++){
+	int c = exp[i];
+	if(c<48 || c>57)
+	return true;
+	}
+	return false;
+}
 
 static int create_insert_table(void *NotUsed, int argc, char **argv, char **azColName) {
    for(int i = 0; i<argc; i++) {
@@ -95,7 +108,7 @@ void admin :: login_master(){
 	cin >> id;
 	cout << "Enter Password : ";
 	cin >> password;
-	if(id == 196612 && password == 1234)
+	if(id == "196612" && password == "1234")
 	cout << "\nLogin Successful!!!\n";
 	else{
 	cout << "Login Unsuccessful!!!";
@@ -121,11 +134,19 @@ void admin :: add_faculty(){
     string id, code;
     sqlite3_open("SAMS.db", &db);
 	char *zErrMsg, *sql, name[30], course[30], ch;
-	cout << "Enter the number of faculty(ies) : ";
-	cin >> n;
+	a: cout << "Enter the number of faculty(ies) : ";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
+	system("PAUSE");
+	system("CLS");
+	goto a;
+	}
+	n = stoi(excp);
 	cout << "\nEntering Details of " << n << " faculty(ies)..." << endl;
 	for(int i = 0; i < n; i++){
-	a : cout << "\nEntering Details of faculty " << i+1 << endl;
+	b : cout << "\nEntering Details of faculty " << i+1 << endl;
 	cout << "\nEnter Faculty ID : ";
 	cin >> id;
 	cout << "Enter Faculty Name : ";
@@ -170,7 +191,7 @@ void admin :: add_faculty(){
     fprintf(stderr, "\nSQL error: %s\n", zErrMsg);
     sqlite3_free(zErrMsg);
     cout << "\nUnable to register requested details of faculty... Try Again with valid ID..." << endl;
-    goto a;
+    goto b;
     }
 	}
     sqlite3_close(db);
@@ -220,12 +241,17 @@ void admin :: update_faculty(){
 	cout << "Type '4' ----> Update Code\n";
 	cout << "Type '5' ----> Back to Main Menu\n";
 	cout << "\nEnter Here : ";
-	cin >> option;
-	if(option>5 || option<1){
-	cout << "\nChoose a Valid Option (1-5)\n\n";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	b: cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
 	system("PAUSE");
 	system("CLS");
 	goto a;
+	}
+	option = stoi(excp);
+	if(option>5 || option<1){
+    goto b;
 	}
 	else if(option == 1){
     int rc;
@@ -381,14 +407,26 @@ void admin :: delete_faculty(){
     system("CLS");
     return;
     }
-	a : cout << "\n\nAre you sure to delete the record of faculty with id " + id + " ? ";
+	a: cout << "\n\nAre you sure to delete the record of faculty with id " + id + " ? ";
 	cout << "\nPress '1' if 'YES' or '2' if 'NO'";
 	cout << "\nEnter Here : ";
-	int choice;
-	cin >> choice;
-	if(choice!=1 && choice!=2){
-	cout << "Invalid!!!\n";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+    b: sqlite3_open("SAMS.db", &db);
+	cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
+	system("PAUSE");
+	system("CLS");
+    cout << "\n\nID    NAME\t\t\t    COURSE\t\t\t  CODE" << endl;
+    sql = strdup("SELECT * from FACULTY ORDER BY ID");
+    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+    cout << "\n\nEnter the id to be deleted : " << id << endl;
 	goto a;
+	}
+    sqlite3_close(db);
+	int choice = stoi(excp);
+	if(choice!=1 && choice!=2){
+    goto b;
 	}
 	if(choice == 1){
     sqlite3_open("SAMS.db", &db);
@@ -439,12 +477,17 @@ void admin :: master_faculty_menu(admin &a){
 	cout << "Type '4' ----> View Faculty\n";
 	cout << "Type '5' ----> Back to Main Menu\n";
 	cout << "\nEnter Here : ";
-	cin >> option;
-	if(option>5 || option<1){
-	cout << "\nChoose a Valid Option (1-5)\n\n";
+    cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	b : cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
 	system("PAUSE");
 	system("CLS");
 	goto a;
+	}
+	option = stoi(excp);
+	if(option>5 || option<1){
+	goto b;
 	}
 	else if(option == 1){
 	system("CLS");
@@ -476,21 +519,20 @@ void admin :: add_student(){
     string id;
 	sqlite3 *db;
     sqlite3_open("SAMS.db", &db);
-    char *zErrMsg, *sql, ch, name[30];
-    cout << "\n\nID    NAME" << endl;
-    sql = strdup("SELECT * from STUDENT ORDER BY ID");
-    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-	cout << "\n\n\nEnter the number of student(s) : ";
-	cin >> n;
-	for(int i = 0; i < n; i++){
+	char *zErrMsg, *sql, ch, name[30];
+	a: cout << "Enter the number of student(s) : ";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
+	system("PAUSE");
 	system("CLS");
-	a: cout << "Enter the number of student(s) : " << n << endl;
+	goto a;
+	}
+	n = stoi(excp);
 	cout << "\nEntering Details of " << n << " student(s)..." << endl;
-    cout << "\n\nID    NAME" << endl;
-    sql = strdup("SELECT * from STUDENT ORDER BY ID");
-    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-    cout << "\n\n\n";
-	cout << "Entering Details of student " << i+1 << endl;
+	for(int i = 0; i < n; i++){
+	b: cout << "\nEntering Details of student " << i+1 << endl;
 	cout << "\nEnter Student ID : ";
 	cin >> id;
 	cout << "Enter Student Name : ";
@@ -516,24 +558,16 @@ void admin :: add_student(){
     if( rc != SQLITE_OK ){
     fprintf(stderr, "\nSQL error: %s\n", zErrMsg);
     sqlite3_free(zErrMsg);
-    cout << "\nUnable to register requested details of faculty... Try Again with valid ID..." << endl;
+    cout << "\nUnable to register requested details of student... Try Again with valid ID..." << endl;
     cout << endl;
-   	system("PAUSE");
-	system("CLS");
-    goto a;
-    }
-    if(i == n-1)
-    cout << "\nDetails of student " << i+1 << " registered successfully... \n" << endl;
-    else{
-    cout << "\nDetails of student " << i+1 << " registered successfully... \n" << endl;
-    system("PAUSE");
+    goto b;
     }
 	}
     sqlite3_close(db);
-    cout << "\nDetails of " << n << " student(s) registered successfully..." << endl;
+	cout << "\nDetails of " << n << " student(s) registered successfully..." << endl;
 	cout << endl;
-    system("PAUSE");
-    system("CLS");
+	system("PAUSE");
+	system("CLS");
 	return;
 }
 
@@ -574,12 +608,17 @@ void admin :: update_student(){
 	cout << "Type '2' ----> Update Name\n";
 	cout << "Type '3' ----> Back to Main Menu\n";
 	cout << "\nEnter Here : ";
-	cin >> option;
-	if(option>3 || option<1){
-	cout << "\nChoose a Valid Option (1-3)\n\n";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	b: cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
 	system("PAUSE");
 	system("CLS");
 	goto a;
+	}
+	option = stoi(excp);
+	if(option>3 || option<1){
+    goto b;
 	}
 	else if(option == 1){
 	int rc;
@@ -597,7 +636,7 @@ void admin :: update_student(){
     if( rc != SQLITE_OK ){
     fprintf(stderr, "\nSQL error: %s\n", zErrMsg);
     sqlite3_free(zErrMsg);
-    cout << "\nUnable to update requested details of faculty... Try Again with valid ID...\n" << endl;
+    cout << "\nUnable to update requested details of student... Try Again with valid ID...\n" << endl;
     system("PAUSE");
     system("CLS");
     goto a;
@@ -681,11 +720,23 @@ void admin :: delete_student(){
 	a : cout << "\n\nAre you sure to delete the record of student with id " + id + " ? ";
 	cout << "\nPress '1' if 'YES' or '2' if 'NO'";
 	cout << "\nEnter Here : ";
-	int choice;
-	cin >> choice;
-	if(choice!=1 && choice!=2){
-	cout << "Invalid!!!\n";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	b: sqlite3_open("SAMS.db", &db);
+	cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
+	system("PAUSE");
+	system("CLS");
+    cout << "\n\nID    NAME" << endl;
+    sql = strdup("SELECT * from STUDENT ORDER BY ID");
+    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+    cout << "\n\nEnter the id to be deleted : " << id << endl;
 	goto a;
+	}
+    sqlite3_close(db);
+	int choice = stoi(excp);
+	if(choice!=1 && choice!=2){
+	goto b;
 	}
 	if(choice == 1){
     sqlite3_open("SAMS.db", &db);
@@ -736,12 +787,17 @@ void admin :: master_student_menu(admin &a){
 	cout << "Type '4' ----> View Student\n";
 	cout << "Type '5' ----> Back to Main Menu\n";
 	cout << "\nEnter Here : ";
-	cin >> option;
-	if(option>5 || option<1){
-	cout << "\nChoose a Valid Option (1-5)\n\n";
+	    cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	b : cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
 	system("PAUSE");
 	system("CLS");
 	goto a;
+	}
+	option = stoi(excp);
+	if(option>5 || option<1){
+	goto b;
 	}
 	else if(option == 1){
 	system("CLS");
@@ -776,12 +832,17 @@ void admin :: master_main_menu(admin &a){
 	cout << "Type '2' ----> Manage Student Data\n";
 	cout << "Type '3' ----> Back to Main Menu\n";
 	cout << "\nEnter Here : ";
-	cin >> option;
-	if(option>3 || option<1){
-	cout << "\nChoose a Valid Option (1-4)\n\n";
+    cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	b : cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
 	system("PAUSE");
 	system("CLS");
 	goto a;
+	}
+	option = stoi(excp);
+	if(option>3 || option<1){
+	goto b;
 	}
 	else if(option == 1){
 	system("CLS");
@@ -809,12 +870,17 @@ void main_menu(){
 	cout << "Type '3' ----> Student Login\n";
 	cout << "Type '4' ----> To Exit\n";
 	cout << "\nEnter Here : ";
-	cin >> option;
-	if(option>4 || option<1){
-	cout << "\nChoose a Valid Option (1-4)\n\n";
+    cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	b : cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
 	system("PAUSE");
 	system("CLS");
 	goto a;
+	}
+	option = stoi(excp);
+	if(option>4 || option<1){
+	goto b;
 	}
 	else if(option == 1){
 	cout << "Redirecting to Admin Login Page\n";
