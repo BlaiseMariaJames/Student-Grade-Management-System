@@ -476,12 +476,21 @@ void admin :: add_student(){
     string id;
 	sqlite3 *db;
     sqlite3_open("SAMS.db", &db);
-	char *zErrMsg, *sql, ch, name[30];
-	cout << "Enter the number of student(s) : ";
+    char *zErrMsg, *sql, ch, name[30];
+    cout << "\n\nID    NAME" << endl;
+    sql = strdup("SELECT * from STUDENT ORDER BY ID");
+    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+	cout << "\n\n\nEnter the number of student(s) : ";
 	cin >> n;
-	cout << "\nEntering Details of " << n << " student(s)..." << endl;
 	for(int i = 0; i < n; i++){
-	a: cout << "\nEntering Details of student " << i+1 << endl;
+	system("CLS");
+	a: cout << "Enter the number of student(s) : " << n << endl;
+	cout << "\nEntering Details of " << n << " student(s)..." << endl;
+    cout << "\n\nID    NAME" << endl;
+    sql = strdup("SELECT * from STUDENT ORDER BY ID");
+    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+    cout << "\n\n\n";
+	cout << "Entering Details of student " << i+1 << endl;
 	cout << "\nEnter Student ID : ";
 	cin >> id;
 	cout << "Enter Student Name : ";
@@ -509,14 +518,22 @@ void admin :: add_student(){
     sqlite3_free(zErrMsg);
     cout << "\nUnable to register requested details of faculty... Try Again with valid ID..." << endl;
     cout << endl;
+   	system("PAUSE");
+	system("CLS");
     goto a;
+    }
+    if(i == n-1)
+    cout << "\nDetails of student " << i+1 << " registered successfully... \n" << endl;
+    else{
+    cout << "\nDetails of student " << i+1 << " registered successfully... \n" << endl;
+    system("PAUSE");
     }
 	}
     sqlite3_close(db);
-	cout << "\nDetails of " << n << " student(s) registered successfully..." << endl;
+    cout << "\nDetails of " << n << " student(s) registered successfully..." << endl;
 	cout << endl;
-	system("PAUSE");
-	system("CLS");
+    system("PAUSE");
+    system("CLS");
 	return;
 }
 
