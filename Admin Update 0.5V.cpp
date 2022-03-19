@@ -129,11 +129,12 @@ void admin :: login_master(){
 }
 
 void admin :: add_faculty(){
-    int rc, n;
     sqlite3 *db;
-    string id, code;
+    int rc, n, dept_id;
     sqlite3_open("SAMS.db", &db);
-	char *zErrMsg, *sql, name[30], course[30], ch;
+	char *zErrMsg, *sql, ch, name[40], qualification[30], designation[40], research_area[60];
+	char dept[12][4] = {"CSE","CSM","CSN","CSO","IT ","ECE","EEE","ECI","CIV","MEC","EMH","ENG"};
+	char dept_no[12][4] = {"CS","AI","CN","IN","IT","EC","EE","CI","CE","ME","MH","EN"};
 	a: cout << "Enter the number of faculty(ies) : ";
 	cin >> excp;
 	roc = check_exception(excp);
@@ -147,12 +148,44 @@ void admin :: add_faculty(){
 	cout << "\nEntering Details of " << n << " faculty(ies)..." << endl;
 	for(int i = 0; i < n; i++){
 	b : cout << "\nEntering Details of faculty " << i+1 << endl;
-	cout << "\nEnter Faculty ID : ";
-	cin >> id;
+	cout << "\nSelect Branch \n\n";
+	cout << "Type '1' ----> CSE\n";
+	cout << "Type '2' ----> CSM\n";
+	cout << "Type '3' ----> CSN\n";
+	cout << "Type '4' ----> CSO\n";
+	cout << "Type '5' ----> IT\n";
+	cout << "Type '6' ----> ECE\n";
+	cout << "Type '7' ----> EEE\n";
+	cout << "Type '8' ----> ECI\n";
+	cout << "Type '9' ----> CIV\n";
+	cout << "Type '10' ----> ME\n";
+	cout << "Type '11' ----> EMH\n";
+	cout << "Type '12' ----> ENG\n";
+	cout << "\nEnter Here : ";
+    cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	c: cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
+	system("PAUSE");
+	system("CLS");
+	cout << "Enter the number of faculty(ies) : " << n << endl;
+	cout << "\nEntering Details of " << n << " faculty(ies)..." << endl;
+	goto b;
+	}
+	dept_id = stoi(excp);
+    if(dept_id>12 || dept_id<1){
+    goto c;
+	}
+	int id = dept_id - 1;
+	system("CLS");
+	cout << "Enter the number of faculty(ies) : " << n << endl;
+	cout << "\nEntering Details of " << n << " faculty(ies)..." << endl;
+	cout << "\nEntering Details of faculty " << i+1 << endl;
+	cout << "\nEnter Branch : " << dept[id] << endl;
 	cout << "Enter Faculty Name : ";
 	cin >> ch;
 	int j=0;
-	while (ch != '\n' && j<30){
+	while (ch != '\n' && j<40){
     name[j] = ch;
     ch = cin.get();
     j++;
@@ -160,38 +193,87 @@ void admin :: add_faculty(){
 	name[j] = '\0';
 	int len = 0;
 	len = strlen(name);
-	while(len < 29){
+	while(len < 39){
 	name[len] = ' ';
 	len = len + 1;
 	}
     name[len] = '\0';
-	cout << "Enter Course Name Allotted : ";
-    cin >> ch;
+	cout << "Enter Faculty Qualification : ";
+	cin >> ch;
 	j=0;
 	while (ch != '\n' && j<30){
-    course[j] = ch;
+    qualification[j] = ch;
     ch = cin.get();
     j++;
 	}
-	course[j] = '\0';
+	qualification[j] = '\0';
 	len = 0;
-	len = strlen(course);
+	len = strlen(qualification);
 	while(len < 29){
-	course[len] = ' ';
+	qualification[len] = ' ';
 	len = len + 1;
 	}
-    course[len] = '\0';
-	cout << "Enter Course Code Allotted : ";
-	cin >> code;
-	string insert_faculty = "INSERT INTO FACULTY (ID,NAME,COURSE,CODE) VALUES ('" + id + "', '" + name + "', '" + course + "', '" + code + "');";
+    qualification[len] = '\0';
+	cout << "Enter Faculty Designation : ";
+	cin >> ch;
+	j=0;
+	while (ch != '\n' && j<40){
+    designation[j] = ch;
+    ch = cin.get();
+    j++;
+	}
+	designation[j] = '\0';
+	len = 0;
+	len = strlen(designation);
+	while(len < 39){
+	designation[len] = ' ';
+	len = len + 1;
+	}
+    designation[len] = '\0';
+	cout << "Enter Faculty Research Area : ";
+	cin >> ch;
+    j=0;
+	while (ch != '\n' && j<60){
+    research_area[j] = ch;
+    ch = cin.get();
+    j++;
+	}
+	research_area[j] = '\0';
+	len = 0;
+	len = strlen(research_area);
+	while(len < 59){
+	research_area[len] = ' ';
+	len = len + 1;
+	}
+    research_area[len] = '\0';
+    string faculty_id = dept[id];
+    string faculty_name = name;
+    string faculty_qualification = qualification;
+    string faculty_designation = designation;
+    string faculty_researcharea = research_area;
+    string faculty_deptno = dept_no[id];
+	string insert_faculty = "INSERT INTO FACULTY VALUES ('" + faculty_id + "', '" + faculty_name + "', '" + faculty_qualification + "', '" + faculty_designation + "', '" + faculty_researcharea + "', '" + faculty_deptno + "');";
     const char *line = insert_faculty.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, create_insert_table, 0, &zErrMsg);
     if( rc != SQLITE_OK ){
     fprintf(stderr, "\nSQL error: %s\n", zErrMsg);
     sqlite3_free(zErrMsg);
-    cout << "\nUnable to register requested details of faculty... Try Again with valid ID..." << endl;
+    cout << "\nUnable to register requested details of faculty... Try Again with valid ID...\n" << endl;
+    system("PAUSE");
+    system("CLS");
+	cout << "Enter the number of faculty(ies) : " << n << endl;
+	cout << "\nEntering Details of " << n << " faculty(ies)..." << endl;
     goto b;
+    }
+    if(i == n-1)
+    cout << "\nDetails of student " << i+1 << " registered successfully..." << endl;
+    else{
+    cout << "\nDetails of student " << i+1 << " registered successfully... \n" << endl;
+    system("PAUSE");
+    system("CLS");
+	cout << "Enter the number of faculty(ies) : " << n << endl;
+	cout << "\nEntering Details of " << n << " faculty(ies)..." << endl;
     }
 	}
     sqlite3_close(db);
@@ -914,7 +996,13 @@ void main_menu(){
 void table_creation(sqlite3 *db){
    int rc;
    char *zErrMsg, *sql;
-   sql = strdup("CREATE TABLE FACULTY(ID VARCHAR2 (5) PRIMARY KEY, NAME  VARCHAR2 (30) NOT NULL, COURSE VARCHAR2 (30) NOT NULL, CODE VARCHAR2 (10) NOT NULL);");
+   sql = strdup("PRAGMA FOREIGNKEYS = ON;");
+   rc = sqlite3_exec(db, sql, create_insert_table, 0, &zErrMsg);
+   if( rc != SQLITE_OK ){
+   fprintf(stderr, "SQL error: %s\n", zErrMsg);
+   sqlite3_free(zErrMsg);
+   }
+   sql = strdup("CREATE TABLE FACULTY(FACULTYID VARCHAR2(6) PRIMARY KEY, FACULTYNAME  VARCHAR2 (40) NOT NULL, QUALIFICATION VARCHAR2 (30), DESIGNATION VARCHAR2 (40), RESEARCHAREA VARCHAR2 (60), DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID));");
    rc = sqlite3_exec(db, sql, create_insert_table, 0, &zErrMsg);
    if( rc != SQLITE_OK ){
    fprintf(stderr, "SQL error: %s\n", zErrMsg);
