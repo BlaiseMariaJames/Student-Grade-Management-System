@@ -5,6 +5,7 @@
 #include<sqlite3.h>
 using namespace std;
 
+int gbl_data = 0;
 string excp = "";
 bool roc = false;
 
@@ -101,6 +102,12 @@ static int exist_table(void *NotUsed, int argc, char **argv, char **azColName){
    return 1;
 }
 
+static int search_table(void *NotUsed, int argc, char **argv, char **azColName){
+   gbl_data = 0;
+   string data = argv[0] ? argv[0] : "NULL";
+   gbl_data = stoi(data);
+}
+
 void admin :: login_master(){
 	int count = 3;
 	a: cout << "WELCOME TO ADMIN LOGIN PAGE\n";
@@ -128,12 +135,38 @@ void admin :: login_master(){
 	return;
 }
 
+void search_faculty_function(string &faculty_id, string faculty_deptno){
+    int rc = 0;
+    sqlite3 *db;
+	string str = "";
+	char *zErrMsg, *sql;
+	sqlite3_open("SAMS.db", &db);
+    string search_faculty = "SELECT COUNT(*) FROM FACULTY WHERE DEPTNO = '" + faculty_deptno + "';";
+    const char *line = search_faculty.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, search_table, 0, &zErrMsg);
+    sqlite3_close(db);
+	if(gbl_data == 0){
+    faculty_id = faculty_id + "001";
+    system("CLS");
+    }
+    else{
+    gbl_data++;
+    if(gbl_data<10)
+    str = "00" + to_string(gbl_data);
+    else if(gbl_data<100)
+    str = "0" + to_string(gbl_data);
+    faculty_id = faculty_id + str;
+    system("CLS");
+    }
+}
+
 void admin :: add_faculty(){
     sqlite3 *db;
     int rc, n, dept_id;
     sqlite3_open("SAMS.db", &db);
 	char *zErrMsg, *sql, ch, name[40], qualification[30], designation[40], research_area[60];
-	char dept[12][4] = {"CSE","CSM","CSN","CSO","IT ","ECE","EEE","ECI","CIV","MEC","EMH","ENG"};
+	char dept[12][4] = {"CSE","CSM","CSN","CSO"," IT","ECE","EEE","ECI","CIV","MEC","EMH","ENG"};
 	char dept_no[12][4] = {"CS","AI","CN","IN","IT","EC","EE","CI","CE","ME","MH","EN"};
 	a: cout << "Enter the number of faculty(ies) : ";
 	cin >> excp;
@@ -177,7 +210,9 @@ void admin :: add_faculty(){
     goto c;
 	}
 	int id = dept_id - 1;
-	system("CLS");
+    string faculty_id = dept_no[id];
+    string faculty_deptno = dept_no[id];
+    search_faculty_function(faculty_id, faculty_deptno);
 	cout << "Enter the number of faculty(ies) : " << n << endl;
 	cout << "\nEntering Details of " << n << " faculty(ies)..." << endl;
 	cout << "\nEntering Details of faculty " << i+1 << endl;
@@ -246,12 +281,10 @@ void admin :: add_faculty(){
 	len = len + 1;
 	}
     research_area[len] = '\0';
-    string faculty_id = dept[id];
     string faculty_name = name;
     string faculty_qualification = qualification;
     string faculty_designation = designation;
     string faculty_researcharea = research_area;
-    string faculty_deptno = dept_no[id];
 	string insert_faculty = "INSERT INTO FACULTY VALUES ('" + faculty_id + "', '" + faculty_name + "', '" + faculty_qualification + "', '" + faculty_designation + "', '" + faculty_researcharea + "', '" + faculty_deptno + "');";
     const char *line = insert_faculty.c_str();
     sql = strdup(line);
