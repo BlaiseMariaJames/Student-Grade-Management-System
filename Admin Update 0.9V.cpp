@@ -611,18 +611,35 @@ void admin :: replace_faculty(){
 }
 
 void admin :: delete_faculty(){
-    int rc = 1;
-    string id;
     sqlite3 *db;
+    string faculty_id;
 	char *zErrMsg, *sql;
-    sqlite3_open("SAMS.db", &db);
-    cout << "\n\nID    NAME\t\t\t    COURSE\t\t\t  CODE" << endl;
-    sql = strdup("SELECT * from FACULTY ORDER BY ID");
+    int rc = 0, dept_id = 0;
+    select_branch_view_function(dept_id);
+	int id = dept_id - 1;
+	string faculty_deptno = dept_no[id];
+    system("CLS");
+	view_faculty_function(faculty_deptno);
+	if(gbl_data == 0){
+    cout << "\nERROR: No Faculty Details Found...." << endl;
+	cout << endl;
+	system("PAUSE");
+	system("CLS");
+	return;
+	}
+    cout << "\nDisplaying Details of faculty(ies) of branch " << dept[id] << "..."<< endl;
+    cout << "\n\nID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA\t\t\t\t\t\tBRANCH" << endl;
+    rc = sqlite3_open("SAMS.db", &db);
+    string view_faculty = "SELECT * from FACULTY WHERE DEPTNO = '" + faculty_deptno + "' ORDER BY FACULTYID";
+    const char *line = view_faculty.c_str();
+    sql = strdup(line);
     rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+    sqlite3_close(db);
+    sqlite3_open("SAMS.db", &db);
 	cout << "\n\nEnter the id to be deleted : ";
-	cin >> id;
-	string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE ID = '"+ id +"');";
-    const char *line = search_faculty.c_str();
+	cin >> faculty_id;
+	string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ faculty_id +"');";
+    line = search_faculty.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
     sqlite3_close(db);
@@ -633,20 +650,23 @@ void admin :: delete_faculty(){
     system("CLS");
     return;
     }
-	a: cout << "\n\nAre you sure to delete the record of faculty with id " + id + " ? ";
+	a: cout << "\n\nAre you sure to delete the record of faculty with id " + faculty_id + " ? ";
 	cout << "\nPress '1' if 'YES' or '2' if 'NO'";
 	cout << "\nEnter Here : ";
 	cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
-    b: sqlite3_open("SAMS.db", &db);
-	cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
+    b: cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
 	system("PAUSE");
 	system("CLS");
-    cout << "\n\nID    NAME\t\t\t    COURSE\t\t\t  CODE" << endl;
-    sql = strdup("SELECT * from FACULTY ORDER BY ID");
+    cout << "\nDisplaying Details of faculty(ies) of branch " << dept[id] << "..."<< endl;
+    cout << "\n\nID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA\t\t\t\t\t\tBRANCH" << endl;
+    rc = sqlite3_open("SAMS.db", &db);
+    string view_faculty = "SELECT * from FACULTY WHERE DEPTNO = '" + faculty_deptno + "' ORDER BY FACULTYID";
+    const char *line = view_faculty.c_str();
+    sql = strdup(line);
     rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-    cout << "\n\nEnter the id to be deleted : " << id << endl;
+    cout << "\n\nEnter the id to be deleted : " << faculty_id << endl;
 	goto a;
 	}
     sqlite3_close(db);
@@ -655,11 +675,35 @@ void admin :: delete_faculty(){
     goto b;
 	}
 	if(choice == 1){
+    string old_offset_string = "";
+    string new_offset_string = "";
+    string offset_string = faculty_id.substr(2,3);
+    int offset_index = stoi(offset_string);
+    offset_index++;
     sqlite3_open("SAMS.db", &db);
-    string delete_faculty = "DELETE from FACULTY where ID = '"+ id +"';";
+    string delete_faculty = "DELETE from FACULTY where FACULTYID = '"+ faculty_id + "' AND DEPTNO = '" + faculty_deptno + "';";
     const char *line = delete_faculty.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+    while(offset_index<=gbl_data){
+    if(offset_index<10)
+    old_offset_string = faculty_deptno + "00" + to_string(offset_index);
+    else if(offset_index<100)
+    old_offset_string = faculty_deptno + "0" + to_string(offset_index);
+    else if(offset_index<1000)
+    old_offset_string =  faculty_deptno + to_string(offset_index);
+    if(offset_index - 1 <10)
+    new_offset_string = faculty_deptno + "00" + to_string(offset_index - 1);
+    else if(offset_index - 1 <100)
+    new_offset_string = faculty_deptno + "0" + to_string(offset_index - 1);
+    else if(offset_index - 1 <1000)
+    new_offset_string = faculty_deptno + to_string(offset_index - 1);
+    string update_faculty = "UPDATE FACULTY set FACULTYID = '"+ new_offset_string +"' WHERE FACULTYID = '"+ old_offset_string +"';";
+    const char *line = update_faculty.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+    offset_index++;
+    }
 	sqlite3_close(db);
     cout << "\nRequested details deleted successfully..." << endl;
     cout << endl;
@@ -1034,18 +1078,35 @@ void admin :: replace_student(){
 }
 
 void admin :: delete_student(){
-	int rc = 1;
-    string id;
     sqlite3 *db;
+    string student_id;
 	char *zErrMsg, *sql;
-    sqlite3_open("SAMS.db", &db);
-    cout << "\n\nID    NAME" << endl;
-    sql = strdup("SELECT * from STUDENT ORDER BY ID");
+	int rc = 0, dept_id = 0;
+    select_branch_view_function(dept_id);
+	int id = dept_id - 1;
+	string student_deptno = dept_no[id];
+    system("CLS");
+	view_student_function(student_deptno);
+	if(gbl_data == 0){
+    cout << "\nERROR: No Student Details Found...." << endl;
+	cout << endl;
+	system("PAUSE");
+	system("CLS");
+	return;
+	}
+    cout << "\nDisplaying Details of student(s) of branch " << dept[id] << "..."<< endl;
+    cout << "\n\nID    NAME\t\t\t    ACADEMIC YEAR\tBRANCH" << endl;
+    rc = sqlite3_open("SAMS.db", &db);
+    string view_student = "SELECT * from STUDENT WHERE DEPTNO = '" + student_deptno + "' ORDER BY STUDENTID";
+    const char *line = view_student.c_str();
+    sql = strdup(line);
     rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+    sqlite3_close(db);
+    sqlite3_open("SAMS.db", &db);
 	cout << "\n\nEnter the id to be deleted : ";
-	cin >> id;
-	string search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE ID = '"+ id +"');";
-    const char *line = search_student.c_str();
+	cin >> student_id;
+	string search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDENTID = '"+ student_id +"');";
+    line = search_student.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
     sqlite3_close(db);
@@ -1056,20 +1117,20 @@ void admin :: delete_student(){
     system("CLS");
     return;
     }
-	a : cout << "\n\nAre you sure to delete the record of student with id " + id + " ? ";
+	a : cout << "\n\nAre you sure to delete the record of student with id " + student_id + " ? ";
 	cout << "\nPress '1' if 'YES' or '2' if 'NO'";
 	cout << "\nEnter Here : ";
 	cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
-	b: sqlite3_open("SAMS.db", &db);
-	cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
+	b: cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
 	system("PAUSE");
 	system("CLS");
-    cout << "\n\nID    NAME" << endl;
-    sql = strdup("SELECT * from STUDENT ORDER BY ID");
+    cout << "\nDisplaying Details of student(s) of branch " << dept[id] << "..."<< endl;
+    cout << "\n\nID    NAME\t\t\t    ACADEMIC YEAR\tBRANCH" << endl;
+    sql = strdup("SELECT * from STUDENT ORDER BY STUDENTID");
     rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-    cout << "\n\nEnter the id to be deleted : " << id << endl;
+    cout << "\n\nEnter the id to be deleted : " << student_id << endl;
 	goto a;
 	}
     sqlite3_close(db);
@@ -1078,11 +1139,35 @@ void admin :: delete_student(){
 	goto b;
 	}
 	if(choice == 1){
+    string old_offset_string = "";
+    string new_offset_string = "";
+    string offset_string = student_id.substr(2,3);
+    int offset_index = stoi(offset_string);
+    offset_index++;
     sqlite3_open("SAMS.db", &db);
-    string delete_student = "DELETE from STUDENT where ID = '"+ id +"';";
+    string delete_student = "DELETE from STUDENT where STUDENTID = '"+ student_id + "' AND DEPTNO = '" + student_deptno + "';";
     const char *line = delete_student.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+    while(offset_index<=gbl_data){
+    if(offset_index<10)
+    old_offset_string = student_deptno + "00" + to_string(offset_index);
+    else if(offset_index<100)
+    old_offset_string = student_deptno + "0" + to_string(offset_index);
+    else if(offset_index<1000)
+    old_offset_string =  student_deptno + to_string(offset_index);
+    if(offset_index - 1 <10)
+    new_offset_string = student_deptno + "00" + to_string(offset_index - 1);
+    else if(offset_index - 1 <100)
+    new_offset_string = student_deptno + "0" + to_string(offset_index - 1);
+    else if(offset_index - 1 <1000)
+    new_offset_string = student_deptno + to_string(offset_index - 1);
+    string update_student = "UPDATE STUDENT set STUDENTID = '"+ new_offset_string +"' WHERE STUDENTID = '"+ old_offset_string +"';";
+    const char *line = update_student.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+    offset_index++;
+    }
 	sqlite3_close(db);
     cout << "\nRequested details deleted successfully..." << endl;
     cout << endl;
