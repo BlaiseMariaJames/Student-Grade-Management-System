@@ -80,6 +80,17 @@ bool check_exception(string exp){
 	return false;
 }
 
+void clear_screen(){
+	system("PAUSE");
+	system("CLS");
+}
+
+void error_message(){
+	cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
+	clear_screen();
+	return;
+}
+
 static int create_insert_table(void *NotUsed, int argc, char **argv, char **azColName) {
     for(int i = 0; i<argc; i++) {
     printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
@@ -131,9 +142,7 @@ void select_branch_insert_function(int i, int n, string str1, string str2, int &
     cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
-	b: cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
-	system("PAUSE");
-	system("CLS");
+	b: error_message();
 	cout << "Enter the number of " << str1 << " : " << n << endl;
 	cout << "\nEntering Details of " << n << " " << str1 << "..." << endl;
 	cout << "\nEntering Details of " << str2 << " " << i+1 << endl;
@@ -163,9 +172,7 @@ void select_branch_view_function(int &dept_id){
     cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
-	b: cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
-	system("PAUSE");
-	system("CLS");
+	b: error_message();
 	goto a;
 	}
 	dept_id = stoi(excp);
@@ -218,12 +225,10 @@ void admin :: login_master(){
 	}
 	count--;
 	cout << "\n\nYou have '" << count + 1 << "' more chances!!!\n";
-	system("PAUSE");
-	system("CLS");
+	clear_screen();
 	goto a;
 	}
-	system("PAUSE");
-	system("CLS");
+	clear_screen();
 	return;
 }
 
@@ -264,9 +269,7 @@ void admin :: add_faculty(){
 	cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
-	cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
-	system("PAUSE");
-	system("CLS");
+	error_message();
 	goto a;
 	}
 	n = stoi(excp);
@@ -358,8 +361,7 @@ void admin :: add_faculty(){
     fprintf(stderr, "\nSQL error: %s\n", zErrMsg);
     sqlite3_free(zErrMsg);
     cout << "\nUnable to register requested details of faculty... Try Again with valid ID...\n" << endl;
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
 	cout << "Enter the number of faculty(ies) : " << n << endl;
 	cout << "\nEntering Details of " << n << " faculty(ies)..." << endl;
     goto b;
@@ -368,8 +370,7 @@ void admin :: add_faculty(){
     cout << "\nDetails of student " << i+1 << " registered successfully..." << endl;
     else{
     cout << "\nDetails of student " << i+1 << " registered successfully... \n" << endl;
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
 	cout << "Enter the number of faculty(ies) : " << n << endl;
 	cout << "\nEntering Details of " << n << " faculty(ies)..." << endl;
     }
@@ -377,8 +378,7 @@ void admin :: add_faculty(){
     sqlite3_close(db);
     cout << "\nDetails of " << n << " faculty(ies) registered successfully..." << endl;
     cout << endl;
-	system("PAUSE");
-	system("CLS");
+	clear_screen();
 	return;
 }
 
@@ -403,8 +403,7 @@ int update_faculty_function(string &faculty_id, int id, string faculty_deptno){
 	if(rc == 0){
     cout << "\nFaculty with requested ID doesn't exist..." << endl;
     cout << "\nUnable to update requested details of faculty... Try Again using valid ID...\n" << endl;
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
     return 0;
     }
     else
@@ -425,8 +424,7 @@ void admin :: update_faculty(){
 	if(gbl_data == 0){
     cout << "\nERROR: No Faculty Details Found...." << endl;
 	cout << endl;
-	system("PAUSE");
-	system("CLS");
+	clear_screen();
 	return;
 	}
 	a: cout << "Selected Branch : " << dept[id] << endl;
@@ -440,9 +438,7 @@ void admin :: update_faculty(){
 	cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
-	b: cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
-	system("PAUSE");
-	system("CLS");
+	b: error_message();
 	goto a;
 	}
 	option = stoi(excp);
@@ -481,8 +477,7 @@ void admin :: update_faculty(){
     sqlite3_close(db);
     cout << "\nRequested details updated successfully..." << endl;
     cout << endl;
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
     return;
 	}
 	}
@@ -518,8 +513,7 @@ void admin :: update_faculty(){
     sqlite3_close(db);
     cout << "\nRequested details updated successfully..." << endl;
     cout << endl;
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
     return;
 	}
     }
@@ -555,8 +549,7 @@ void admin :: update_faculty(){
     sqlite3_close(db);
     cout << "\nRequested details updated successfully..." << endl;
     cout << endl;
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
     return;
 	}
 	}
@@ -592,15 +585,13 @@ void admin :: update_faculty(){
     sqlite3_close(db);
     cout << "\nRequested details updated successfully..." << endl;
     cout << endl;
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
     return;
 	}
 	}
 	if(option == 5){
 	cout << "Redirecting back...\n";
-	system("PAUSE");
-	system("CLS");
+	clear_screen();
 	return;
 	}
 }
@@ -619,8 +610,7 @@ void admin :: shift_faculty(){
 	if(gbl_data == 0){
     cout << "\nERROR: No Faculty Details Found...." << endl;
 	cout << endl;
-	system("PAUSE");
-	system("CLS");
+	clear_screen();
 	return;
 	}
     cout << "\nDisplaying Details of faculty(ies) of branch " << dept[id] << "..."<< endl;
@@ -642,8 +632,7 @@ void admin :: shift_faculty(){
     sqlite3_close(db);
     cout << "\nFaculty with requested ID doesn't exist..." << endl;
     cout << "\nUnable to shift requested details of faculty... Try Again using valid ID...\n" << endl;
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
     return;
     }
     cout << "\nEnter the id corresponding to the location where " << old_faculty_id << " is to be shifted : ";
@@ -656,8 +645,7 @@ void admin :: shift_faculty(){
     sqlite3_close(db);
     cout << "\nFaculty with requested ID doesn't exist..." << endl;
     cout << "\nUnable to shift requested details of faculty... Try Again using valid ID...\n" << endl;
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
     return;
     }
     string old_offset_string = old_faculty_id.substr(2,3);
@@ -668,8 +656,7 @@ void admin :: shift_faculty(){
 	sqlite3_close(db);
     cout << "\nRequested details shifted successfully..." << endl;
     cout << endl;
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
     return;
 	}
 	else if(old_offset_index > new_offset_index){
@@ -705,8 +692,7 @@ void admin :: shift_faculty(){
 	sqlite3_close(db);
     cout << "\nRequested details shifted successfully..." << endl;
     cout << endl;
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
     return;
 	}
 	else if(old_offset_index < new_offset_index){
@@ -742,8 +728,7 @@ void admin :: shift_faculty(){
 	sqlite3_close(db);
     cout << "\nRequested details shifted successfully..." << endl;
     cout << endl;
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
     return;
 	}
 }
@@ -761,8 +746,7 @@ void admin :: delete_faculty(){
 	if(gbl_data == 0){
     cout << "\nERROR: No Faculty Details Found...." << endl;
 	cout << endl;
-	system("PAUSE");
-	system("CLS");
+	clear_screen();
 	return;
 	}
     cout << "\nDisplaying Details of faculty(ies) of branch " << dept[id] << "..."<< endl;
@@ -784,8 +768,7 @@ void admin :: delete_faculty(){
     if(rc == 0){
     cout << "\nFaculty with requested ID doesn't exist..." << endl;
     cout << "\nUnable to delete requested details of faculty... Try Again using valid ID...\n" << endl;
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
     return;
     }
 	a: cout << "\n\nAre you sure to delete the record of faculty with id " + faculty_id + " ? ";
@@ -794,9 +777,7 @@ void admin :: delete_faculty(){
 	cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
-    b: cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
-	system("PAUSE");
-	system("CLS");
+    b: error_message();
     cout << "\nDisplaying Details of faculty(ies) of branch " << dept[id] << "..."<< endl;
     cout << "\n\nID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA\t\t\t\t\t\tBRANCH" << endl;
     rc = sqlite3_open("SAMS.db", &db);
@@ -845,15 +826,13 @@ void admin :: delete_faculty(){
 	sqlite3_close(db);
     cout << "\nRequested details deleted successfully..." << endl;
     cout << endl;
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
     return;
 	}
 	if(choice == 2){
     cout << "\nRequested details retained successfully..." << endl;
     cout << endl;
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
 	return;
 	}
 }
@@ -883,8 +862,7 @@ void admin :: view_faculty(){
     cout << "\nDetails of all faculty(ies) of branch " << dept[id] << " displayed successfully..." << endl;
     cout << endl;
 	}
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
     return;
 }
 
@@ -902,9 +880,7 @@ void admin :: master_faculty_menu(admin &a){
     cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
-	b : cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
-	system("PAUSE");
-	system("CLS");
+	b : error_message();
 	goto a;
 	}
 	option = stoi(excp);
@@ -934,8 +910,7 @@ void admin :: master_faculty_menu(admin &a){
 	}
 	if(option == 6){
 	cout << "Redirecting back to Admin Page\n";
-	system("PAUSE");
-	system("CLS");
+	clear_screen();
 	return;
 	}
 }
@@ -979,9 +954,7 @@ void admin :: add_student(){
 	cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
-	cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
-	system("PAUSE");
-	system("CLS");
+	error_message();
 	goto a;
 	}
 	n = stoi(excp);
@@ -1039,8 +1012,7 @@ void admin :: add_student(){
     fprintf(stderr, "\nSQL error: %s\n", zErrMsg);
     sqlite3_free(zErrMsg);
     cout << "\nUnable to register requested details of student... Try Again with valid ID...\n" << endl;
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
 	cout << "Enter the number of student(s) : " << n << endl;
 	cout << "\nEntering Details of " << n << " student(s)..." << endl;
     goto b;
@@ -1049,8 +1021,7 @@ void admin :: add_student(){
     cout << "\nDetails of student " << i+1 << " registered successfully..." << endl;
     else{
     cout << "\nDetails of student " << i+1 << " registered successfully... \n" << endl;
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
 	cout << "Enter the number of student(s) : " << n << endl;
 	cout << "\nEntering Details of " << n << " student(s)..." << endl;
     }
@@ -1058,8 +1029,7 @@ void admin :: add_student(){
     sqlite3_close(db);
 	cout << "\nDetails of " << n << " student(s) registered successfully..." << endl;
 	cout << endl;
-	system("PAUSE");
-	system("CLS");
+	clear_screen();
 	return;
 }
 
@@ -1084,8 +1054,7 @@ int update_student_function(string &student_id, int id, string student_deptno){
 	if(rc == 0){
     cout << "\nStudent with requested ID doesn't exist..." << endl;
     cout << "\nUnable to update requested details of student... Try Again using valid ID...\n" << endl;
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
     return 0;
     }
     else
@@ -1106,8 +1075,7 @@ void admin :: update_student(){
 	if(gbl_data == 0){
     cout << "\nERROR: No Student Details Found...." << endl;
 	cout << endl;
-	system("PAUSE");
-	system("CLS");
+	clear_screen();
 	return;
 	}
 	a: cout << "Selected Branch : " << dept[id] << endl;
@@ -1119,9 +1087,7 @@ void admin :: update_student(){
 	cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
-	b: cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
-	system("PAUSE");
-	system("CLS");
+	b: error_message();
 	goto a;
 	}
 	option = stoi(excp);
@@ -1160,8 +1126,7 @@ void admin :: update_student(){
     sqlite3_close(db);
     cout << "\nRequested details updated successfully..." << endl;
     cout << endl;
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
     return;
 	}
 	}
@@ -1197,15 +1162,13 @@ void admin :: update_student(){
     sqlite3_close(db);
     cout << "\nRequested details updated successfully..." << endl;
     cout << endl;
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
     return;
 	}
 	}
 	if(option == 3){
 	cout << "Redirecting back...\n";
-	system("PAUSE");
-	system("CLS");
+	clear_screen();
 	return;
 	}
 }
@@ -1224,8 +1187,7 @@ void admin :: shift_student(){
 	if(gbl_data == 0){
     cout << "\nERROR: No Student Details Found...." << endl;
 	cout << endl;
-	system("PAUSE");
-	system("CLS");
+	clear_screen();
 	return;
 	}
     cout << "\nDisplaying Details of student(s) of branch " << dept[id] << "..."<< endl;
@@ -1247,8 +1209,7 @@ void admin :: shift_student(){
     sqlite3_close(db);
     cout << "\nStudent with requested ID doesn't exist..." << endl;
     cout << "\nUnable to shift requested details of Student... Try Again using valid ID...\n" << endl;
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
     return;
     }
     cout << "\nEnter the id corresponding to the location where " << old_student_id << " is to be shifted : ";
@@ -1261,8 +1222,7 @@ void admin :: shift_student(){
     sqlite3_close(db);
     cout << "\nStudent with requested ID doesn't exist..." << endl;
     cout << "\nUnable to shift requested details of student... Try Again using valid ID...\n" << endl;
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
     return;
     }
     string old_offset_string = old_student_id.substr(2,3);
@@ -1273,8 +1233,7 @@ void admin :: shift_student(){
 	sqlite3_close(db);
     cout << "\nRequested details shifted successfully..." << endl;
     cout << endl;
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
     return;
 	}
 	else if(old_offset_index > new_offset_index){
@@ -1310,8 +1269,7 @@ void admin :: shift_student(){
 	sqlite3_close(db);
     cout << "\nRequested details shifted successfully..." << endl;
     cout << endl;
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
     return;
 	}
 	else if(old_offset_index < new_offset_index){
@@ -1347,8 +1305,7 @@ void admin :: shift_student(){
 	sqlite3_close(db);
     cout << "\nRequested details shifted successfully..." << endl;
     cout << endl;
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
     return;
 	}
 }
@@ -1366,8 +1323,7 @@ void admin :: delete_student(){
 	if(gbl_data == 0){
     cout << "\nERROR: No Student Details Found...." << endl;
 	cout << endl;
-	system("PAUSE");
-	system("CLS");
+	clear_screen();
 	return;
 	}
     cout << "\nDisplaying Details of student(s) of branch " << dept[id] << "..."<< endl;
@@ -1389,8 +1345,7 @@ void admin :: delete_student(){
 	if(rc == 0){
     cout << "\nStudent with requested ID doesn't exist..." << endl;
     cout << "\nUnable to delete requested details of student... Try Again using valid ID...\n" << endl;
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
     return;
     }
 	a : cout << "\n\nAre you sure to delete the record of student with id " + student_id + " ? ";
@@ -1399,9 +1354,7 @@ void admin :: delete_student(){
 	cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
-	b: cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
-	system("PAUSE");
-	system("CLS");
+	b: error_message();
     cout << "\nDisplaying Details of student(s) of branch " << dept[id] << "..."<< endl;
     cout << "\n\nID    NAME\t\t\t    ACADEMIC YEAR\tBRANCH" << endl;
     sql = strdup("SELECT * from STUDENT ORDER BY STUDENTID");
@@ -1447,15 +1400,13 @@ void admin :: delete_student(){
 	sqlite3_close(db);
     cout << "\nRequested details deleted successfully..." << endl;
     cout << endl;
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
     return;
 	}
 	if(choice == 2){
     cout << "\nRequested details retained successfully..." << endl;
     cout << endl;
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
 	return;
 	}
 }
@@ -1485,8 +1436,7 @@ void admin :: view_student(){
     cout << "\nDetails of all student(s) of branch " << dept[id] << " displayed successfully..." << endl;
     cout << endl;
 	}
-    system("PAUSE");
-    system("CLS");
+    clear_screen();
     return;
 }
 
@@ -1504,9 +1454,7 @@ void admin :: master_student_menu(admin &a){
     cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
-	b : cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
-	system("PAUSE");
-	system("CLS");
+	b : error_message();
 	goto a;
 	}
 	option = stoi(excp);
@@ -1536,8 +1484,7 @@ void admin :: master_student_menu(admin &a){
 	}
 	if(option == 6){
 	cout << "Redirecting back to Admin Page\n";
-	system("PAUSE");
-	system("CLS");
+	clear_screen();
 	return;
 	}
 }
@@ -1553,9 +1500,7 @@ void admin :: master_main_menu(admin &a){
     cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
-	b : cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
-	system("PAUSE");
-	system("CLS");
+	b : error_message();
 	goto a;
 	}
 	option = stoi(excp);
@@ -1573,8 +1518,7 @@ void admin :: master_main_menu(admin &a){
 	}
 	if(option == 3){
 	cout << "Redirecting back to Main Menu\n";
-	system("PAUSE");
-	system("CLS");
+	clear_screen();
 	return;
 	}
 }
@@ -1591,9 +1535,7 @@ void main_menu(){
     cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
-	b : cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
-	system("PAUSE");
-	system("CLS");
+	b : error_message();
 	goto a;
 	}
 	option = stoi(excp);
@@ -1602,23 +1544,20 @@ void main_menu(){
 	}
 	else if(option == 1){
 	cout << "Redirecting to Admin Login Page\n";
-	system("PAUSE");
-	system("CLS");
+	clear_screen();
 	admin a;
 	a.login_master();
 	a.master_main_menu(a);
 	}
 	else if(option == 2){
 	cout << "Redirecting to Faculty Login Page\n";
-	system("PAUSE");
-	system("CLS");
+	clear_screen();
 	course_teacher t;
 	// t.login_teacher(t);
 	}
 	else if(option == 3){
 	cout << "Redirecting to Student Login Page\n";
-	system("PAUSE");
-	system("CLS");
+	clear_screen();
 	section s;
 	// s.login_student();
 	// s.student_main_menu(s);
