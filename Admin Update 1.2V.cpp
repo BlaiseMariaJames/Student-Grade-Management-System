@@ -207,6 +207,51 @@ void view_student_function(string student_deptno){
     sqlite3_close(db);
 }
 
+void create_padded_string(int offset_index, string str, string &old_offset_string, string &new_offset_string){
+	if(offset_index<10)
+    old_offset_string = str + "00" + to_string(offset_index);
+    else if(offset_index<100)
+    old_offset_string = str + "0" + to_string(offset_index);
+    else if(offset_index<1000)
+    old_offset_string =  str + to_string(offset_index);
+    if(offset_index - 1 <10)
+    new_offset_string = str + "00" + to_string(offset_index - 1);
+    else if(offset_index - 1 <100)
+    new_offset_string = str + "0" + to_string(offset_index - 1);
+    else if(offset_index - 1 <1000)
+    new_offset_string = str + to_string(offset_index - 1);
+}
+
+void create_lesser_padded_string(int old_offset_index, string str, string &old_offset_string, string &new_offset_string){
+    if(old_offset_index<10)
+    old_offset_string = str + "00" + to_string(old_offset_index);
+    else if(old_offset_index<100)
+    old_offset_string = str + "0" + to_string(old_offset_index);
+    else if(old_offset_index<1000)
+    old_offset_string =  str + to_string(old_offset_index);
+    if(old_offset_index - 1 <10)
+    new_offset_string = str + "00" + to_string(old_offset_index - 1);
+    else if(old_offset_index - 1 <100)
+    new_offset_string = str + "0" + to_string(old_offset_index - 1);
+    else if(old_offset_index - 1 <1000)
+    new_offset_string = str + to_string(old_offset_index - 1);
+}
+
+void create_greater_padded_string(int old_offset_index, string str, string &old_offset_string, string &new_offset_string){
+    if(old_offset_index<10)
+    old_offset_string = str + "00" + to_string(old_offset_index);
+    else if(old_offset_index<100)
+    old_offset_string = str + "0" + to_string(old_offset_index);
+    else if(old_offset_index<1000)
+    old_offset_string = str + to_string(old_offset_index);
+    if(old_offset_index + 1 <10)
+    new_offset_string = str + "00" + to_string(old_offset_index + 1);
+    else if(old_offset_index + 1 <100)
+    new_offset_string = str + "0" + to_string(old_offset_index + 1);
+    else if(old_offset_index + 1 <1000)
+    new_offset_string = str + to_string(old_offset_index + 1);
+}
+
 void admin :: login_master(){
 	int count = 3;
 	a: cout << "WELCOME TO ADMIN LOGIN PAGE\n";
@@ -382,6 +427,28 @@ void admin :: add_faculty(){
 	return;
 }
 
+int check_existence(string str, string id){
+	int rc = 1;
+    sqlite3 *db;
+	char *zErrMsg, *sql;
+	string search_str = "SELECT EXISTS(SELECT * from " + str + " WHERE " + (str + "ID") + " = '"+ id +"');";
+    const char *line = search_str.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    sqlite3_close(db);
+	if(rc == 0){
+	if(str == "faculty")	
+    cout << "\nFaculty with requested ID doesn't exist..." << endl;
+    else
+    cout << "\nStudent with requested ID doesn't exist..." << endl;
+    cout << "\nUnable to update requested details of " + str + "... Try Again using valid ID...\n" << endl;
+    clear_screen();
+    return 0;
+    }
+    else
+    return 1;
+}
+
 int update_faculty_function(string &faculty_id, int id, string faculty_deptno){
     int rc = 1;
     sqlite3 *db;
@@ -395,19 +462,8 @@ int update_faculty_function(string &faculty_id, int id, string faculty_deptno){
     rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     cout << "\n\nEnter the ID to be updated : ";
     cin >> faculty_id;
-    string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ faculty_id +"');";
-    line = search_faculty.c_str();
-    sql = strdup(line);
-    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
-    sqlite3_close(db);
-	if(rc == 0){
-    cout << "\nFaculty with requested ID doesn't exist..." << endl;
-    cout << "\nUnable to update requested details of faculty... Try Again using valid ID...\n" << endl;
-    clear_screen();
-    return 0;
-    }
-    else
-    return 1;
+    rc = check_existence("faculty",faculty_id);
+    return rc;
 }
 
 void admin :: update_faculty(){
@@ -667,18 +723,7 @@ void admin :: shift_faculty(){
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     while(old_offset_index>=new_offset_index){
-    if(old_offset_index<10)
-    old_offset_string = faculty_deptno + "00" + to_string(old_offset_index);
-    else if(old_offset_index<100)
-    old_offset_string = faculty_deptno + "0" + to_string(old_offset_index);
-    else if(old_offset_index<1000)
-    old_offset_string =  faculty_deptno + to_string(old_offset_index);
-    if(old_offset_index + 1 <10)
-    new_offset_string = faculty_deptno + "00" + to_string(old_offset_index + 1);
-    else if(old_offset_index + 1 <100)
-    new_offset_string = faculty_deptno + "0" + to_string(old_offset_index + 1);
-    else if(old_offset_index + 1 <1000)
-    new_offset_string = faculty_deptno + to_string(old_offset_index + 1);
+    create_greater_padded_string(old_offset_index,faculty_deptno,old_offset_string,new_offset_string);
     string update_faculty = "UPDATE FACULTY set FACULTYID = '"+ new_offset_string +"' WHERE FACULTYID = '"+ old_offset_string +"';";
     const char *line = update_faculty.c_str();
     sql = strdup(line);
@@ -703,18 +748,7 @@ void admin :: shift_faculty(){
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     while(old_offset_index<=new_offset_index){
-    if(old_offset_index<10)
-    old_offset_string = faculty_deptno + "00" + to_string(old_offset_index);
-    else if(old_offset_index<100)
-    old_offset_string = faculty_deptno + "0" + to_string(old_offset_index);
-    else if(old_offset_index<1000)
-    old_offset_string =  faculty_deptno + to_string(old_offset_index);
-    if(old_offset_index - 1 <10)
-    new_offset_string = faculty_deptno + "00" + to_string(old_offset_index - 1);
-    else if(old_offset_index - 1 <100)
-    new_offset_string = faculty_deptno + "0" + to_string(old_offset_index - 1);
-    else if(old_offset_index - 1 <1000)
-    new_offset_string = faculty_deptno + to_string(old_offset_index - 1);
+    create_lesser_padded_string(old_offset_index,faculty_deptno,old_offset_string,new_offset_string);
     string update_faculty = "UPDATE FACULTY set FACULTYID = '"+ new_offset_string +"' WHERE FACULTYID = '"+ old_offset_string +"';";
     const char *line = update_faculty.c_str();
     sql = strdup(line);
@@ -805,18 +839,7 @@ void admin :: delete_faculty(){
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     while(offset_index<=gbl_data){
-    if(offset_index<10)
-    old_offset_string = faculty_deptno + "00" + to_string(offset_index);
-    else if(offset_index<100)
-    old_offset_string = faculty_deptno + "0" + to_string(offset_index);
-    else if(offset_index<1000)
-    old_offset_string =  faculty_deptno + to_string(offset_index);
-    if(offset_index - 1 <10)
-    new_offset_string = faculty_deptno + "00" + to_string(offset_index - 1);
-    else if(offset_index - 1 <100)
-    new_offset_string = faculty_deptno + "0" + to_string(offset_index - 1);
-    else if(offset_index - 1 <1000)
-    new_offset_string = faculty_deptno + to_string(offset_index - 1);
+    create_padded_string(offset_index,faculty_deptno,old_offset_string,new_offset_string);
     string update_faculty = "UPDATE FACULTY set FACULTYID = '"+ new_offset_string +"' WHERE FACULTYID = '"+ old_offset_string +"';";
     const char *line = update_faculty.c_str();
     sql = strdup(line);
@@ -1244,18 +1267,7 @@ void admin :: shift_student(){
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     while(old_offset_index>=new_offset_index){
-    if(old_offset_index<10)
-    old_offset_string = student_deptno + "00" + to_string(old_offset_index);
-    else if(old_offset_index<100)
-    old_offset_string = student_deptno + "0" + to_string(old_offset_index);
-    else if(old_offset_index<1000)
-    old_offset_string = student_deptno + to_string(old_offset_index);
-    if(old_offset_index + 1 <10)
-    new_offset_string = student_deptno + "00" + to_string(old_offset_index + 1);
-    else if(old_offset_index + 1 <100)
-    new_offset_string = student_deptno + "0" + to_string(old_offset_index + 1);
-    else if(old_offset_index + 1 <1000)
-    new_offset_string = student_deptno + to_string(old_offset_index + 1);
+    create_greater_padded_string(old_offset_index,student_deptno,old_offset_string,new_offset_string);
     string update_student = "UPDATE STUDENT set STUDENTID = '"+ new_offset_string +"' WHERE STUDENTID = '"+ old_offset_string +"';";
     const char *line = update_student.c_str();
     sql = strdup(line);
@@ -1280,18 +1292,7 @@ void admin :: shift_student(){
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     while(old_offset_index<=new_offset_index){
-    if(old_offset_index<10)
-    old_offset_string = student_deptno + "00" + to_string(old_offset_index);
-    else if(old_offset_index<100)
-    old_offset_string = student_deptno + "0" + to_string(old_offset_index);
-    else if(old_offset_index<1000)
-    old_offset_string = student_deptno + to_string(old_offset_index);
-    if(old_offset_index - 1 <10)
-    new_offset_string = student_deptno + "00" + to_string(old_offset_index - 1);
-    else if(old_offset_index - 1 <100)
-    new_offset_string = student_deptno + "0" + to_string(old_offset_index - 1);
-    else if(old_offset_index - 1 <1000)
-    new_offset_string = student_deptno + to_string(old_offset_index - 1);
+    create_lesser_padded_string(old_offset_index,student_deptno,old_offset_string,new_offset_string);
     string update_student = "UPDATE STUDENT set STUDENTID = '"+ new_offset_string +"' WHERE STUDENTID = '"+ old_offset_string +"';";
     const char *line = update_student.c_str();
     sql = strdup(line);
@@ -1379,18 +1380,7 @@ void admin :: delete_student(){
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     while(offset_index<=gbl_data){
-    if(offset_index<10)
-    old_offset_string = student_deptno + "00" + to_string(offset_index);
-    else if(offset_index<100)
-    old_offset_string = student_deptno + "0" + to_string(offset_index);
-    else if(offset_index<1000)
-    old_offset_string =  student_deptno + to_string(offset_index);
-    if(offset_index - 1 <10)
-    new_offset_string = student_deptno + "00" + to_string(offset_index - 1);
-    else if(offset_index - 1 <100)
-    new_offset_string = student_deptno + "0" + to_string(offset_index - 1);
-    else if(offset_index - 1 <1000)
-    new_offset_string = student_deptno + to_string(offset_index - 1);
+    create_padded_string(offset_index,student_deptno,old_offset_string,new_offset_string);
     string update_student = "UPDATE STUDENT set STUDENTID = '"+ new_offset_string +"' WHERE STUDENTID = '"+ old_offset_string +"';";
     const char *line = update_student.c_str();
     sql = strdup(line);
