@@ -6,8 +6,9 @@
 using namespace std;
 
 int gbl_data = 0;
-string excp = "";
 bool roc = false;
+string excp = "";
+string gbl_password = "1234";
 char dept[12][4] = {"CSE","CSM","CSN","CSO"," IT","ECE","EEE","ECI","CIV","MEC","EMH","ENG"};
 char dept_no[12][4] = {"CS","AI","CN","IN","IT","EC","EE","CI","CE","ME","MH","EN"};
 
@@ -21,7 +22,7 @@ class student{
 
 class class_teacher : public student{
 	protected:
-	char class_teacher_id[6] = {"001"}; int teacher_password;
+	string teacher_id, teacher_password;
 	public:
 	void read(student &s, char* roll_number, int k);
 	void calculate_student_marks(student &s);
@@ -34,21 +35,28 @@ class class_teacher : public student{
 };
 
 class section : public class_teacher{
-	char student_id[6], subject[20]; int student_password;
+    string student_id, student_password, subject;
 	public:
-	void login_student();
+	int login_student();
 	void student_main_menu(section &s);
 	void view_marks();
+	void view_attendance();
+	void view_account();
 };
 
 class course_teacher : public class_teacher{
 	protected:
-	char teacher_id[6], subject[20]; int teacher_password;
+	string teacher_id, teacher_password, subject;
 	public:
-	void login_teacher(course_teacher &t);
+	int login_teacher();
 	void teacher_main_menu(course_teacher &t);
 	void add_student_marks();
 	void view_overall_marks();
+	void view_account();
+};
+
+class counsellor{
+
 };
 
 class admin{
@@ -107,6 +115,13 @@ static int select_table(void *data, int argc, char **argv, char **azColName){
     return 0;
 }
 
+static int search_table(void *NotUsed, int argc, char **argv, char **azColName){
+    gbl_data = 0;
+    string data = argv[0] ? argv[0] : "NULL";
+    gbl_data = stoi(data);
+    return 0;
+}
+
 static int exist_table(void *NotUsed, int argc, char **argv, char **azColName){
     for(int i = 0; i<argc; i++){
     const char *data = argv[i] ? argv[i] : "NULL";
@@ -115,13 +130,6 @@ static int exist_table(void *NotUsed, int argc, char **argv, char **azColName){
     return 0;
     }
     return 1;
-}
-
-static int search_table(void *NotUsed, int argc, char **argv, char **azColName){
-    gbl_data = 0;
-    string data = argv[0] ? argv[0] : "NULL";
-    gbl_data = stoi(data);
-    return 0;
 }
 
 void select_branch_function(){
@@ -276,7 +284,7 @@ void admin :: login_master(){
 	cin >> id;
 	cout << "Enter Password : ";
 	cin >> password;
-	if(id == "196612" && password == "1234")
+	if(id == "196612" && password == gbl_password)
 	cout << "\nLogin Successful!!!\n";
 	else{
 	cout << "Login Unsuccessful!!!";
@@ -391,7 +399,7 @@ void admin :: add_faculty(){
     string faculty_qualification = qualification;
     string faculty_designation = designation;
     string faculty_researcharea = research_area;
-	string insert_faculty = "INSERT INTO FACULTY VALUES ('" + faculty_id + "', '" + faculty_name + "', '" + faculty_qualification + "', '" + faculty_designation + "', '" + faculty_researcharea + "', '" + faculty_deptno + "');";
+	string insert_faculty = "INSERT INTO FACULTY VALUES ('" + faculty_id + "', '" + faculty_name + "', '" + faculty_qualification + "', '" + faculty_designation + "', '" + faculty_researcharea + "', '" + faculty_deptno + "', '" + gbl_password + "');";
     const char *line = insert_faculty.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, create_insert_table, 0, &zErrMsg);
@@ -950,7 +958,7 @@ void admin :: add_student(){
 	padded_input_string(name, 29);
     string student_name = name;
     string student_academicyear = academicyear;
-    string insert_student = "INSERT INTO STUDENT VALUES ('" + student_id + "', '" + student_name + "', '" + student_academicyear + "', '" + student_deptno + "');";
+    string insert_student = "INSERT INTO STUDENT VALUES ('" + student_id + "', '" + student_name + "', '" + student_academicyear + "', '" + student_deptno + "', '" + gbl_password + "');";
 	const char *line = insert_student.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, create_insert_table, 0, &zErrMsg);
@@ -1405,6 +1413,176 @@ void admin :: master_main_menu(admin &a){
 	}
 }
 
+int course_teacher :: login_teacher(){
+    sqlite3 *db;
+    int rc, count = 3;
+    string faculty_deptno;
+    char *zErrMsg = 0, *sql;
+    rc = sqlite3_open("SAMS.db", &db);
+	string search_faculty = "SELECT EXISTS(SELECT * from FACULTY);";
+    const char *line = search_faculty.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    sqlite3_close(db);
+	if(rc == 0){
+    cout << "\nERROR: No Faculty Details Found...." << endl;
+	cout << endl;
+	clear_screen();
+	return -1;
+    }
+	a: cout << "WELCOME TO FACULTY PAGE\n";
+	cout << "\nEnter Faculty ID : ";
+	cin >> teacher_id;
+    cout << "Enter Password : ";
+	cin >> teacher_password;
+	rc = sqlite3_open("SAMS.db", &db);
+	search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ teacher_id +"' AND FACULTYPASSWORD = '"+ teacher_password +"');";
+    line = search_faculty.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    sqlite3_close(db);
+	if(rc == 0){
+    cout << "Login Unsuccessful!!!";
+	if(count <= 0){
+	cout << "\n\nLogin Failed... Max no. of Attempts Reached!!!\n";
+	cout << "Exiting Program for Security Reasons...\n";
+	exit(0);
+	}
+	count--;
+	cout << "\n\nYou have '" << count + 1 << "' more chances!!!\n";
+	clear_screen();
+	goto a;
+	}
+	else
+	cout << "\nLogin Successful!!!\n";
+	clear_screen();
+	return 0;
+}
+
+void course_teacher :: teacher_main_menu(course_teacher &t){
+	int option = 0;
+	while(option !=4){
+    a: cout << "\nWelcome " << teacher_id << "\n\n\n";
+    cout << "Type '1' ----> Edit Student Marks\n";
+    cout << "Type '2' ----> View Overall Marks\n";
+    cout << "Type '3' ----> View My Account\n";
+    cout << "Type '4' ----> Back to Main Menu\n";
+    cout << "\nEnter Here : ";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	b: error_message();
+	goto a;
+	}
+	option = stoi(excp);
+	if(option>4 || option<1){
+    goto b;
+	}
+    else if(option == 1){
+    system("CLS");
+    //t.add_student_marks();
+    }
+    else if(option == 2){
+    system("CLS");
+    //t.view_overall_marks();
+    }
+    else if(option == 3){
+    system("CLS");
+    //t.view_account();
+    }
+	}
+	if(option == 4){
+	cout << "Redirecting back to Main Menu\n";
+	clear_screen();
+	return;
+	}
+}
+
+int section :: login_student(){
+	sqlite3 *db;
+    int rc, count = 3;
+    string student_deptno;
+    char *zErrMsg = 0, *sql;
+    rc = sqlite3_open("SAMS.db", &db);
+	string search_student = "SELECT EXISTS(SELECT * from STUDENT);";
+    const char *line = search_student.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    sqlite3_close(db);
+	if(rc == 0){
+    cout << "\nERROR: No Student Details Found...." << endl;
+	cout << endl;
+	clear_screen();
+	return -1;
+    }
+	a: cout << "WELCOME TO STUDENT PAGE\n";
+	cout << "\nEnter Student ID : ";
+	cin >> student_id;
+	cout << "Enter Password : ";
+	cin >> student_password;
+	rc = sqlite3_open("SAMS.db", &db);
+	search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDENTID = '"+ student_id +"' AND STUDENTPASSWORD = '"+ student_password +"');";
+    line = search_student.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    sqlite3_close(db);
+	if(rc == 0){
+    cout << "Login Unsuccessful!!!";
+	if(count <= 0){
+	cout << "\n\nLogin Failed... Max no. of Attempts Reached!!!\n";
+	cout << "Exiting Program for Security Reasons...\n";
+	exit(0);
+	}
+	count--;
+	cout << "\n\nYou have '" << count + 1 << "' more chances!!!\n";
+	clear_screen();
+	goto a;
+	}
+	else
+	cout << "\nLogin Successful!!!\n";
+	clear_screen();
+	return 0;
+}
+
+void section :: student_main_menu(section &s){
+	int option = 0;
+	while(option !=4){
+	a: cout << "\nWelcome " << student_id << "\n\n\n";
+	cout << "Type '1' ----> View My Marks\n";
+	cout << "Type '2' ----> View My Attendance\n";
+	cout << "Type '3' ----> View My Account\n";
+	cout << "Type '4' ----> Back to Main Menu\n";
+	cout << "\nEnter Here : ";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	b: error_message();
+	goto a;
+	}
+	option = stoi(excp);
+	if(option>4 || option<1){
+    goto b;
+	}
+	else if(option == 1){
+	system("CLS");
+	//s.view_marks();
+	}
+	else if(option == 2){
+	system("CLS");
+	//s.view_attendance();
+	}
+	else if(option == 3){
+	system("CLS");
+	//s.view_account();
+	}
+	}
+	if(option == 4){
+	cout << "Redirecting back to Main Menu\n";
+	clear_screen();
+	return;
+	}
+}
+
 void main_menu(){
 	int option = 0;
 	while(option !=4){
@@ -1435,14 +1613,17 @@ void main_menu(){
 	cout << "Redirecting to Faculty Login Page\n";
 	clear_screen();
 	course_teacher t;
-	// t.login_teacher(t);
+	int exist = t.login_teacher();
+	if(exist!=-1)
+	t.teacher_main_menu(t);
 	}
 	else if(option == 3){
 	cout << "Redirecting to Student Login Page\n";
 	clear_screen();
 	section s;
-	// s.login_student();
-	// s.student_main_menu(s);
+	int exist = s.login_student();
+	if(exist!=-1)
+	s.student_main_menu(s);
 	}
 	}
 	if(option == 4){
@@ -1459,13 +1640,13 @@ void table_creation_function(sqlite3 *db){
     fprintf(stderr, "SQL error: %s\n", zErrMsg);
     sqlite3_free(zErrMsg);
     }
-    sql = strdup("CREATE TABLE FACULTY(FACULTYID VARCHAR2(6) PRIMARY KEY, FACULTYNAME  VARCHAR2 (40) NOT NULL, QUALIFICATION VARCHAR2 (30), DESIGNATION VARCHAR2 (40), RESEARCHAREA VARCHAR2 (60), DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID));");
+    sql = strdup("CREATE TABLE FACULTY(FACULTYID VARCHAR2(6) PRIMARY KEY, FACULTYNAME  VARCHAR2 (40) NOT NULL, QUALIFICATION VARCHAR2 (30), DESIGNATION VARCHAR2 (40), RESEARCHAREA VARCHAR2 (60), DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID), FACULTYPASSWORD VARCHAR2(8));");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, &zErrMsg);
     if( rc != SQLITE_OK ){
     fprintf(stderr, "SQL error: %s\n", zErrMsg);
     sqlite3_free(zErrMsg);
     }
-    sql = strdup("CREATE TABLE STUDENT(STUDENTID VARCHAR2 (8) PRIMARY KEY, STUDENTNAME  VARCHAR2 (40) NOT NULL, ACADEMICYEAR VARCHAR2 (20) NOT NULL, DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID));");
+    sql = strdup("CREATE TABLE STUDENT(STUDENTID VARCHAR2 (8) PRIMARY KEY, STUDENTNAME  VARCHAR2 (40) NOT NULL, ACADEMICYEAR VARCHAR2 (20) NOT NULL, DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID), STUDENTPASSWORD VARCHAR2(8));");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, &zErrMsg);
     if( rc != SQLITE_OK ){
     fprintf(stderr, "SQL error: %s\n", zErrMsg);
@@ -1478,18 +1659,18 @@ void table_creation_function(sqlite3 *db){
     sqlite3_free(zErrMsg);
     }
     sql = strdup(
-   		 "INSERT INTO BRANCH VALUES ('CS', 'Computer Science & Engineering'); \
-          INSERT INTO BRANCH VALUES ('AI', 'Computer Science & Engineering (Artificial Intelligence & Machine Learning)'); \
-          INSERT INTO BRANCH VALUES ('CN', 'Computer Science & Engineering (Networks)'); \
-          INSERT INTO BRANCH VALUES ('IN', 'Computer Science & Engineering (Internet Of Things)'); \
-          INSERT INTO BRANCH VALUES ('IT', 'Information Technology'); \
-          INSERT INTO BRANCH VALUES ('EC', 'Electronics & Communication Engineering'); \
-          INSERT INTO BRANCH VALUES ('EE', 'Electrical & Electronics Engineering'); \
-          INSERT INTO BRANCH VALUES ('CI', 'Electronics Communication & Instrumentation'); \
-          INSERT INTO BRANCH VALUES ('ME', 'Mechanical Engineering'); \
-          INSERT INTO BRANCH VALUES ('CE', 'Civil Engineering'); \
-          INSERT INTO BRANCH VALUES ('MH', 'Mathematics'); \
-          INSERT INTO BRANCH VALUES ('EN', 'English');");
+    "INSERT INTO BRANCH VALUES ('CS', 'Computer Science & Engineering'); \
+    INSERT INTO BRANCH VALUES ('AI', 'Computer Science & Engineering (Artificial Intelligence & Machine Learning)'); \
+    INSERT INTO BRANCH VALUES ('CN', 'Computer Science & Engineering (Networks)'); \
+    INSERT INTO BRANCH VALUES ('IN', 'Computer Science & Engineering (Internet Of Things)'); \
+    INSERT INTO BRANCH VALUES ('IT', 'Information Technology'); \
+    INSERT INTO BRANCH VALUES ('EC', 'Electronics & Communication Engineering'); \
+    INSERT INTO BRANCH VALUES ('EE', 'Electrical & Electronics Engineering'); \
+    INSERT INTO BRANCH VALUES ('CI', 'Electronics Communication & Instrumentation'); \
+    INSERT INTO BRANCH VALUES ('ME', 'Mechanical Engineering'); \
+    INSERT INTO BRANCH VALUES ('CE', 'Civil Engineering'); \
+    INSERT INTO BRANCH VALUES ('MH', 'Mathematics'); \
+    INSERT INTO BRANCH VALUES ('EN', 'English');");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, &zErrMsg);
     if( rc != SQLITE_OK ){
     fprintf(stderr, "SQL error: %s\n", zErrMsg);
