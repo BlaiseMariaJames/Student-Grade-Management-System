@@ -41,7 +41,8 @@ class section : public class_teacher{
 	void student_main_menu(section &s);
 	void view_marks();
 	void view_attendance();
-	void view_account();
+	void view_account(string student_id);
+	void update_account(string student_id);
 };
 
 class course_teacher : public class_teacher{
@@ -52,7 +53,8 @@ class course_teacher : public class_teacher{
 	void teacher_main_menu(course_teacher &t);
 	void add_student_marks();
 	void view_overall_marks();
-	void view_account();
+	void view_account(string faculty_id);
+	void update_account(string faculty_id);
 };
 
 class counsellor{
@@ -130,6 +132,28 @@ static int exist_table(void *NotUsed, int argc, char **argv, char **azColName){
     return 0;
     }
     return 1;
+}
+
+static int display_student_table(void *NotUsed, int argc, char **argv, char **azColName){
+	string gbl_input[100];
+	for(int i = 0; i<argc; i++){
+    gbl_input[i] = argv[i] ? argv[i] : "NULL";
+    }
+    cout << "Academic Year : " << gbl_input[0] << endl;
+    cout << "Name : " << gbl_input[1] << endl;
+    return 0;
+}
+
+static int display_faculty_table(void *NotUsed, int argc, char **argv, char **azColName){
+	string gbl_input[100];
+	for(int i = 0; i<argc; i++){
+    gbl_input[i] = argv[i] ? argv[i] : "NULL";
+    }
+    cout << "Name : " << gbl_input[0] << endl;
+    cout << "Qualification : " << gbl_input[1] << endl;
+    cout << "Designation : " << gbl_input[2] << endl;
+    cout << "Research Area : " << gbl_input[3] << endl;
+    return 0;
 }
 
 void select_branch_function(){
@@ -215,7 +239,7 @@ void view_table(string str, string id){
 	if(str == "FACULTY")
     view = "SELECT FACULTYID,FACULTYNAME,QUALIFICATION,DESIGNATION,RESEARCHAREA from " + str + " WHERE DEPTNO = '" + id + "' ORDER BY " + (str + "ID");
     else
-    view = "SELECT STUDENTID,STUDENTNAME,ACADEMICYEAR from " + str + " WHERE DEPTNO = '" + id + "' ORDER BY " + (str + "ID");
+    view = "SELECT STUDENTID,ACADEMICYEAR,STUDENTNAME from " + str + " WHERE DEPTNO = '" + id + "' ORDER BY " + (str + "ID");
 	const char *line = view.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
@@ -992,7 +1016,7 @@ int update_student_function(string &student_id, int id, string student_deptno){
     sqlite3 *db;
 	char *zErrMsg, *sql;
 	cout << "\nDisplaying Details of student(s) of branch " << dept[id] << "..."<< endl;
-    cout << "\n\nID    NAME\t\t\t    ACADEMIC YEAR" << endl;
+    cout << "\n\nID    ACADEMIC YEAR       NAME" << endl;
     view_table("STUDENT", student_deptno);
 	rc = sqlite3_open("SAMS.db", &db);
     cout << "\n\nEnter the ID to be updated : ";
@@ -1130,7 +1154,7 @@ void admin :: shift_student(){
 	return;
 	}
     cout << "\nDisplaying Details of student(s) of branch " << dept[id] << "..."<< endl;
-    cout << "\n\nID    NAME\t\t\t    ACADEMIC YEAR" << endl;
+    cout << "\n\nID    ACADEMIC YEAR       NAME" << endl;
     view_table("STUDENT", student_deptno);
     sqlite3_open("SAMS.db", &db);
 	cout << "\n\nEnter the id to be shifted : ";
@@ -1239,7 +1263,7 @@ void admin :: delete_student(){
 	return;
 	}
     cout << "\nDisplaying Details of student(s) of branch " << dept[id] << "..."<< endl;
-    cout << "\n\nID    NAME\t\t\t    ACADEMIC YEAR" << endl;
+    cout << "\n\nID    ACADEMIC YEAR       NAME" << endl;
     view_table("STUDENT", student_deptno);
     sqlite3_open("SAMS.db", &db);
 	cout << "\n\nEnter the id to be deleted : ";
@@ -1263,7 +1287,7 @@ void admin :: delete_student(){
 	while(roc){
 	b: error_message();
     cout << "\nDisplaying Details of student(s) of branch " << dept[id] << "..."<< endl;
-    cout << "\n\nID    NAME\t\t\t    ACADEMIC YEAR" << endl;
+    cout << "\n\nID    ACADEMIC YEAR       NAME" << endl;
     view_table("STUDENT", student_deptno);
     cout << "\n\nEnter the id to be deleted : " << student_id << endl;
 	goto a;
@@ -1321,7 +1345,7 @@ void admin :: view_student(){
 	}
 	else{
     cout << "\nDisplaying Details of student(s) of branch " << dept[id] << "..."<< endl;
-    cout << "\n\nID    NAME\t\t\t    ACADEMIC YEAR" << endl;
+    cout << "\n\nID    ACADEMIC YEAR       NAME" << endl;
     view_table("STUDENT", student_deptno);
     cout << "\nDetails of all student(s) of branch " << dept[id] << " displayed successfully..." << endl;
     cout << endl;
@@ -1459,14 +1483,30 @@ int course_teacher :: login_teacher(){
 	return 0;
 }
 
+void course_teacher :: view_account(string faculty_id){
+    int rc;
+    sqlite3 *db;
+	char *zErrMsg, *sql;
+	rc = sqlite3_open("SAMS.db", &db);
+    string search_faculty = "SELECT FACULTYNAME,QUALIFICATION,DESIGNATION,RESEARCHAREA from FACULTY WHERE FACULTYID = '" + faculty_id + "';";
+    const char *line = search_faculty.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, display_faculty_table, 0, &zErrMsg);
+    cout << "\n\n" << endl;
+    sqlite3_close(db);
+    return;
+}
+
 void course_teacher :: teacher_main_menu(course_teacher &t){
 	int option = 0;
 	while(option !=4){
     a: cout << "\nWelcome " << teacher_id << "\n\n\n";
+	cout << "Personal Info : " << endl;
+	t.view_account(teacher_id);
     cout << "Type '1' ----> Edit Student Marks\n";
     cout << "Type '2' ----> View Overall Marks\n";
-    cout << "Type '3' ----> View My Account\n";
-    cout << "Type '4' ----> Back to Main Menu\n";
+	cout << "Type '3' ----> Update My Account/Password\n";
+	cout << "Type '4' ----> Back to Main Menu\n";
     cout << "\nEnter Here : ";
 	cin >> excp;
 	roc = check_exception(excp);
@@ -1487,8 +1527,8 @@ void course_teacher :: teacher_main_menu(course_teacher &t){
     //t.view_overall_marks();
     }
     else if(option == 3){
+    //t.update_account(teacher_id);
     system("CLS");
-    //t.view_account();
     }
 	}
 	if(option == 4){
@@ -1544,13 +1584,29 @@ int section :: login_student(){
 	return 0;
 }
 
+void section :: view_account(string student_id){
+    int rc;
+    sqlite3 *db;
+	char *zErrMsg, *sql;
+	rc = sqlite3_open("SAMS.db", &db);
+    string search_student = "SELECT ACADEMICYEAR,STUDENTNAME from STUDENT WHERE STUDENTID = '" + student_id + "';";
+    const char *line = search_student.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, display_student_table, 0, &zErrMsg);
+    cout << "\n\n" << endl;
+    sqlite3_close(db);
+    return;
+}
+
 void section :: student_main_menu(section &s){
 	int option = 0;
 	while(option !=4){
 	a: cout << "\nWelcome " << student_id << "\n\n\n";
+    cout << "Personal Info : " << endl;
+	s.view_account(student_id);
 	cout << "Type '1' ----> View My Marks\n";
 	cout << "Type '2' ----> View My Attendance\n";
-	cout << "Type '3' ----> View My Account\n";
+	cout << "Type '3' ----> Update My Account/Password\n";
 	cout << "Type '4' ----> Back to Main Menu\n";
 	cout << "\nEnter Here : ";
 	cin >> excp;
@@ -1572,8 +1628,8 @@ void section :: student_main_menu(section &s){
 	//s.view_attendance();
 	}
 	else if(option == 3){
-	system("CLS");
-	//s.view_account();
+    system("CLS");
+	//s.update_account(student_id);
 	}
 	}
 	if(option == 4){
@@ -1634,7 +1690,7 @@ void main_menu(){
 void table_creation_function(sqlite3 *db){
     int rc;
     char *zErrMsg, *sql;
-    sql = strdup("PRAGMA FOREIGNKEYS = ON;");
+    sql = strdup("PRAGMA FOREIGN_KEYS = ON;");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, &zErrMsg);
     if( rc != SQLITE_OK ){
     fprintf(stderr, "SQL error: %s\n", zErrMsg);
