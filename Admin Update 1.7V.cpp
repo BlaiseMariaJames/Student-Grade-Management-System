@@ -8,6 +8,7 @@ using namespace std;
 int gbl_data = 0;
 bool roc = false;
 string excp = "";
+string academic_year[100];
 string gbl_password = "1234";
 char dept[12][4] = {"CSE","CSM","CSN","CSO"," IT","ECE","EEE","ECI","CIV","MEC","EMH","ENG"};
 char dept_no[12][4] = {"CS","AI","CN","IN","IT","EC","EE","CI","CE","ME","MH","EN"};
@@ -100,6 +101,11 @@ void error_message(){
 	return;
 }
 
+void print_year(string academic_year){
+gbl_data++;
+cout << "Type '" + to_string(gbl_data) + academic_year << endl;
+}
+
 static int create_insert_table(void *NotUsed, int argc, char **argv, char **azColName) {
     for(int i = 0; i<argc; i++) {
     printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
@@ -133,7 +139,7 @@ static int exist_table(void *NotUsed, int argc, char **argv, char **azColName){
     return 1;
 }
 
-static int display_faculty_table(void *NotUsed, int argc, char **argv, char **azColName){
+static int view_faculty_account(void *NotUsed, int argc, char **argv, char **azColName){
 	string gbl_input[100];
 	for(int i = 0; i<argc; i++){
     gbl_input[i] = argv[i] ? argv[i] : "NULL";
@@ -145,12 +151,23 @@ static int display_faculty_table(void *NotUsed, int argc, char **argv, char **az
     return 0;
 }
 
-static int display_student_table(void *NotUsed, int argc, char **argv, char **azColName){
+static int view_student_account(void *NotUsed, int argc, char **argv, char **azColName){
 	string gbl_input[100];
 	for(int i = 0; i<argc; i++){
     gbl_input[i] = argv[i] ? argv[i] : "NULL";
     }
     cout << "Name : " << gbl_input[0] << endl;
+    return 0;
+}
+
+static int view_student_academicyear(void *NotUsed, int argc, char **argv, char **azColName){
+	int year_offset = 0;
+	for(int i = 0; i<argc; i++){
+    academic_year[i] = argv[i] ? argv[i] : "NULL";
+    year_offset  = stoi(academic_year[i]) + 4;
+    academic_year[i] = "' -----> " + academic_year[i] + + " - " + to_string(year_offset);
+    print_year(academic_year[i]);
+    }
     return 0;
 }
 
@@ -1321,6 +1338,11 @@ void admin :: view_student(){
 	int id = dept_id - 1;
 	string student_deptno = dept_no[id];
 	system("CLS");
+	string search_student = "SELECT DISTINCT YEARJOINED from STUDENT ORDER BY YEARJOINED;";
+    const char *line = search_student.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, view_student_academicyear, 0, &zErrMsg);
+    cout << "\n\n" << endl;
 	view_student_function(student_deptno);
 	if(gbl_data == 0){
     cout << "\nERROR: No Student Details Found...." << endl;
@@ -1474,7 +1496,7 @@ void course_teacher :: view_account(string faculty_id){
     string search_faculty = "SELECT FACULTYNAME,QUALIFICATION,DESIGNATION,RESEARCHAREA from FACULTY WHERE FACULTYID = '" + faculty_id + "';";
     const char *line = search_faculty.c_str();
     sql = strdup(line);
-    rc = sqlite3_exec(db, sql, display_faculty_table, 0, &zErrMsg);
+    rc = sqlite3_exec(db, sql, view_faculty_account, 0, &zErrMsg);
     cout << "\n\n" << endl;
     sqlite3_close(db);
     return;
@@ -1575,7 +1597,7 @@ void section :: view_account(string student_id){
     string search_student = "SELECT STUDENTNAME from STUDENT WHERE STUDENTID = '" + student_id + "';";
     const char *line = search_student.c_str();
     sql = strdup(line);
-    rc = sqlite3_exec(db, sql, display_student_table, 0, &zErrMsg);
+    rc = sqlite3_exec(db, sql, view_student_account, 0, &zErrMsg);
     cout << "\n\n" << endl;
     sqlite3_close(db);
     return;
