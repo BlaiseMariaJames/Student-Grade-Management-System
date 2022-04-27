@@ -16,7 +16,7 @@ char dept[12][4] = {"CSE","CSM","CSN","CSO"," IT","ECE","EEE","ECI","CIV","MEC",
 char dept_no[12][4] = {"CS","AI","CN","IN","IT","EC","EE","CI","CE","ME","MH","EN"};
 
 class student{
-	protected:
+    protected:
 	int gradepoint[10];
 	char grade[10], roll_number[20];
 	float m1[10], a1[10], ms1[10], m2[10], a2[10], ms2[10], internal_marks[10], external_marks[10];
@@ -109,10 +109,12 @@ void error_message(){
 	return;
 }
 
+/*
 void print_year(string academic_year){
 cout << "Type '" + to_string(gbl_slno) + academic_year << endl;
 gbl_slno++;
 }
+*/
 
 static int create_insert_table(void *NotUsed, int argc, char **argv, char **azColName) {
     for(int i = 0; i<argc; i++) {
@@ -168,6 +170,7 @@ static int view_student_account(void *NotUsed, int argc, char **argv, char **azC
     return 0;
 }
 
+/*
 static int view_student_academicyear(void *NotUsed, int argc, char **argv, char **azColName){
 	int year_offset = 0;
 	for(int i = 0; i<argc; i++){
@@ -177,6 +180,14 @@ static int view_student_academicyear(void *NotUsed, int argc, char **argv, char 
     print_year(academic_year[i]);
     }
     return 0;
+}
+*/
+
+void set_foreignkeys(sqlite3 *db){
+    int rc;
+    char *sql;
+    sql = strdup("PRAGMA FOREIGN_KEYS = ON;");
+    rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
 }
 
 void select_branch_function(){
@@ -446,6 +457,7 @@ void admin :: add_faculty(){
     string faculty_qualification = qualification;
     string faculty_designation = designation;
     string faculty_researcharea = research_area;
+    set_foreignkeys(db);
 	string insert_faculty = "INSERT INTO FACULTY VALUES ('" + faculty_id + "', '" + faculty_name + "', '" + faculty_qualification + "', '" + faculty_designation + "', '" + faculty_researcharea + "', '" + faculty_deptno + "', '" + gbl_password + "');";
     const char *line = insert_faculty.c_str();
     sql = strdup(line);
@@ -723,18 +735,21 @@ void admin :: shift_faculty(){
 	else if(old_offset_index > new_offset_index){
     old_offset_index--;
 	sqlite3_open("SAMS.db", &db);
+    set_foreignkeys(db);
     string update_faculty = "UPDATE FACULTY set FACULTYID = 'TEMP' WHERE FACULTYID = '"+ old_faculty_id +"';";
     const char *line = update_faculty.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     while(old_offset_index>=new_offset_index){
     create_greater_padded_string(old_offset_index,faculty_deptno,old_offset_string,new_offset_string);
+    set_foreignkeys(db);
     string update_faculty = "UPDATE FACULTY set FACULTYID = '"+ new_offset_string +"' WHERE FACULTYID = '"+ old_offset_string +"';";
     const char *line = update_faculty.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     old_offset_index--;
     }
+    set_foreignkeys(db);
     update_faculty = "UPDATE FACULTY set FACULTYID = '"+ new_faculty_id +"' WHERE FACULTYID = 'TEMP';";
     line = update_faculty.c_str();
     sql = strdup(line);
@@ -748,18 +763,21 @@ void admin :: shift_faculty(){
 	else if(old_offset_index < new_offset_index){
     old_offset_index++;
 	sqlite3_open("SAMS.db", &db);
+    set_foreignkeys(db);
     string update_faculty = "UPDATE FACULTY set FACULTYID = 'TEMP' WHERE FACULTYID = '"+ old_faculty_id +"';";
     const char *line = update_faculty.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     while(old_offset_index<=new_offset_index){
     create_lesser_padded_string(old_offset_index,faculty_deptno,old_offset_string,new_offset_string);
+    set_foreignkeys(db);
     string update_faculty = "UPDATE FACULTY set FACULTYID = '"+ new_offset_string +"' WHERE FACULTYID = '"+ old_offset_string +"';";
     const char *line = update_faculty.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     old_offset_index++;
     }
+    set_foreignkeys(db);
     update_faculty = "UPDATE FACULTY set FACULTYID = '"+ new_faculty_id +"' WHERE FACULTYID = 'TEMP';";
     line = update_faculty.c_str();
     sql = strdup(line);
@@ -831,12 +849,14 @@ void admin :: delete_faculty(){
     int offset_index = stoi(offset_string);
     offset_index++;
     sqlite3_open("SAMS.db", &db);
+    set_foreignkeys(db);
     string delete_faculty = "DELETE from FACULTY where FACULTYID = '"+ faculty_id + "' AND DEPTNO = '" + faculty_deptno + "';";
     const char *line = delete_faculty.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     while(offset_index<=gbl_data){
     create_padded_string(offset_index,faculty_deptno,old_offset_string,new_offset_string);
+    set_foreignkeys(db);
     string update_faculty = "UPDATE FACULTY set FACULTYID = '"+ new_offset_string +"' WHERE FACULTYID = '"+ old_offset_string +"';";
     const char *line = update_faculty.c_str();
     sql = strdup(line);
@@ -1212,6 +1232,7 @@ void admin :: add_student(){
     char char_student_yearjoined[student_yearjoined.size() + 1];
     strcpy(char_student_yearjoined, student_yearjoined.c_str());
 	string string_student_academic_year = char_student_yearjoined;
+    set_foreignkeys(db);
     string insert_student = "INSERT INTO STUDENT (STUDENTID,STUDENTNAME,YEARJOINED,SEMESTER,SECTION,DEPTNO,STUDENTPASSWORD) VALUES ('" + student_id + "', '" + student_name + "', '" + string_student_academic_year + "', " + student_sem + ", '" + student_sec + "', '" + student_deptno + "', '" + gbl_password + "');";
 	const char *line = insert_student.c_str();
     sql = strdup(line);
@@ -1397,18 +1418,21 @@ void admin :: shift_student(){
 	else if(old_offset_index > new_offset_index){
     old_offset_index--;
 	sqlite3_open("SAMS.db", &db);
+    set_foreignkeys(db);
     string update_student = "UPDATE STUDENT set STUDENTID = 'TEMP' WHERE STUDENTID = '"+ old_student_id +"';";
     const char *line = update_student.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     while(old_offset_index>=new_offset_index){
     create_greater_padded_string(old_offset_index,student_deptno,old_offset_string,new_offset_string);
+    set_foreignkeys(db);
     string update_student = "UPDATE STUDENT set STUDENTID = '"+ new_offset_string +"' WHERE STUDENTID = '"+ old_offset_string +"';";
     const char *line = update_student.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     old_offset_index--;
     }
+    set_foreignkeys(db);
     update_student = "UPDATE STUDENT set STUDENTID = '"+ new_student_id +"' WHERE STUDENTID = 'TEMP';";
     line = update_student.c_str();
     sql = strdup(line);
@@ -1422,18 +1446,21 @@ void admin :: shift_student(){
 	else if(old_offset_index < new_offset_index){
     old_offset_index++;
 	sqlite3_open("SAMS.db", &db);
+	set_foreignkeys(db);
     string update_student = "UPDATE STUDENT set STUDENTID = 'TEMP' WHERE STUDENTID = '"+ old_student_id +"';";
     const char *line = update_student.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     while(old_offset_index<=new_offset_index){
     create_lesser_padded_string(old_offset_index,student_deptno,old_offset_string,new_offset_string);
+    set_foreignkeys(db);
     string update_student = "UPDATE STUDENT set STUDENTID = '"+ new_offset_string +"' WHERE STUDENTID = '"+ old_offset_string +"';";
     const char *line = update_student.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     old_offset_index++;
     }
+    set_foreignkeys(db);
     update_student = "UPDATE STUDENT set STUDENTID = '"+ new_student_id +"' WHERE STUDENTID = 'TEMP';";
     line = update_student.c_str();
     sql = strdup(line);
@@ -1504,12 +1531,14 @@ void admin :: delete_student(){
     int offset_index = stoi(offset_string);
     offset_index++;
     sqlite3_open("SAMS.db", &db);
+    set_foreignkeys(db);
     string delete_student = "DELETE from STUDENT where STUDENTID = '"+ student_id + "' AND DEPTNO = '" + student_deptno + "';";
     const char *line = delete_student.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     while(offset_index<=gbl_data){
     create_padded_string(offset_index,student_deptno,old_offset_string,new_offset_string);
+    set_foreignkeys(db);
     string update_student = "UPDATE STUDENT set STUDENTID = '"+ new_offset_string +"' WHERE STUDENTID = '"+ old_offset_string +"';";
     const char *line = update_student.c_str();
     sql = strdup(line);
@@ -1905,7 +1934,7 @@ void table_creation_function(sqlite3 *db){
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
     sql = strdup("CREATE TABLE STUDENT(STUDENTID VARCHAR2 (8) PRIMARY KEY, STUDENTNAME  VARCHAR2 (40) NOT NULL, YEARJOINED VARCHAR2 (4) NOT NULL, SEMESTER NUMBER NOT NULL, SECTION VARCHAR2 (6) NOT NULL, COUNSELLORID VARCHAR2(6) REFERENCES FACULTY (FACULTYID), DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID), STUDENTPASSWORD VARCHAR2(8));");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
-    sql = strdup("CREATE TABLE BRANCH(BRANCHID VARCHAR2 (3) PRIMARY KEY, BRANCHNAME  VARCHAR2 (40) NOT NULL, HOD VARCHAR2 (60) NULL, PHONE VARCHAR2 (10) NOT NULL);");
+    sql = strdup("CREATE TABLE BRANCH(BRANCHID VARCHAR2 (3) PRIMARY KEY, BRANCHNAME  VARCHAR2 (40) NOT NULL, HOD VARCHAR2 (60) REFERENCES FACULTY (FACULTYID), PHONE VARCHAR2 (10) NOT NULL);");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
     sql = strdup("INSERT INTO BRANCH (BRANCHID,BRANCHNAME,PHONE) VALUES ('CS', 'Computer Science & Engineering', '7633301122'); \
     INSERT INTO BRANCH (BRANCHID,BRANCHNAME,PHONE) VALUES ('AI', 'Computer Science & Engineering (Artificial Intelligence & Machine Learning)', '9000128377'); \
