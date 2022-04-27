@@ -72,9 +72,13 @@ class admin{
 	void shift_faculty();
 	void delete_faculty();
 	void view_faculty();
-	void master_faculty_menu(admin &a);
     void master_faculty_edit_menu(admin &a);
+    void assign_course();
+    void assign_counsellor();
+    void assign_clstchr();
+    void assign_head();
     void master_faculty_assign_menu(admin &a);
+	void master_faculty_menu(admin &a);
 	void add_student();
 	void update_student();
     void shift_student();
@@ -926,6 +930,87 @@ void admin :: master_faculty_edit_menu(admin &a){
 	}
 }
 
+void admin :: assign_course(){
+
+}
+
+void admin :: assign_counsellor(){
+
+}
+
+void admin :: assign_clstchr(){
+
+}
+
+void admin :: assign_head(){
+	sqlite3 *db;
+    int rc, dept_id;
+    string faculty_id;
+    char *zErrMsg = 0, *sql;
+	select_branch_view_function(dept_id);
+	int id = dept_id - 1;
+	string faculty_deptno = dept_no[id];
+	string branch_id = dept[id];
+	system("CLS");
+	view_faculty_function(faculty_deptno);
+	if(gbl_data == 0){
+    cout << "\nERROR: No Faculty Details Found...." << endl;
+	cout << endl;
+	}
+	else{
+    cout << "\nDisplaying Details of faculty(ies) of branch " << dept[id] << "..."<< endl;
+    cout << "\n\nID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA" << endl;
+    view_table("FACULTY", faculty_deptno);
+    sqlite3_open("SAMS.db", &db);
+	cout << "\n\nEnter the id to be made Head of Department : ";
+	cin >> faculty_id;
+	string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ faculty_id +"');";
+    const char *line = search_faculty.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nFaculty with requested ID doesn't exist..." << endl;
+    cout << "\nUnable to access requested details of faculty... Try Again using valid ID...\n" << endl;
+    clear_screen();
+    return;
+    }
+    a: cout << "\n\nAre you sure to make the requested faculty with id " + faculty_id + " as HEAD of " + branch_id + " ? ";
+	cout << "\nPress '1' if 'YES' or '2' if 'NO'";
+	cout << "\nEnter Here : ";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+    b: error_message();
+    cout << "\nDisplaying Details of faculty(ies) of branch " << dept[id] << "..."<< endl;
+    cout << "\n\nID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA" << endl;
+    view_table("FACULTY", faculty_deptno);
+	cout << "\n\nEnter the id to be made Head of Department : " << faculty_id << endl;
+	goto a;
+	}
+	int choice = stoi(excp);
+	if(choice!=1 && choice!=2){
+    goto b;
+	}
+    if(choice == 1){
+    sqlite3_open("SAMS.db", &db);
+    string update_branch = "UPDATE BRANCH set HOD = '"+ faculty_id +"' WHERE BRANCHID = '"+ faculty_deptno +"';";
+    const char *line = update_branch.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+	sqlite3_close(db);
+    cout << "\nRequested faculty made as Head of Department successfully..." << endl;
+    }
+    if(choice == 2){
+    cout << "\nNo changes were made...." << endl;
+	}
+    cout << endl;
+    clear_screen();
+    return;
+	}
+    clear_screen();
+    return;
+}
+
 void admin :: master_faculty_assign_menu(admin &a){
     int option = 0;
 	while(option !=5){
@@ -948,19 +1033,19 @@ void admin :: master_faculty_assign_menu(admin &a){
 	}
 	else if(option == 1){
 	system("CLS");
-	//a.assign_course();
+	a.assign_course();
 	}
 	else if(option == 2){
 	system("CLS");
-	//a.assign_counsellor();
+	a.assign_counsellor();
 	}
 	else if(option == 3){
 	system("CLS");
-	//a.assign_clstchr();
+	a.assign_clstchr();
 	}
 	else if(option == 4){
 	system("CLS");
-	//a.assign_head();
+	a.assign_head();
 	}
 	}
 	if(option == 5){
@@ -1127,7 +1212,7 @@ void admin :: add_student(){
     char char_student_yearjoined[student_yearjoined.size() + 1];
     strcpy(char_student_yearjoined, student_yearjoined.c_str());
 	string string_student_academic_year = char_student_yearjoined;
-    string insert_student = "INSERT INTO STUDENT VALUES ('" + student_id + "', '" + student_name + "', '" + string_student_academic_year + "', " + student_sem + ", '" + student_sec + "', '" + student_deptno + "', '" + gbl_password + "');";
+    string insert_student = "INSERT INTO STUDENT (STUDENTID,STUDENTNAME,YEARJOINED,SEMESTER,SECTION,DEPTNO,STUDENTPASSWORD) VALUES ('" + student_id + "', '" + student_name + "', '" + string_student_academic_year + "', " + student_sem + ", '" + student_sec + "', '" + student_deptno + "', '" + gbl_password + "');";
 	const char *line = insert_student.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, create_insert_table, 0, &zErrMsg);
@@ -1818,7 +1903,7 @@ void table_creation_function(sqlite3 *db){
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
     sql = strdup("CREATE TABLE FACULTY(FACULTYID VARCHAR2(6) PRIMARY KEY, FACULTYNAME  VARCHAR2 (40) NOT NULL, QUALIFICATION VARCHAR2 (30), DESIGNATION VARCHAR2 (40), RESEARCHAREA VARCHAR2 (60), DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID), FACULTYPASSWORD VARCHAR2(8));");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
-    sql = strdup("CREATE TABLE STUDENT(STUDENTID VARCHAR2 (8) PRIMARY KEY, STUDENTNAME  VARCHAR2 (40) NOT NULL, YEARJOINED VARCHAR2 (4) NOT NULL, SEMESTER NUMBER NOT NULL, SECTION VARCHAR2 (6) NOT NULL, DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID), STUDENTPASSWORD VARCHAR2(8));");
+    sql = strdup("CREATE TABLE STUDENT(STUDENTID VARCHAR2 (8) PRIMARY KEY, STUDENTNAME  VARCHAR2 (40) NOT NULL, YEARJOINED VARCHAR2 (4) NOT NULL, SEMESTER NUMBER NOT NULL, SECTION VARCHAR2 (6) NOT NULL, COUNSELLORID VARCHAR2(6) REFERENCES FACULTY (FACULTYID), DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID), STUDENTPASSWORD VARCHAR2(8));");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
     sql = strdup("CREATE TABLE BRANCH(BRANCHID VARCHAR2 (3) PRIMARY KEY, BRANCHNAME  VARCHAR2 (40) NOT NULL, HOD VARCHAR2 (60) NULL, PHONE VARCHAR2 (10) NOT NULL);");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
