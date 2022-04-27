@@ -73,6 +73,8 @@ class admin{
 	void delete_faculty();
 	void view_faculty();
 	void master_faculty_menu(admin &a);
+    void master_faculty_edit_menu(admin &a);
+    void master_faculty_assign_menu(admin &a);
 	void add_student();
 	void update_student();
     void shift_student();
@@ -875,10 +877,10 @@ void admin :: view_faculty(){
     return;
 }
 
-void admin :: master_faculty_menu(admin &a){
-	int option = 0;
+void admin :: master_faculty_edit_menu(admin &a){
+    int option = 0;
 	while(option !=6){
-	a: cout << "\nAccessing Faculty Operations...\n\n\n";
+	a: cout << "\nAccessing Faculty EDIT Operations...\n\n\n";
 	cout << "Type '1' ----> Add Faculty\n";
 	cout << "Type '2' ----> Update Faculty\n";
 	cout << "Type '3' ----> Shift Faculty\n";
@@ -918,6 +920,84 @@ void admin :: master_faculty_menu(admin &a){
 	}
 	}
 	if(option == 6){
+	cout << "Redirecting back...\n";
+	clear_screen();
+	return;
+	}
+}
+
+void admin :: master_faculty_assign_menu(admin &a){
+    int option = 0;
+	while(option !=5){
+	a: cout << "\nAccessing Faculty ASSIGN Operations...\n\n\n";
+	cout << "Type '1' ----> Assign a Course\n";
+	cout << "Type '2' ----> Assign as Counsellor\n";
+	cout << "Type '3' ----> Assign as Class Teacher\n";
+	cout << "Type '4' ----> Assign as Head of Department\n";
+	cout << "Type '5' ----> Back to Main Menu\n";
+	cout << "\nEnter Here : ";
+    cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	b : error_message();
+	goto a;
+	}
+	option = stoi(excp);
+	if(option>6 || option<1){
+	goto b;
+	}
+	else if(option == 1){
+	system("CLS");
+	//a.assign_course();
+	}
+	else if(option == 2){
+	system("CLS");
+	//a.assign_counsellor();
+	}
+	else if(option == 3){
+	system("CLS");
+	//a.assign_clstchr();
+	}
+	else if(option == 4){
+	system("CLS");
+	//a.assign_head();
+	}
+	}
+	if(option == 5){
+	cout << "Redirecting back...\n";
+	clear_screen();
+	return;
+	}
+}
+
+void admin :: master_faculty_menu(admin &a){
+	int option = 0;
+	while(option !=3){
+	a: cout << "\nAccessing Faculty Operations...\n\n\n";
+	cout << "Type '1' ----> Access EDIT Operations\n";
+	cout << "Type '2' ----> Access ASSIGN Operations\n";
+	cout << "Type '3' ----> Back to Main Menu\n";
+	cout << "\nEnter Here : ";
+    cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	b : error_message();
+	goto a;
+	}
+	option = stoi(excp);
+	if(option>3 || option<1){
+	goto b;
+	}
+	else if(option == 1){
+	system("CLS");
+	a.master_faculty_edit_menu(a);
+	}
+	else if(option == 2){
+	system("CLS");
+	a.master_faculty_assign_menu(a);
+	}
+	}
+	if(option == 3){
 	cout << "Redirecting back to Admin Page\n";
 	clear_screen();
 	return;
@@ -1740,20 +1820,20 @@ void table_creation_function(sqlite3 *db){
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
     sql = strdup("CREATE TABLE STUDENT(STUDENTID VARCHAR2 (8) PRIMARY KEY, STUDENTNAME  VARCHAR2 (40) NOT NULL, YEARJOINED VARCHAR2 (4) NOT NULL, SEMESTER NUMBER NOT NULL, SECTION VARCHAR2 (6) NOT NULL, DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID), STUDENTPASSWORD VARCHAR2(8));");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
-    sql = strdup("CREATE TABLE BRANCH(BRANCHID VARCHAR2 (3) PRIMARY KEY, BRANCHNAME  VARCHAR2 (40) NOT NULL);");
+    sql = strdup("CREATE TABLE BRANCH(BRANCHID VARCHAR2 (3) PRIMARY KEY, BRANCHNAME  VARCHAR2 (40) NOT NULL, HOD VARCHAR2 (60) NULL, PHONE VARCHAR2 (10) NOT NULL);");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
-    sql = strdup("INSERT INTO BRANCH VALUES ('CS', 'Computer Science & Engineering'); \
-    INSERT INTO BRANCH VALUES ('AI', 'Computer Science & Engineering (Artificial Intelligence & Machine Learning)'); \
-    INSERT INTO BRANCH VALUES ('CN', 'Computer Science & Engineering (Networks)'); \
-    INSERT INTO BRANCH VALUES ('IN', 'Computer Science & Engineering (Internet Of Things)'); \
-    INSERT INTO BRANCH VALUES ('IT', 'Information Technology'); \
-    INSERT INTO BRANCH VALUES ('EC', 'Electronics & Communication Engineering'); \
-    INSERT INTO BRANCH VALUES ('EE', 'Electrical & Electronics Engineering'); \
-    INSERT INTO BRANCH VALUES ('CI', 'Electronics Communication & Instrumentation'); \
-    INSERT INTO BRANCH VALUES ('ME', 'Mechanical Engineering'); \
-    INSERT INTO BRANCH VALUES ('CE', 'Civil Engineering'); \
-    INSERT INTO BRANCH VALUES ('MH', 'Mathematics'); \
-    INSERT INTO BRANCH VALUES ('EN', 'English');");
+    sql = strdup("INSERT INTO BRANCH (BRANCHID,BRANCHNAME,PHONE) VALUES ('CS', 'Computer Science & Engineering', '7633301122'); \
+    INSERT INTO BRANCH (BRANCHID,BRANCHNAME,PHONE) VALUES ('AI', 'Computer Science & Engineering (Artificial Intelligence & Machine Learning)', '9000128377'); \
+    INSERT INTO BRANCH (BRANCHID,BRANCHNAME,PHONE) VALUES ('CN', 'Computer Science & Engineering (Networks)', '8639901325'); \
+    INSERT INTO BRANCH (BRANCHID,BRANCHNAME,PHONE) VALUES ('IN', 'Computer Science & Engineering (Internet Of Things)', '9899635464'); \
+    INSERT INTO BRANCH (BRANCHID,BRANCHNAME,PHONE) VALUES ('IT', 'Information Technology', '9007636116'); \
+    INSERT INTO BRANCH (BRANCHID,BRANCHNAME,PHONE) VALUES ('EC', 'Electronics & Communication Engineering', '8113911440'); \
+    INSERT INTO BRANCH (BRANCHID,BRANCHNAME,PHONE) VALUES ('EE', 'Electrical & Electronics Engineering', '9443849990'); \
+    INSERT INTO BRANCH (BRANCHID,BRANCHNAME,PHONE) VALUES ('CI', 'Electronics Communication & Instrumentation', '9066333055'); \
+    INSERT INTO BRANCH (BRANCHID,BRANCHNAME,PHONE) VALUES ('ME', 'Mechanical Engineering', '90898441300'); \
+    INSERT INTO BRANCH (BRANCHID,BRANCHNAME,PHONE) VALUES ('CE', 'Civil Engineering', '9666263740'); \
+    INSERT INTO BRANCH (BRANCHID,BRANCHNAME,PHONE) VALUES ('MH', 'Mathematics', '8634401872'); \
+    INSERT INTO BRANCH (BRANCHID,BRANCHNAME,PHONE) VALUES ('EN', 'English', '9774340001');");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
 }
 
