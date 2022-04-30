@@ -199,13 +199,6 @@ void set_foreignkeys(sqlite3 *db){
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
 }
 
-void reset_foreignkeys(sqlite3 *db){
-    int rc;
-    char *sql;
-    sql = strdup("PRAGMA FOREIGN_KEYS = OFF;");
-    rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
-}
-
 void select_branch_function(){
 	cout << "\nSelect Branch \n\n";
 	cout << "Type '1' -----> CSE\n";
@@ -751,23 +744,32 @@ void admin :: shift_faculty(){
 	else if(old_offset_index > new_offset_index){
     old_offset_index--;
 	sqlite3_open("SAMS.db", &db);
-    set_foreignkeys(db);
     string update_faculty = "UPDATE FACULTY set FACULTYID = 'TEMP' WHERE FACULTYID = '"+ old_faculty_id +"';";
     const char *line = update_faculty.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+	string update_hod = "UPDATE BRANCH set HOD = 'TEMP' WHERE HOD = '"+ old_faculty_id +"';";
+    line = update_hod.c_str();
+    sql = strdup(line);
+	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     while(old_offset_index>=new_offset_index){
     create_greater_padded_string(old_offset_index,faculty_deptno,old_offset_string,new_offset_string);
-    set_foreignkeys(db);
     string update_faculty = "UPDATE FACULTY set FACULTYID = '"+ new_offset_string +"' WHERE FACULTYID = '"+ old_offset_string +"';";
     const char *line = update_faculty.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+    string update_hod = "UPDATE BRANCH set HOD = '"+ new_offset_string +"' WHERE HOD = '"+ old_offset_string +"';";
+    line = update_hod.c_str();
+    sql = strdup(line);
+	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     old_offset_index--;
     }
-    set_foreignkeys(db);
     update_faculty = "UPDATE FACULTY set FACULTYID = '"+ new_faculty_id +"' WHERE FACULTYID = 'TEMP';";
     line = update_faculty.c_str();
+    sql = strdup(line);
+	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+	update_hod = "UPDATE BRANCH set HOD = '"+ new_faculty_id +"' WHERE HOD = 'TEMP';";
+    line = update_hod.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
 	sqlite3_close(db);
@@ -779,23 +781,32 @@ void admin :: shift_faculty(){
 	else if(old_offset_index < new_offset_index){
     old_offset_index++;
 	sqlite3_open("SAMS.db", &db);
-    set_foreignkeys(db);
     string update_faculty = "UPDATE FACULTY set FACULTYID = 'TEMP' WHERE FACULTYID = '"+ old_faculty_id +"';";
     const char *line = update_faculty.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+	string update_hod = "UPDATE BRANCH set HOD = 'TEMP' WHERE HOD = '"+ old_faculty_id +"';";
+    line = update_hod.c_str();
+    sql = strdup(line);
+	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     while(old_offset_index<=new_offset_index){
     create_lesser_padded_string(old_offset_index,faculty_deptno,old_offset_string,new_offset_string);
-    set_foreignkeys(db);
     string update_faculty = "UPDATE FACULTY set FACULTYID = '"+ new_offset_string +"' WHERE FACULTYID = '"+ old_offset_string +"';";
     const char *line = update_faculty.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+    string update_hod = "UPDATE BRANCH set HOD = '"+ new_offset_string +"' WHERE HOD = '"+ old_offset_string +"';";
+    line = update_hod.c_str();
+    sql = strdup(line);
+	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     old_offset_index++;
     }
-    set_foreignkeys(db);
     update_faculty = "UPDATE FACULTY set FACULTYID = '"+ new_faculty_id +"' WHERE FACULTYID = 'TEMP';";
     line = update_faculty.c_str();
+    sql = strdup(line);
+	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+	update_hod = "UPDATE BRANCH set HOD = '"+ new_faculty_id +"' WHERE HOD = 'TEMP';";
+    line = update_hod.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
 	sqlite3_close(db);
@@ -865,18 +876,24 @@ void admin :: delete_faculty(){
     int offset_index = stoi(offset_string);
     offset_index++;
     sqlite3_open("SAMS.db", &db);
-    set_foreignkeys(db);
     string delete_faculty = "DELETE from FACULTY where FACULTYID = '"+ faculty_id + "' AND DEPTNO = '" + faculty_deptno + "';";
     const char *line = delete_faculty.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+	string update_hod = "UPDATE BRANCH set HOD = NULL WHERE HOD = '"+ faculty_id +"';";
+    line = update_hod.c_str();
+    sql = strdup(line);
+	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     while(offset_index<=gbl_data){
     create_padded_string(offset_index,faculty_deptno,old_offset_string,new_offset_string);
-    set_foreignkeys(db);
     string update_faculty = "UPDATE FACULTY set FACULTYID = '"+ new_offset_string +"' WHERE FACULTYID = '"+ old_offset_string +"';";
     const char *line = update_faculty.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+    string update_hod = "UPDATE BRANCH set HOD = '"+ new_offset_string +"' WHERE HOD = '"+ old_offset_string +"';";
+    line = update_hod.c_str();
+    sql = strdup(line);
+	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     offset_index++;
     }
 	sqlite3_close(db);
