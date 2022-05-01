@@ -1297,8 +1297,12 @@ void admin :: assign_head(){
     if(choice == 1){
     sqlite3_open("SAMS.db", &db);
     set_foreignkeys(db);
+    string update_clstchr = "UPDATE SECTION set CLSTCHR = NULL WHERE CLSTCHR = '"+ faculty_id +"';";
+    const char *line = update_clstchr.c_str();
+    sql = strdup(line);
+	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     string update_branch = "UPDATE BRANCH set HOD = '"+ faculty_id +"' WHERE BRANCHID = '"+ faculty_deptno +"';";
-    const char *line = update_branch.c_str();
+    line = update_branch.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
 	sqlite3_close(db);
