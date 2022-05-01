@@ -759,6 +759,10 @@ void admin :: shift_faculty(){
     line = update_hod.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+	string update_clstchr = "UPDATE SECTION set CLSTCHR = 'TEMP' WHERE CLSTCHR = '"+ old_faculty_id +"';";
+    line = update_clstchr.c_str();
+    sql = strdup(line);
+	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     while(old_offset_index>=new_offset_index){
     create_greater_padded_string(old_offset_index,faculty_deptno,old_offset_string,new_offset_string);
     string update_faculty = "UPDATE FACULTY set FACULTYID = '"+ new_offset_string +"' WHERE FACULTYID = '"+ old_offset_string +"';";
@@ -769,6 +773,10 @@ void admin :: shift_faculty(){
     line = update_hod.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+	string update_clstchr = "UPDATE SECTION set CLSTCHR = '"+ new_offset_string +"' WHERE CLSTCHR = '"+ old_offset_string +"';";
+    line = update_clstchr.c_str();
+    sql = strdup(line);
+	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     old_offset_index--;
     }
     update_faculty = "UPDATE FACULTY set FACULTYID = '"+ new_faculty_id +"' WHERE FACULTYID = 'TEMP';";
@@ -777,6 +785,10 @@ void admin :: shift_faculty(){
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
 	update_hod = "UPDATE BRANCH set HOD = '"+ new_faculty_id +"' WHERE HOD = 'TEMP';";
     line = update_hod.c_str();
+    sql = strdup(line);
+	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+    update_clstchr = "UPDATE SECTION set CLSTCHR = '"+ new_faculty_id +"' WHERE CLSTCHR = = 'TEMP';";
+    line = update_clstchr.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
 	sqlite3_close(db);
@@ -796,6 +808,10 @@ void admin :: shift_faculty(){
     line = update_hod.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+	string update_clstchr = "UPDATE SECTION set CLSTCHR = 'TEMP' WHERE CLSTCHR = '"+ old_faculty_id +"';";
+    line = update_clstchr.c_str();
+    sql = strdup(line);
+	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     while(old_offset_index<=new_offset_index){
     create_lesser_padded_string(old_offset_index,faculty_deptno,old_offset_string,new_offset_string);
     string update_faculty = "UPDATE FACULTY set FACULTYID = '"+ new_offset_string +"' WHERE FACULTYID = '"+ old_offset_string +"';";
@@ -806,6 +822,10 @@ void admin :: shift_faculty(){
     line = update_hod.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+	string update_clstchr = "UPDATE SECTION set CLSTCHR = '"+ new_offset_string +"' WHERE CLSTCHR = '"+ old_offset_string +"';";
+    line = update_clstchr.c_str();
+    sql = strdup(line);
+	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     old_offset_index++;
     }
     update_faculty = "UPDATE FACULTY set FACULTYID = '"+ new_faculty_id +"' WHERE FACULTYID = 'TEMP';";
@@ -814,6 +834,10 @@ void admin :: shift_faculty(){
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
 	update_hod = "UPDATE BRANCH set HOD = '"+ new_faculty_id +"' WHERE HOD = 'TEMP';";
     line = update_hod.c_str();
+    sql = strdup(line);
+	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+	update_clstchr = "UPDATE SECTION set CLSTCHR = '"+ new_faculty_id +"' WHERE CLSTCHR = = 'TEMP';";
+    line = update_clstchr.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
 	sqlite3_close(db);
@@ -891,6 +915,10 @@ void admin :: delete_faculty(){
     line = update_hod.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+	string update_clstchr = "UPDATE SECTION set CLSTCHR = NULL WHERE CLSTCHR = '"+ faculty_id +"';";
+    line = update_clstchr.c_str();
+    sql = strdup(line);
+	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     while(offset_index<=gbl_data){
     create_padded_string(offset_index,faculty_deptno,old_offset_string,new_offset_string);
     string update_faculty = "UPDATE FACULTY set FACULTYID = '"+ new_offset_string +"' WHERE FACULTYID = '"+ old_offset_string +"';";
@@ -899,6 +927,10 @@ void admin :: delete_faculty(){
     rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     string update_hod = "UPDATE BRANCH set HOD = '"+ new_offset_string +"' WHERE HOD = '"+ old_offset_string +"';";
     line = update_hod.c_str();
+    sql = strdup(line);
+	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+	string update_clstchr = "UPDATE SECTION set CLSTCHR = '"+ new_offset_string +"' WHERE CLSTCHR = '"+ old_offset_string +"';";
+    line = update_clstchr.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     offset_index++;
