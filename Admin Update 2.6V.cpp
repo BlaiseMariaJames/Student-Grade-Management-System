@@ -7,10 +7,8 @@
 using namespace std;
 
 int gbl_data = 0;
-int gbl_slno = 0;
 bool roc = false;
 string excp = "";
-string academic_year[100];
 string gbl_password = "1234";
 char dept[12][4] = {"CSE","CSM","CSN","CSO"," IT","ECE","EEE","ECI","CIV","MEC","EMH","ENG"};
 char dept_no[12][4] = {"CS","AI","CN","IN","IT","EC","EE","CI","CE","ME","MH","EN"};
@@ -149,6 +147,24 @@ static int exist_table(void *NotUsed, int argc, char **argv, char **azColName){
     return 1;
 }
 
+static int view_hod_details(void *NotUsed, int argc, char **argv, char **azColName){
+	string gbl_input[100];
+	for(int i = 0; i<argc; i++){
+    gbl_input[i] = argv[i] ? argv[i] : "NULL";
+    }
+    cout << "\nFaculty with id " << gbl_input[0] << " is already assigned as HEAD of ";
+    return 0;
+}
+
+static int view_clstchr_details(void *NotUsed, int argc, char **argv, char **azColName){
+	string gbl_input[100];
+	for(int i = 0; i<argc; i++){
+    gbl_input[i] = argv[i] ? argv[i] : "NULL";
+    }
+    cout << "\nFaculty with id " << gbl_input[0] << " is already assigned as CLASSTEACHER of " << gbl_input[1];
+    return 0;
+}
+
 static int view_faculty_account(void *NotUsed, int argc, char **argv, char **azColName){
 	string gbl_input[100];
 	for(int i = 0; i<argc; i++){
@@ -167,15 +183,6 @@ static int view_student_account(void *NotUsed, int argc, char **argv, char **azC
     gbl_input[i] = argv[i] ? argv[i] : "NULL";
     }
     cout << "Name : " << gbl_input[0] << endl;
-    return 0;
-}
-
-static int view_hod_details(void *NotUsed, int argc, char **argv, char **azColName){
-	string gbl_input[100];
-	for(int i = 0; i<argc; i++){
-    gbl_input[i] = argv[i] ? argv[i] : "NULL";
-    }
-    cout << "\nFaculty with id " << gbl_input[0] << " is already assigned as HEAD of ";
     return 0;
 }
 
@@ -991,12 +998,147 @@ void admin :: assign_counsellor(){
 
 }
 
-void check_clstchr(){
+void clstchr_confirmation(int &choice, string dept_id, string faculty_deptno, string faculty_id, string section_id){
+	a: cout << "\n\nAre you sure to make the requested faculty with id " + faculty_id + " as CLASS TEACHER of " + section_id + " ? ";
+	cout << "\nPress '1' if 'YES' or '2' if 'NO'";
+	cout << "\nEnter Here : ";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+    b: error_message();
+    cout << "\nDisplaying Details of faculty(ies) of branch " << dept_id << "..."<< endl;
+    cout << "\n\nID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA" << endl;
+    view_table("FACULTY", faculty_deptno);
+	cout << "\n\nEnter the id to be made Class Teacher : " << faculty_id << endl;
+	cout << "Enter the Section: " << section_id << endl;
+	goto a;
+	}
+	choice = stoi(excp);
+	if(choice!=1 && choice!=2){
+    goto b;
+	}
+	else
+    return;
+}
+
+void check_clstchr(string dept_id, string faculty_deptno, string faculty_id, string section_id){
+    sqlite3 *db;
+    int rc, choice;
+    char *zErrMsg = 0, *sql;
+    sqlite3_open("SAMS.db", &db);
+    string search_clstchr = "SELECT EXISTS(SELECT * FROM SECTION WHERE CLSTCHR IS NOT NULL AND SECTIONID = '"+  section_id +"');";
+    const char *line = search_clstchr.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){   //no
+    search_clstchr = "SELECT EXISTS(SELECT * FROM SECTION WHERE CLSTCHR = '"+ faculty_id +"');";
+    line = search_clstchr.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc==0){ //no
+    clstchr_confirmation(choice,dept_id,faculty_deptno,faculty_id,section_id);
+    if(choice == 1){
+    sqlite3_open("SAMS.db", &db);
+    set_foreignkeys(db);
+    string update_section = "UPDATE SECTION set CLSTCHR = '"+ faculty_id +"' WHERE SECTIONID = '"+ section_id +"';";
+    const char *line = update_section.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+	sqlite3_close(db);
+    cout << "\nRequested faculty made as Class Teacher successfully..." << endl;
+    return;
+    }
+    if(choice == 2){
+    cout << "\nNo changes were made...." << endl;
+    return;
+	}
+    }
+    else{ //yes
+    search_clstchr = "SELECT CLSTCHR,SECTIONID from SECTION WHERE CLSTCHR = '" + faculty_id + "';";
+    line = search_clstchr.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, view_clstchr_details, 0, &zErrMsg);
+    clstchr_confirmation(choice,dept_id,faculty_deptno,faculty_id,section_id);
+    if(choice == 1){
+    sqlite3_open("SAMS.db", &db);
+    set_foreignkeys(db);
+    string update_faculty = "UPDATE SECTION set CLSTCHR = NULL WHERE CLSTCHR = '"+ faculty_id +"';";
+    line = update_faculty.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+    string update_section = "UPDATE SECTION set CLSTCHR = '"+ faculty_id +"' WHERE SECTIONID = '"+ section_id +"';";
+    line = update_section.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+	sqlite3_close(db);
+    cout << "\nRequested faculty made as Class Teacher successfully..." << endl;
+    return;
+    }
+    if(choice == 2){
+    cout << "\nNo changes were made...." << endl;
+    return;
+	}
+    }
+    }
+    else{ //yes
+    search_clstchr = "SELECT CLSTCHR,SECTIONID from SECTION WHERE SECTIONID = '" + section_id + "';";
+    line = search_clstchr.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, view_clstchr_details, 0, &zErrMsg);
+    clstchr_confirmation(choice,dept_id,faculty_deptno,faculty_id,section_id);
+    if(choice == 1){
+    search_clstchr = "SELECT EXISTS(SELECT * FROM SECTION WHERE CLSTCHR = '"+ faculty_id +"');";
+    line = search_clstchr.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc==0){ //no
+    sqlite3_open("SAMS.db", &db);
+    set_foreignkeys(db);
+    string update_section = "UPDATE SECTION set CLSTCHR = '"+ faculty_id +"' WHERE SECTIONID = '"+ section_id +"';";
+    const char *line = update_section.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+	sqlite3_close(db);
+    cout << "\nRequested faculty made as Class Teacher successfully..." << endl;
+    return;
+    }
+    else{ //yes
+    search_clstchr = "SELECT CLSTCHR,SECTIONID from SECTION WHERE CLSTCHR = '" + faculty_id + "';";
+    line = search_clstchr.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, view_clstchr_details, 0, &zErrMsg);
+    clstchr_confirmation(choice,dept_id,faculty_deptno,faculty_id,section_id);
+    if(choice == 1){
+    sqlite3_open("SAMS.db", &db);
+    set_foreignkeys(db);
+    string update_faculty = "UPDATE SECTION set CLSTCHR = NULL WHERE CLSTCHR = '"+ faculty_id +"';";
+    line = update_faculty.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+    string update_section = "UPDATE SECTION set CLSTCHR = '"+ faculty_id +"' WHERE SECTIONID = '"+ section_id +"';";
+    line = update_section.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+	sqlite3_close(db);
+    cout << "\nRequested faculty made as Class Teacher successfully..." << endl;
+    return;
+    }
+    if(choice == 2){
+    cout << "\nNo changes were made...." << endl;
+    return;
+	}
+    }
+    }
+    if(choice == 2){
+    cout << "\nNo changes were made...." << endl;
+    return;
+	}
+    }
 }
 
 void admin :: assign_clstchr(){
     sqlite3 *db;
-    int rc, dept_id, sem;
+    int rc, dept_id;
     char *zErrMsg = 0, *sql;
     string faculty_id, section_id;
 	select_branch_view_function(dept_id);
@@ -1026,21 +1168,6 @@ void admin :: assign_clstchr(){
     clear_screen();
     return;
     }
-    a: cout << "Enter Semester of the Section : ";
-    cin >> excp;
-	roc = check_exception(excp);
-	while(roc){
-    b: error_message();
-    cout << "\nDisplaying Details of faculty(ies) of branch " << dept[id] << "..."<< endl;
-    cout << "\n\nID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA" << endl;
-    view_table("FACULTY", faculty_deptno);
-	cout << "\n\nEnter the id to be made Class Teacher : " << faculty_id << endl;
-	goto a;
-	}
-	sem = stoi(excp);
-	if(sem>8 || sem<1){
-    goto b;
-	}
     cout << "Enter the Section : ";
     cin >> section_id;
     string search_section = "SELECT EXISTS(SELECT * from SECTION WHERE SECTIONID = '"+  section_id +"');";
@@ -1053,39 +1180,7 @@ void admin :: assign_clstchr(){
     clear_screen();
     return;
     }
-    c: check_clstchr();
-    cout << "\n\nAre you sure to make the requested faculty with id " + faculty_id + " as CLASS TEACHER of " + to_string(sem) + section_id + " ? ";
-	cout << "\nPress '1' if 'YES' or '2' if 'NO'";
-	cout << "\nEnter Here : ";
-	cin >> excp;
-	roc = check_exception(excp);
-	while(roc){
-    d: error_message();
-    cout << "\nDisplaying Details of faculty(ies) of branch " << dept[id] << "..."<< endl;
-    cout << "\n\nID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA" << endl;
-    view_table("FACULTY", faculty_deptno);
-	cout << "\n\nEnter the id to be made Class Teacher : " << faculty_id << endl;
-	cout << "\n\nEnter the Semester : " << sem << endl;
-	cout << "Enter the Section: " << section_id << endl;
-	goto c;
-	}
-	int choice = stoi(excp);
-	if(choice!=1 && choice!=2){
-    goto d;
-	}
-    if(choice == 1){
-    sqlite3_open("SAMS.db", &db);
-    set_foreignkeys(db);
-    string update_section = "UPDATE SECTION set CLSTCHR = '"+ faculty_id +"' WHERE SECTIONID = '"+ section_id +"' AND SEMESTER = " + to_string(sem) + ";";
-    const char *line = update_section.c_str();
-    sql = strdup(line);
-    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-	sqlite3_close(db);
-    cout << "\nRequested faculty made as Class Teacher successfully..." << endl;
-    }
-    if(choice == 2){
-    cout << "\nNo changes were made...." << endl;
-	}
+    check_clstchr(branch_id,faculty_deptno,faculty_id,section_id);
     cout << endl;
     clear_screen();
     return;
