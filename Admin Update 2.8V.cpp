@@ -513,7 +513,7 @@ int update_faculty_function(string &faculty_id, int id, string faculty_deptno){
 	rc = sqlite3_open("SAMS.db", &db);
     cout << "\n\nEnter the ID to be updated : ";
     cin >> faculty_id;
-    string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ faculty_id +"');";
+    string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ faculty_id +"' AND DEPTNO = '"+ faculty_deptno +"');";
     const char *line = search_faculty.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
@@ -713,7 +713,7 @@ void admin :: shift_faculty(){
     sqlite3_open("SAMS.db", &db);
 	cout << "\n\nEnter the id to be shifted : ";
 	cin >> old_faculty_id;
-	string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ old_faculty_id +"');";
+	string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ old_faculty_id +"' AND DEPTNO = '"+ faculty_deptno +"');";
     const char *line = search_faculty.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
@@ -726,7 +726,7 @@ void admin :: shift_faculty(){
     }
     cout << "\nEnter the id corresponding to the location where " << old_faculty_id << " is to be shifted : ";
 	cin >> new_faculty_id;
-	search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ new_faculty_id +"');";
+	search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ new_faculty_id +"' AND DEPTNO = '"+ faculty_deptno +"');";
     line = search_faculty.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
@@ -787,7 +787,7 @@ void admin :: shift_faculty(){
     line = update_hod.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-    update_clstchr = "UPDATE SECTION set CLSTCHR = '"+ new_faculty_id +"' WHERE CLSTCHR = = 'TEMP';";
+    update_clstchr = "UPDATE SECTION set CLSTCHR = '"+ new_faculty_id +"' WHERE CLSTCHR = 'TEMP';";
     line = update_clstchr.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
@@ -836,7 +836,7 @@ void admin :: shift_faculty(){
     line = update_hod.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-	update_clstchr = "UPDATE SECTION set CLSTCHR = '"+ new_faculty_id +"' WHERE CLSTCHR = = 'TEMP';";
+	update_clstchr = "UPDATE SECTION set CLSTCHR = '"+ new_faculty_id +"' WHERE CLSTCHR = 'TEMP';";
     line = update_clstchr.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
@@ -870,7 +870,7 @@ void admin :: delete_faculty(){
     sqlite3_open("SAMS.db", &db);
 	cout << "\n\nEnter the id to be deleted : ";
 	cin >> faculty_id;
-	string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ faculty_id +"');";
+	string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ faculty_id +"' AND DEPTNO = '"+ faculty_deptno +"');";
     const char *line = search_faculty.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
@@ -1190,7 +1190,7 @@ void admin :: assign_clstchr(){
     sqlite3_open("SAMS.db", &db);
 	cout << "\n\nEnter the id to be made Class Teacher : ";
 	cin >> faculty_id;
-	string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ faculty_id +"');";
+	string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ faculty_id +"' AND DEPTNO = '"+ faculty_deptno +"');";
     const char *line = search_faculty.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
@@ -1266,7 +1266,7 @@ void admin :: assign_head(){
     sqlite3_open("SAMS.db", &db);
 	cout << "\n\nEnter the id to be made Head of Department : ";
 	cin >> faculty_id;
-	string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ faculty_id +"');";
+	string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ faculty_id +"' AND DEPTNO = '"+ faculty_deptno +"');";
     const char *line = search_faculty.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
@@ -1556,7 +1556,7 @@ int update_student_function(string &student_id, int id, string student_deptno){
 	rc = sqlite3_open("SAMS.db", &db);
     cout << "\n\nEnter the ID to be updated : ";
     cin >> student_id;
-    string search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDENTID = '"+ student_id +"');";
+    string search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDENTID = '"+ student_id +"' AND DEPTNO = '"+ student_deptno +"');";
     const char *line = search_student.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
@@ -1664,7 +1664,7 @@ void admin :: shift_student(){
     sqlite3_open("SAMS.db", &db);
 	cout << "\n\nEnter the id to be shifted : ";
 	cin >> old_student_id;
-	string search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDENTID = '"+ old_student_id +"');";
+	string search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDENTID = '"+ old_student_id +"' AND DEPTNO = '"+ student_deptno +"');";
     const char *line = search_student.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
@@ -1677,7 +1677,7 @@ void admin :: shift_student(){
     }
     cout << "\nEnter the id corresponding to the location where " << old_student_id << " is to be shifted : ";
 	cin >> new_student_id;
-	search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDENTID = '"+ new_student_id +"');";
+	search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDENTID = '"+ new_student_id +"' AND DEPTNO = '"+ student_deptno +"');";
     line = search_student.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
@@ -1779,7 +1779,7 @@ void admin :: delete_student(){
     sqlite3_open("SAMS.db", &db);
 	cout << "\n\nEnter the id to be deleted : ";
 	cin >> student_id;
-	string search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDENTID = '"+ student_id +"');";
+	string search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDENTID = '"+ student_id +"' AND DEPTNO = '"+ student_deptno +"');";
     const char *line = search_student.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
