@@ -72,9 +72,21 @@ class admin{
 	void view_faculty();
     void master_faculty_edit_menu(admin &a);
     void assign_course();
+    void remove_course();
+    void view_course();
+    void master_assign_course_menu(admin &a);
     void assign_counsellor();
+    void remove_counsellor();
+    void view_counsellor();
+    void master_assign_counsellor_menu(admin &a);
     void assign_clstchr();
+    void remove_clstchr();
+    void view_clstchr();
+    void master_assign_clstchr_menu(admin &a);
     void assign_head();
+    void remove_head();
+    void view_head();
+    void master_assign_head_menu(admin &a);
     void master_faculty_assign_menu(admin &a);
 	void master_faculty_menu(admin &a);
 	void add_student();
@@ -1003,11 +1015,133 @@ void admin :: master_faculty_edit_menu(admin &a){
 }
 
 void admin :: assign_course(){
+}
 
+void admin :: remove_course(){
+}
+
+void admin :: view_course(){
+}
+
+void admin :: master_assign_course_menu(admin &a){
+    int option = 0;
+	while(option !=4){
+	a: cout << "\nAccessing Faculty ASSIGN COURSE Operations...\n\n\n";
+	cout << "Type '1' ----> Add Course\n";
+	cout << "Type '2' ----> Remove Course\n";
+	cout << "Type '3' ----> View Course\n";
+	cout << "Type '4' ----> Back to Main Menu\n";
+	cout << "\nEnter Here : ";
+    cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	b : error_message();
+	goto a;
+	}
+	option = stoi(excp);
+	if(option>4 || option<1){
+	goto b;
+	}
+	else if(option == 1){
+	system("CLS");
+	//a.assign_course();
+	}
+	else if(option == 2){
+	system("CLS");
+	//a.remove_course();
+	}
+	else if(option == 3){
+	system("CLS");
+	//a.view_course();
+	}
+	}
+	if(option == 4){
+	cout << "Redirecting back...\n";
+	clear_screen();
+	return;
+	}
 }
 
 void admin :: assign_counsellor(){
+    sqlite3 *db;
+    int rc, dept_id;
+    string faculty_id;
+    char *zErrMsg = 0, *sql;
+	select_branch_view_function(dept_id);
+	int id = dept_id - 1;
+	string faculty_deptno = dept_no[id];
+	string branch_id = dept[id];
+	system("CLS");
+	view_faculty_function(faculty_deptno);
+	if(gbl_data == 0){
+    cout << "\nERROR: No Faculty Details Found...." << endl;
+	cout << endl;
+	}
+	else{
+    cout << "\nDisplaying Details of faculty(ies) of branch " << dept[id] << "..."<< endl;
+    cout << "\n\nID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA" << endl;
+    view_table("FACULTY", faculty_deptno);
+    sqlite3_open("SAMS.db", &db);
+	cout << "\n\nEnter the id to be made Counsellor : ";
+	cin >> faculty_id;
+	string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ faculty_id +"' AND DEPTNO = '"+ faculty_deptno +"');";
+    const char *line = search_faculty.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nFaculty with requested ID doesn't exist..." << endl;
+    cout << "\nUnable to access requested details of faculty... Try Again using valid ID...\n" << endl;
+    clear_screen();
+    return;
+    }
+    }
+    clear_screen();
+    return;
+}
 
+void admin :: remove_counsellor(){
+}
+
+void admin :: view_counsellor(){
+}
+
+void admin :: master_assign_counsellor_menu(admin &a){
+    int option = 0;
+	while(option !=4){
+	a: cout << "\nAccessing Faculty ASSIGN COUNSELLOR Operations...\n\n\n";
+	cout << "Type '1' ----> Add Students\n";
+	cout << "Type '2' ----> Remove Students\n";
+	cout << "Type '3' ----> View Students\n";
+	cout << "Type '4' ----> Back to Main Menu\n";
+	cout << "\nEnter Here : ";
+    cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	b : error_message();
+	goto a;
+	}
+	option = stoi(excp);
+	if(option>4 || option<1){
+	goto b;
+	}
+	else if(option == 1){
+	system("CLS");
+	//a.assign_counsellor();
+	}
+	else if(option == 2){
+	system("CLS");
+	//a.remove_counsellor();
+	}
+	else if(option == 3){
+	system("CLS");
+	//a.view_counsellor();
+	}
+	}
+	if(option == 4){
+	cout << "Redirecting back...\n";
+	clear_screen();
+	return;
+	}
 }
 
 void clstchr_confirmation(int &choice, string dept_id, string faculty_deptno, string faculty_id, string section_id){
@@ -1209,12 +1343,57 @@ void admin :: assign_clstchr(){
     return;
 }
 
-void check_hod(string student_deptno, string branch_id){
+void admin :: remove_clstchr(){
+}
+
+void admin :: view_clstchr(){
+}
+
+void admin :: master_assign_clstchr_menu(admin &a){
+    int option = 0;
+	while(option !=4){
+	a: cout << "\nAccessing Faculty ASSIGN CLASS TEACHER Operations...\n\n\n";
+	cout << "Type '1' ----> Add Class Teacher\n";
+	cout << "Type '2' ----> Remove Class Teacher\n";
+	cout << "Type '3' ----> View Class Teacher\n";
+	cout << "Type '4' ----> Back to Main Menu\n";
+	cout << "\nEnter Here : ";
+    cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	b : error_message();
+	goto a;
+	}
+	option = stoi(excp);
+	if(option>4 || option<1){
+	goto b;
+	}
+	else if(option == 1){
+	system("CLS");
+	//a.assign_clstchr();
+	}
+	else if(option == 2){
+	system("CLS");
+	//a.remove_clstchr();
+	}
+	else if(option == 3){
+	system("CLS");
+	//a.view_clstchr();
+	}
+	}
+	if(option == 4){
+	cout << "Redirecting back...\n";
+	clear_screen();
+	return;
+	}
+}
+
+void check_hod(string faculty_deptno, string branch_id){
     int rc;
     sqlite3 *db;
     char *zErrMsg = 0, *sql;
     sqlite3_open("SAMS.db", &db);
-    string search_hod = "SELECT EXISTS(SELECT * FROM BRANCH WHERE HOD IS NOT NULL AND BRANCHID = '"+  student_deptno +"');";
+    string search_hod = "SELECT EXISTS(SELECT * FROM BRANCH WHERE HOD IS NOT NULL AND BRANCHID = '"+  faculty_deptno +"');";
     const char *line = search_hod.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
@@ -1222,7 +1401,7 @@ void check_hod(string student_deptno, string branch_id){
     return;
     }
     else{
-    search_hod = "SELECT HOD from BRANCH WHERE BRANCHID = '" + student_deptno + "';";
+    search_hod = "SELECT HOD from BRANCH WHERE BRANCHID = '" + faculty_deptno + "';";
     line = search_hod.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, view_hod_details, 0, &zErrMsg);
@@ -1307,6 +1486,51 @@ void admin :: assign_head(){
     return;
 }
 
+void admin :: remove_head(){
+}
+
+void admin :: view_head(){
+}
+
+void admin :: master_assign_head_menu(admin &a){
+    int option = 0;
+	while(option !=4){
+	a: cout << "\nAccessing Faculty ASSIGN HEAD Operations...\n\n\n";
+	cout << "Type '1' ----> Add HOD\n";
+	cout << "Type '2' ----> Remove HOD\n";
+	cout << "Type '3' ----> View HOD\n";
+	cout << "Type '4' ----> Back to Main Menu\n";
+	cout << "\nEnter Here : ";
+    cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	b : error_message();
+	goto a;
+	}
+	option = stoi(excp);
+	if(option>4 || option<1){
+	goto b;
+	}
+	else if(option == 1){
+	system("CLS");
+	//a.assign_head();
+	}
+	else if(option == 2){
+	system("CLS");
+	//a.remove_head();
+	}
+	else if(option == 3){
+	system("CLS");
+	//a.view_head();
+	}
+	}
+	if(option == 4){
+	cout << "Redirecting back...\n";
+	clear_screen();
+	return;
+	}
+}
+
 void admin :: master_faculty_assign_menu(admin &a){
     int option = 0;
 	while(option !=5){
@@ -1329,19 +1553,19 @@ void admin :: master_faculty_assign_menu(admin &a){
 	}
 	else if(option == 1){
 	system("CLS");
-	a.assign_course();
+	a.master_assign_course_menu(a);
 	}
 	else if(option == 2){
 	system("CLS");
-	a.assign_counsellor();
+	a.master_assign_counsellor_menu(a);
 	}
 	else if(option == 3){
 	system("CLS");
-	a.assign_clstchr();
+	a.master_assign_clstchr_menu(a);
 	}
 	else if(option == 4){
 	system("CLS");
-	a.assign_head();
+    a.master_assign_head_menu(a);
 	}
 	}
 	if(option == 5){
