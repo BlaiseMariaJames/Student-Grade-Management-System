@@ -107,13 +107,6 @@ void error_message(){
 	return;
 }
 
-/*
-void print_year(string academic_year){
-cout << "Type '" + to_string(gbl_slno) + academic_year << endl;
-gbl_slno++;
-}
-*/
-
 static int create_insert_table(void *NotUsed, int argc, char **argv, char **azColName) {
     for(int i = 0; i<argc; i++) {
     printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
@@ -185,19 +178,6 @@ static int view_student_account(void *NotUsed, int argc, char **argv, char **azC
     cout << "Name : " << gbl_input[0] << endl;
     return 0;
 }
-
-/*
-static int view_student_academicyear(void *NotUsed, int argc, char **argv, char **azColName){
-	int year_offset = 0;
-	for(int i = 0; i<argc; i++){
-    academic_year[i] = argv[i] ? argv[i] : "NULL";
-    year_offset  = stoi(academic_year[i]) + 4;
-    academic_year[i] = "' -----> " + academic_year[i] + + " - " + to_string(year_offset);
-    print_year(academic_year[i]);
-    }
-    return 0;
-}
-*/
 
 void set_foreignkeys(sqlite3 *db){
     int rc;
@@ -1062,16 +1042,20 @@ void check_clstchr(string dept_id, string faculty_deptno, string faculty_id, str
     const char *line = search_clstchr.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
-    if(rc == 0){   //no
+    if(rc == 0){
     search_clstchr = "SELECT EXISTS(SELECT * FROM SECTION WHERE CLSTCHR = '"+ faculty_id +"');";
     line = search_clstchr.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
-    if(rc==0){ //no
+    if(rc==0){
     clstchr_confirmation(choice,dept_id,faculty_deptno,faculty_id,section_id);
     if(choice == 1){
     sqlite3_open("SAMS.db", &db);
     set_foreignkeys(db);
+    string update_branch = "UPDATE BRANCH set HOD = NULL WHERE HOD = '"+ faculty_id +"';";
+    line = update_branch.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     string update_section = "UPDATE SECTION set CLSTCHR = '"+ faculty_id +"' WHERE SECTIONID = '"+ section_id +"';";
     const char *line = update_section.c_str();
     sql = strdup(line);
@@ -1085,7 +1069,7 @@ void check_clstchr(string dept_id, string faculty_deptno, string faculty_id, str
     return;
 	}
     }
-    else{ //yes
+    else{
     search_clstchr = "SELECT CLSTCHR,SECTIONID from SECTION WHERE CLSTCHR = '" + faculty_id + "';";
     line = search_clstchr.c_str();
     sql = strdup(line);
@@ -1112,7 +1096,7 @@ void check_clstchr(string dept_id, string faculty_deptno, string faculty_id, str
 	}
     }
     }
-    else{ //yes
+    else{
     search_clstchr = "SELECT CLSTCHR,SECTIONID from SECTION WHERE SECTIONID = '" + section_id + "';";
     line = search_clstchr.c_str();
     sql = strdup(line);
@@ -1123,9 +1107,13 @@ void check_clstchr(string dept_id, string faculty_deptno, string faculty_id, str
     line = search_clstchr.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
-    if(rc==0){ //no
+    if(rc==0){
     sqlite3_open("SAMS.db", &db);
     set_foreignkeys(db);
+    string update_branch = "UPDATE BRANCH set HOD = NULL WHERE HOD = '"+ faculty_id +"';";
+    line = update_branch.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     string update_section = "UPDATE SECTION set CLSTCHR = '"+ faculty_id +"' WHERE SECTIONID = '"+ section_id +"';";
     const char *line = update_section.c_str();
     sql = strdup(line);
@@ -1134,7 +1122,7 @@ void check_clstchr(string dept_id, string faculty_deptno, string faculty_id, str
     cout << "\nRequested faculty made as Class Teacher successfully..." << endl;
     return;
     }
-    else{ //yes
+    else{
     search_clstchr = "SELECT CLSTCHR,SECTIONID from SECTION WHERE CLSTCHR = '" + faculty_id + "';";
     line = search_clstchr.c_str();
     sql = strdup(line);
@@ -1855,15 +1843,6 @@ void admin :: view_student(){
 	int id = dept_id - 1;
 	string student_deptno = dept_no[id];
 	system("CLS");
-	/*
-	rc = sqlite3_open("SAMS.db", &db);
-	string search_student = "SELECT DISTINCT YEARJOINED from STUDENT ORDER BY YEARJOINED;";
-    const char *line = search_student.c_str();
-    sql = strdup(line);
-    rc = sqlite3_exec(db, sql, view_student_academicyear, 0, &zErrMsg);
-    cout << "\n\n" << endl;
-    sqlite3_close(db);
-    */
 	view_student_function(student_deptno);
 	if(gbl_data == 0){
     cout << "\nERROR: No Student Details Found...." << endl;
