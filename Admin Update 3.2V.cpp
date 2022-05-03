@@ -129,7 +129,7 @@ static int create_insert_table(void *NotUsed, int argc, char **argv, char **azCo
 
 static int select_table(void *data, int argc, char **argv, char **azColName){
     for(int i = 0; i<argc; i++){
-    printf("%s ", argv[i] ? argv[i] : "NULL");
+    printf("%s ", argv[i] ? argv[i] : "");
     }
     printf("\n");
     return 0;
@@ -278,7 +278,9 @@ void view_table(string str, string id){
 	string view;
 	char *zErrMsg, *sql;
 	rc = sqlite3_open("SAMS.db", &db);
-	if(str == "FACULTY")
+	if(str == "HOD")
+    view = "SELECT B.BRANCHCODE,F.FACULTYID,F.FACULTYNAME,F.QUALIFICATION,F.DESIGNATION,F.RESEARCHAREA FROM BRANCH B LEFT JOIN FACULTY F ON B.HOD = F.FACULTYID;";
+	else if(str == "FACULTY")
     view = "SELECT FACULTYID,FACULTYNAME,QUALIFICATION,DESIGNATION,RESEARCHAREA from " + str + " WHERE DEPTNO = '" + id + "' ORDER BY " + (str + "ID");
     else
     view = "SELECT STUDENTID,STUDENTNAME from " + str + " WHERE DEPTNO = '" + id + "' ORDER BY " + (str + "ID");
@@ -1487,9 +1489,72 @@ void admin :: assign_head(){
 }
 
 void admin :: remove_head(){
+    int rc;
+    sqlite3 *db;
+    string faculty_id;
+    char *zErrMsg = 0, *sql;
+    cout << "\nDisplaying Details of HOD(s)..." << endl;
+    cout << "\n\nBRANCH ID    NAME\t\t\t\t     QUALIFICATION\t\t   DESIGNATION\t\t\t\t   RESEARCH AREA" << endl;
+    view_table("HOD", "");
+    sqlite3_open("SAMS.db", &db);
+	cout << "\n\nEnter the id to be removed from being Head of Department : ";
+	cin >> faculty_id;
+	string search_hod = "SELECT EXISTS(SELECT * from BRANCH WHERE HOD = '"+ faculty_id +"');";
+    const char *line = search_hod.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nHOD with requested ID doesn't exist..." << endl;
+    cout << "\nUnable to access requested details of HOD... Try Again using valid ID...\n" << endl;
+    clear_screen();
+    return;
+    }
+    a: cout << "\nAre you sure to remove the requested faculty with id " + faculty_id + " as HEAD ? ";
+	cout << "\nPress '1' if 'YES' or '2' if 'NO'";
+	cout << "\nEnter Here : ";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+    b: error_message();
+    cout << "\nDisplaying Details of HOD(s)..." << endl;
+    cout << "\n\nBRANCH ID    NAME\t\t\t\t     QUALIFICATION\t\t   DESIGNATION\t\t\t\t   RESEARCH AREA" << endl;
+    view_table("HOD", "");
+	cout << "\n\nEnter the id to be removed from being Head of Department : " << faculty_id << endl;
+	goto a;
+	}
+	int choice = stoi(excp);
+	if(choice!=1 && choice!=2){
+    goto b;
+	}
+    if(choice == 1){
+    sqlite3_open("SAMS.db", &db);
+    set_foreignkeys(db);
+    string update_branch = "UPDATE BRANCH set HOD = NULL WHERE HOD = '"+ faculty_id +"';";
+    line = update_branch.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+	sqlite3_close(db);
+    cout << "\nRequested faculty is removed from being Head of Department successfully..." << endl;
+    }
+    if(choice == 2){
+    cout << "\nNo changes were made...." << endl;
+	}
+	cout << endl;
+    clear_screen();
+    return;
 }
 
 void admin :: view_head(){
+    int rc;
+    sqlite3 *db;
+    char *zErrMsg = 0, *sql;
+    cout << "\nDisplaying Details of HOD(s)..." << endl;
+    cout << "\n\nBRANCH ID    NAME\t\t\t\t     QUALIFICATION\t\t   DESIGNATION\t\t\t\t   RESEARCH AREA" << endl;
+    view_table("HOD", "");
+    cout << "\nDetails of all HOD(s) displayed successfully..." << endl;
+    cout << endl;
+    clear_screen();
+    return;
 }
 
 void admin :: master_assign_head_menu(admin &a){
@@ -1513,15 +1578,15 @@ void admin :: master_assign_head_menu(admin &a){
 	}
 	else if(option == 1){
 	system("CLS");
-	//a.assign_head();
+	a.assign_head();
 	}
 	else if(option == 2){
 	system("CLS");
-	//a.remove_head();
+	a.remove_head();
 	}
 	else if(option == 3){
 	system("CLS");
-	//a.view_head();
+	a.view_head();
 	}
 	}
 	if(option == 4){
@@ -2425,22 +2490,22 @@ void table_creation_function(sqlite3 *db){
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
     sql = strdup("CREATE TABLE STUDENT(STUDENTID VARCHAR2 (8) PRIMARY KEY, STUDENTNAME  VARCHAR2 (40) NOT NULL, YEARJOINED VARCHAR2 (4) NOT NULL, SEMESTER NUMBER NOT NULL, SECTION VARCHAR2 (6) NOT NULL REFERENCES SECTION (SECTIONID), COUNSELLORID VARCHAR2(6) REFERENCES FACULTY (FACULTYID), DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID), STUDENTPASSWORD VARCHAR2(8));");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
-    sql = strdup("CREATE TABLE BRANCH(BRANCHID VARCHAR2 (3) PRIMARY KEY, BRANCHNAME  VARCHAR2 (40) NOT NULL, HOD VARCHAR2 (6) REFERENCES FACULTY (FACULTYID), PHONE VARCHAR2 (10) NOT NULL);");
+    sql = strdup("CREATE TABLE BRANCH(BRANCHID VARCHAR2 (3) PRIMARY KEY, BRANCHCODE VARCHAR2 (8) NOT NULL, BRANCHNAME  VARCHAR2 (40) NOT NULL, HOD VARCHAR2 (6) REFERENCES FACULTY (FACULTYID), PHONE VARCHAR2 (10) NOT NULL);");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
     sql = strdup("CREATE TABLE SECTION(SECTIONID VARCHAR2 (6) PRIMARY KEY, CLSTCHR VARCHAR2 (6) REFERENCES FACULTY (FACULTYID), DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID));");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
-    sql = strdup("INSERT INTO BRANCH (BRANCHID,BRANCHNAME,PHONE) VALUES ('CS', 'Computer Science & Engineering', '7633301122'); \
-    INSERT INTO BRANCH (BRANCHID,BRANCHNAME,PHONE) VALUES ('AI', 'Computer Science & Engineering (Artificial Intelligence & Machine Learning)', '9000128377'); \
-    INSERT INTO BRANCH (BRANCHID,BRANCHNAME,PHONE) VALUES ('CN', 'Computer Science & Engineering (Networks)', '8639901325'); \
-    INSERT INTO BRANCH (BRANCHID,BRANCHNAME,PHONE) VALUES ('IN', 'Computer Science & Engineering (Internet Of Things)', '9899635464'); \
-    INSERT INTO BRANCH (BRANCHID,BRANCHNAME,PHONE) VALUES ('IT', 'Information Technology', '9007636116'); \
-    INSERT INTO BRANCH (BRANCHID,BRANCHNAME,PHONE) VALUES ('EC', 'Electronics & Communication Engineering', '8113911440'); \
-    INSERT INTO BRANCH (BRANCHID,BRANCHNAME,PHONE) VALUES ('EE', 'Electrical & Electronics Engineering', '9443849990'); \
-    INSERT INTO BRANCH (BRANCHID,BRANCHNAME,PHONE) VALUES ('CI', 'Electronics Communication & Instrumentation', '9066333055'); \
-    INSERT INTO BRANCH (BRANCHID,BRANCHNAME,PHONE) VALUES ('ME', 'Mechanical Engineering', '90898441300'); \
-    INSERT INTO BRANCH (BRANCHID,BRANCHNAME,PHONE) VALUES ('CE', 'Civil Engineering', '9666263740'); \
-    INSERT INTO BRANCH (BRANCHID,BRANCHNAME,PHONE) VALUES ('MH', 'Mathematics', '8634401872'); \
-    INSERT INTO BRANCH (BRANCHID,BRANCHNAME,PHONE) VALUES ('EN', 'English', '9774340001');");
+    sql = strdup("INSERT INTO BRANCH (BRANCHID,BRANCHCODE,BRANCHNAME,PHONE) VALUES ('CS', '   CSE', 'Computer Science & Engineering', '7633301122'); \
+    INSERT INTO BRANCH (BRANCHID,BRANCHCODE,BRANCHNAME,PHONE) VALUES ('AI', '   CSM', 'Computer Science & Engineering (Artificial Intelligence & Machine Learning)', '9000128377'); \
+    INSERT INTO BRANCH (BRANCHID,BRANCHCODE,BRANCHNAME,PHONE) VALUES ('CN', '   CSN', 'Computer Science & Engineering (Networks)', '8639901325'); \
+    INSERT INTO BRANCH (BRANCHID,BRANCHCODE,BRANCHNAME,PHONE) VALUES ('IN', '   CSO', 'Computer Science & Engineering (Internet Of Things)', '9899635464'); \
+    INSERT INTO BRANCH (BRANCHID,BRANCHCODE,BRANCHNAME,PHONE) VALUES ('IT', '    IT', 'Information Technology', '9007636116'); \
+    INSERT INTO BRANCH (BRANCHID,BRANCHCODE,BRANCHNAME,PHONE) VALUES ('EC', '   ECE', 'Electronics & Communication Engineering', '8113911440'); \
+    INSERT INTO BRANCH (BRANCHID,BRANCHCODE,BRANCHNAME,PHONE) VALUES ('EE', '   EEE', 'Electrical & Electronics Engineering', '9443849990'); \
+    INSERT INTO BRANCH (BRANCHID,BRANCHCODE,BRANCHNAME,PHONE) VALUES ('CI', '   ECI', 'Electronics Communication & Instrumentation', '9066333055'); \
+    INSERT INTO BRANCH (BRANCHID,BRANCHCODE,BRANCHNAME,PHONE) VALUES ('ME', '  MECH', 'Mechanical Engineering', '90898441300'); \
+    INSERT INTO BRANCH (BRANCHID,BRANCHCODE,BRANCHNAME,PHONE) VALUES ('CE', '   CIV', 'Civil Engineering', '9666263740'); \
+    INSERT INTO BRANCH (BRANCHID,BRANCHCODE,BRANCHNAME,PHONE) VALUES ('MH', '  MATH', 'Mathematics', '8634401872'); \
+    INSERT INTO BRANCH (BRANCHID,BRANCHCODE,BRANCHNAME,PHONE) VALUES ('EN', '   ENG', 'English', '9774340001');");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
     sql = strdup("INSERT INTO SECTION (SECTIONID,DEPTNO) VALUES ('1CSE1','CS'); \ INSERT INTO SECTION (SECTIONID,DEPTNO) VALUES ('2CSE1','CS'); \ INSERT INTO SECTION (SECTIONID,DEPTNO) VALUES ('3CSE1','CS'); \ INSERT INTO SECTION (SECTIONID,DEPTNO) VALUES ('4CSE1','CS'); \ INSERT INTO SECTION (SECTIONID,DEPTNO) VALUES ('5CSE1','CS'); \ INSERT INTO SECTION (SECTIONID,DEPTNO) VALUES ('6CSE1','CS'); \ INSERT INTO SECTION (SECTIONID,DEPTNO) VALUES ('7CSE1','CS'); \ INSERT INTO SECTION (SECTIONID,DEPTNO) VALUES ('8CSE1','CS'); \
     INSERT INTO SECTION (SECTIONID,DEPTNO) VALUES ('1CSE2','CS'); \ INSERT INTO SECTION (SECTIONID,DEPTNO) VALUES ('2CSE2','CS'); \ INSERT INTO SECTION (SECTIONID,DEPTNO) VALUES ('3CSE2','CS'); \ INSERT INTO SECTION (SECTIONID,DEPTNO) VALUES ('4CSE2','CS'); \ INSERT INTO SECTION (SECTIONID,DEPTNO) VALUES ('5CSE2','CS'); \ INSERT INTO SECTION (SECTIONID,DEPTNO) VALUES ('6CSE2','CS'); \ INSERT INTO SECTION (SECTIONID,DEPTNO) VALUES ('7CSE2','CS'); \ INSERT INTO SECTION (SECTIONID,DEPTNO) VALUES ('8CSE2','CS'); \
