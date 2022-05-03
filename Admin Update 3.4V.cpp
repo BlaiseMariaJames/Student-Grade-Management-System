@@ -1774,7 +1774,7 @@ void add_student_function(string &student_id, string &section, string year){
     rc = sqlite3_exec(db, sql, search_table, 0, &zErrMsg);
     sqlite3_close(db);
 	if(gbl_data == 0){
-	section = section + " 1";
+	section = section + "1";
     student_id = student_id + "001";
     system("CLS");
     }
@@ -1788,11 +1788,11 @@ void add_student_function(string &student_id, string &section, string year){
     str = to_string(gbl_data);
     student_id = student_id + str;
     if(gbl_data<61)
-    section = section + " 1";
+    section = section + "1";
     else if(gbl_data<121)
-    section = section + " 2";
+    section = section + "2";
     else if(gbl_data<181)
-    section = section + " 3";
+    section = section + "3";
     system("CLS");
     }
 }
@@ -1863,7 +1863,8 @@ void admin :: add_student(){
 	}
 	string student_sem = to_string(sem);
     add_student_function(branch_id, student_sec, student_yearjoined);
-    student_sec = "  " + student_sec;
+    student_sec = "  " + student_sem + student_sec;
+    cout << student_sec << endl;
 	cout << "Enter the number of student(s) : " << n << endl;
 	cout << "\nEntering Details of " << n << " student(s)..." << endl;
 	cout << "\nEntering Details of student " << i+1 << endl;
@@ -2573,15 +2574,17 @@ void main_menu(){
 void table_creation_function(sqlite3 *db){
     int rc;
     char *sql, *zErrMsg = 0;
-    sql = strdup("PRAGMA FOREIGN_KEYS = ON;");
-    rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
-    sql = strdup("CREATE TABLE FACULTY(FACULTYID VARCHAR2(6) PRIMARY KEY, FACULTYNAME  VARCHAR2 (40) NOT NULL, QUALIFICATION VARCHAR2 (30), DESIGNATION VARCHAR2 (40), RESEARCHAREA VARCHAR2 (60), DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID), FACULTYPASSWORD VARCHAR2(8));");
-    rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
-    sql = strdup("CREATE TABLE STUDENT(STUDENTID VARCHAR2 (8) PRIMARY KEY, STUDENTNAME  VARCHAR2 (40) NOT NULL, YEARJOINED VARCHAR2 (4) NOT NULL, SEMESTER NUMBER NOT NULL, SECTION VARCHAR2 (10) NOT NULL REFERENCES SECTION (SECTIONID), COUNSELLORID VARCHAR2(6) REFERENCES FACULTY (FACULTYID), DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID), STUDENTPASSWORD VARCHAR2(8));");
-    rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
     sql = strdup("CREATE TABLE BRANCH(BRANCHID VARCHAR2 (3) PRIMARY KEY, BRANCHCODE VARCHAR2 (8) NOT NULL, BRANCHNAME  VARCHAR2 (40) NOT NULL, HOD VARCHAR2 (6) REFERENCES FACULTY (FACULTYID), PHONE VARCHAR2 (10) NOT NULL);");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
     sql = strdup("CREATE TABLE SECTION(SECTIONID VARCHAR2 (10) PRIMARY KEY, CLSTCHR VARCHAR2 (6) REFERENCES FACULTY (FACULTYID), DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID));");
+    rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
+    sql = strdup("CREATE TABLE FACULTY(FACULTYID VARCHAR2(6) PRIMARY KEY, FACULTYNAME  VARCHAR2 (40) NOT NULL, QUALIFICATION VARCHAR2 (30), DESIGNATION VARCHAR2 (40), RESEARCHAREA VARCHAR2 (60), DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID), FACULTYPASSWORD VARCHAR2(8));");
+    rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
+    sql = strdup("CREATE TABLE STUDENT(STUDENTID VARCHAR2 (8) PRIMARY KEY, STUDENTNAME  VARCHAR2 (40) NOT NULL, YEARJOINED VARCHAR2 (4) NOT NULL, SEMESTER NUMBER NOT NULL, SECTION VARCHAR2 (10) NOT NULL REFERENCES SECTION (SECTIONID), COUNSELLORID VARCHAR2(6) REFERENCES FACULTY (FACULTYID), FIRSTSEM NUMBER (7,2), SECONDSEM NUMBER (7,2), THIRDSEM NUMBER (7,2), FOURTHSEM NUMBER (7,2), FIFTHSEM NUMBER (7,2), SIXTHSEM NUMBER (7,2), SEVENTHSEM NUMBER (7,2), EIGHTHSEM NUMBER (7,2), DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID), STUDENTPASSWORD VARCHAR2(8));");
+    rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
+    sql = strdup("CREATE TABLE COURSE(COURSEID VARCHAR2 (10), COURSECODE VARCHAR2 (10) NOT NULL, COURSETYPE VARCHAR2 (1) NOT NULL, COURSENAME VARCHAR2 (30) NOT NULL, SECTION VARCHAR2 (10) REFERENCES SECTION (SECTIONID), CRSTCHR VARCHAR2 (6) REFERENCES FACULTY (FACULTYID), DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID), PRIMARY KEY (COURSEID,SECTION));");
+    rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
+    sql = strdup("CREATE TABLE GRADEREPORT(COURSEID VARCHAR2 (10) NOT NULL REFERENCES COURSE (COURSEID), STUDENTID VARCHAR2 (8) NOT NULL REFERENCES STUDENT (STUDENTID), SECTIONID VARCHAR2(10) NOT NULL REFERENCES SECTION (SECTIONID), M1 NUMBER, A1 NUMBER, MSE1 NUMBER, M2 NUMBER, A2 NUMBER, MSE2 NUMBER, INTERNALS NUMBER, EXTERNALS NUMBER, GRADE VARCHAR2 (1), GRADEPOINT INTEGER, PRIMARY KEY (COURSEID, STUDENTID))");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
     sql = strdup("INSERT INTO BRANCH (BRANCHID,BRANCHCODE,BRANCHNAME,PHONE) VALUES ('CS', '   CSE', 'Computer Science & Engineering', '7633301122'); \
     INSERT INTO BRANCH (BRANCHID,BRANCHCODE,BRANCHNAME,PHONE) VALUES ('AI', '   CSM', 'Computer Science & Engineering (Artificial Intelligence & Machine Learning)', '9000128377'); \
