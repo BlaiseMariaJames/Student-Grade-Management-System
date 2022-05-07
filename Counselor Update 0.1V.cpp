@@ -41,7 +41,7 @@ class section : public class_teacher{
 	int login_student();
 	void student_main_menu(section &s);
 	void view_marks();
-	void view_attendance();
+	//void view_attendance();
 	void view_account(string student_id);
 	void update_account(string student_id);
 };
@@ -58,8 +58,10 @@ class course_teacher : public class_teacher{
 	void update_account(string faculty_id);
 };
 
-class counsellor{
+/*
+class counselor{
 };
+*/
 
 class admin{
 	string id, password;
@@ -75,11 +77,13 @@ class admin{
     void remove_course();
     void view_course();
     void master_assign_course_menu(admin &a);
-    void assign_counsellor();
-    void remove_counsellor();
-    void view_counsellor();
-    void master_assign_counsellor_menu(admin &a);
-    void assign_clstchr();
+    /*
+    void assign_counselor();
+    void remove_counselor();
+    void view_counselor();
+    void master_assign_counselor_menu(admin &a);
+    */
+	void assign_clstchr();
     void remove_clstchr();
     void view_clstchr();
     void master_assign_clstchr_menu(admin &a);
@@ -170,6 +174,7 @@ static int view_clstchr_details(void *NotUsed, int argc, char **argv, char **azC
     return 0;
 }
 
+/*
 static int view_section_details(void *NotUsed, int argc, char **argv, char **azColName){
 	for(int i = 0; i<argc; i++){
     string data = argv[0] ? argv[0] : "NULL";
@@ -183,12 +188,13 @@ static int view_section_details(void *NotUsed, int argc, char **argv, char **azC
     return 0;
 }
 
-static int view_counsellor_details(void *NotUsed, int argc, char **argv, char **azColName){
+static int view_counselor_details(void *NotUsed, int argc, char **argv, char **azColName){
 	for(int i = 0; i<argc; i++){
     printf("%s   ", argv[i] ? argv[i] : "NULL");
     }
     return 0;
 }
+*/
 
 static int view_faculty_account(void *NotUsed, int argc, char **argv, char **azColName){
 	string gbl_input[100];
@@ -1086,17 +1092,18 @@ void admin :: master_assign_course_menu(admin &a){
 	}
 }
 
-void counsellor_details(sqlite3 *db, string branch_id, int i){
+/*
+void counselor_details(sqlite3 *db, string branch_id, int i){
     int rc;
     char *sql, *zErrMsg = 0;
-    string search_counsellor = "SELECT COUNSELLORID from STUDENT WHERE SECTION LIKE '" + ("  %" + branch_id + "%") + "' AND STUDENTID LIKE '%" + to_string(i) + "';";
-    const char *line = search_counsellor.c_str();
+    string search_counselor = "SELECT COUNSELORID from STUDENT WHERE SECTION LIKE '" + ("  %" + branch_id + "%") + "' AND STUDENTID LIKE '%" + to_string(i) + "';";
+    const char *line = search_counselor.c_str();
     sql = strdup(line);
-    rc = sqlite3_exec(db, sql, view_counsellor_details, 0, &zErrMsg);
+    rc = sqlite3_exec(db, sql, view_counselor_details, 0, &zErrMsg);
     cout << endl;
 }
 
-void admin :: assign_counsellor(){
+void admin :: assign_counselor(){
     sqlite3 *db;
     char *zErrMsg = 0, *sql;
     string faculty_id, section_id;
@@ -1116,7 +1123,7 @@ void admin :: assign_counsellor(){
     cout << "\n\nID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA" << endl;
     view_table("FACULTY", faculty_deptno);
     sqlite3_open("SAMS.db", &db);
-	cout << "\n\nEnter the id to be made Counsellor : ";
+	cout << "\n\nEnter the id to be made counselor : ";
 	cin >> faculty_id;
 	string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ faculty_id +"' AND DEPTNO = '"+ faculty_deptno +"');";
     const char *line = search_faculty.c_str();
@@ -1131,8 +1138,8 @@ void admin :: assign_counsellor(){
     system("CLS");
     cout << "\nDisplaying Details of Section(s) of branch " << dept[id] << "..."<< endl;
     cout << "\n\nROLLNUMBERS ";
-    string search_counsellor = "SELECT SEC.SECTIONID from SECTION SEC INNER JOIN STUDENT STU ON SEC.SECTIONID = STU.SECTION WHERE SEC.SECTIONID LIKE '" + ("  %" + branch_id + "%") + "' AND STU.STUDENTID LIKE '%1' ORDER BY SEC.SEMESTER;";
-    line = search_counsellor.c_str();
+    string search_counselor = "SELECT SEC.SECTIONID from SECTION SEC INNER JOIN STUDENT STU ON SEC.SECTIONID = STU.SECTION WHERE SEC.SECTIONID LIKE '" + ("  %" + branch_id + "%") + "' AND STU.STUDENTID LIKE '%1' ORDER BY SEC.SEMESTER;";
+    line = search_counselor.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, view_section_details, 0, &zErrMsg);
     cout << endl;
@@ -1140,23 +1147,23 @@ void admin :: assign_counsellor(){
     int index = i + 4;
     if(i<10 && index<10){
     cout << "        " + to_string(i) + "-" + to_string(index) << "   ";
-    counsellor_details(db,branch_id,i);
+    counselor_details(db,branch_id,i);
     }
     else if(i<10 && index>=10){
     cout << "       " + to_string(i) + "-" + to_string(index) << "   ";
-    counsellor_details(db,branch_id,i);
+    counselor_details(db,branch_id,i);
     }
     else if(i<100 && index<100){
     cout << "      " + to_string(i) + "-" +  to_string(index) << "   ";
-    counsellor_details(db,branch_id,i);
+    counselor_details(db,branch_id,i);
     }
     else if(i<100 && index>=100){
     cout << "     " + to_string(i) + "-" + to_string(index) << "   ";
-    counsellor_details(db,branch_id,i);
+    counselor_details(db,branch_id,i);
     }
     else if(i>100){
     cout << "    " << to_string(i) + "-" + to_string(index) << "   ";
-    counsellor_details(db,branch_id,i);
+    counselor_details(db,branch_id,i);
     }
     }
     cout << "\n\nEnter Section : ";
@@ -1177,16 +1184,16 @@ void admin :: assign_counsellor(){
     return;
 }
 
-void admin :: remove_counsellor(){
+void admin :: remove_counselor(){
 }
 
-void admin :: view_counsellor(){
+void admin :: view_counselor(){
 }
 
-void admin :: master_assign_counsellor_menu(admin &a){
+void admin :: master_assign_counselor_menu(admin &a){
     int option = 0;
 	while(option !=4){
-	a: cout << "\nAccessing Faculty ASSIGN COUNSELLOR Operations...\n\n\n";
+	a: cout << "\nAccessing Faculty ASSIGN COUNSELOR Operations...\n\n\n";
 	cout << "Type '1' ----> Add Students\n";
 	cout << "Type '2' ----> Remove Students\n";
 	cout << "Type '3' ----> View Students\n";
@@ -1204,15 +1211,15 @@ void admin :: master_assign_counsellor_menu(admin &a){
 	}
 	else if(option == 1){
 	system("CLS");
-	a.assign_counsellor();
+	a.assign_counselor();
 	}
 	else if(option == 2){
 	system("CLS");
-	a.remove_counsellor();
+	a.remove_counselor();
 	}
 	else if(option == 3){
 	system("CLS");
-	a.view_counsellor();
+	a.view_counselor();
 	}
 	}
 	if(option == 4){
@@ -1221,6 +1228,7 @@ void admin :: master_assign_counsellor_menu(admin &a){
 	return;
 	}
 }
+*/
 
 void clstchr_confirmation(int &choice, string dept_id, string faculty_deptno, string faculty_id, string section_id){
 	a: cout << "\n\nAre you sure to make the requested faculty with id " + faculty_id + " as CLASS TEACHER of" + section_id + " ? ";
@@ -1760,13 +1768,13 @@ void admin :: master_assign_head_menu(admin &a){
 
 void admin :: master_faculty_assign_menu(admin &a){
     int option = 0;
-	while(option !=5){
+	while(option !=4){
 	a: cout << "\nAccessing Faculty ASSIGN Operations...\n\n\n";
 	cout << "Type '1' ----> Assign a Course\n";
-	cout << "Type '2' ----> Assign as Counsellor\n";
-	cout << "Type '3' ----> Assign as Class Teacher\n";
-	cout << "Type '4' ----> Assign as Head of Department\n";
-	cout << "Type '5' ----> Back to Main Menu\n";
+	//cout << "Type '2' ----> Assign as Counselor\n";
+	cout << "Type '2' ----> Assign as Class Teacher\n";
+	cout << "Type '3' ----> Assign as Head of Department\n";
+	cout << "Type '4' ----> Back to Main Menu\n";
 	cout << "\nEnter Here : ";
     cin >> excp;
 	roc = check_exception(excp);
@@ -1775,27 +1783,32 @@ void admin :: master_faculty_assign_menu(admin &a){
 	goto a;
 	}
 	option = stoi(excp);
-	if(option>5 || option<1){
+	if(option>4 || option<1){
 	goto b;
 	}
 	else if(option == 1){
 	system("CLS");
 	a.master_assign_course_menu(a);
 	}
+	/*
 	else if(option == 2){
 	system("CLS");
-	a.master_assign_counsellor_menu(a);
+	a.master_assign_counselor_menu(a);
+	cout << "Counselor Update is for Module II \n\n" << endl;
+	clear_screen();
+	return;
 	}
-	else if(option == 3){
+	*/
+	else if(option == 2){
 	system("CLS");
 	a.master_assign_clstchr_menu(a);
 	}
-	else if(option == 4){
+	else if(option == 3){
 	system("CLS");
     a.master_assign_head_menu(a);
 	}
 	}
-	if(option == 5){
+	if(option == 4){
 	cout << "Redirecting back...\n";
 	clear_screen();
 	return;
@@ -2653,7 +2666,7 @@ void table_creation_function(sqlite3 *db){
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
     sql = strdup("CREATE TABLE FACULTY(FACULTYID VARCHAR2(6) PRIMARY KEY, FACULTYNAME  VARCHAR2 (40) NOT NULL, QUALIFICATION VARCHAR2 (30), DESIGNATION VARCHAR2 (40), RESEARCHAREA VARCHAR2 (60), DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID), FACULTYPASSWORD VARCHAR2(8));");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
-    sql = strdup("CREATE TABLE STUDENT(STUDENTID VARCHAR2 (8) PRIMARY KEY, STUDENTNAME  VARCHAR2 (40) NOT NULL, YEARJOINED VARCHAR2 (4) NOT NULL, SEMESTER NUMBER NOT NULL, SECTION VARCHAR2 (10) NOT NULL REFERENCES SECTION (SECTIONID), COUNSELLORID VARCHAR2(6) REFERENCES FACULTY (FACULTYID), FIRSTSEM NUMBER (7,2), SECONDSEM NUMBER (7,2), THIRDSEM NUMBER (7,2), FOURTHSEM NUMBER (7,2), FIFTHSEM NUMBER (7,2), SIXTHSEM NUMBER (7,2), SEVENTHSEM NUMBER (7,2), EIGHTHSEM NUMBER (7,2), DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID), STUDENTPASSWORD VARCHAR2(8));");
+    sql = strdup("CREATE TABLE STUDENT(STUDENTID VARCHAR2 (8) PRIMARY KEY, STUDENTNAME  VARCHAR2 (40) NOT NULL, YEARJOINED VARCHAR2 (4) NOT NULL, SEMESTER NUMBER NOT NULL, SECTION VARCHAR2 (10) NOT NULL REFERENCES SECTION (SECTIONID), COUNSELORID VARCHAR2(6) REFERENCES FACULTY (FACULTYID), FIRSTSEM NUMBER (7,2), SECONDSEM NUMBER (7,2), THIRDSEM NUMBER (7,2), FOURTHSEM NUMBER (7,2), FIFTHSEM NUMBER (7,2), SIXTHSEM NUMBER (7,2), SEVENTHSEM NUMBER (7,2), EIGHTHSEM NUMBER (7,2), DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID), STUDENTPASSWORD VARCHAR2(8));");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
     sql = strdup("CREATE TABLE COURSE(COURSEID VARCHAR2 (10), COURSECODE VARCHAR2 (10) NOT NULL, COURSETYPE VARCHAR2 (1) NOT NULL, COURSENAME VARCHAR2 (30) NOT NULL, SECTION VARCHAR2 (10) REFERENCES SECTION (SECTIONID), CRSTCHR VARCHAR2 (6) REFERENCES FACULTY (FACULTYID), DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID), PRIMARY KEY (COURSEID,SECTION));");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
