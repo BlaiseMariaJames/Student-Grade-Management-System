@@ -58,16 +58,12 @@ class course_teacher : public class_teacher{
 	void update_account(string faculty_id);
 };
 
-class counsellor{
-};
-
 class admin{
 	string id, password;
 	public:
 	void login_master();
 	void add_faculty();
 	void update_faculty();
-	void shift_faculty();
 	void delete_faculty();
 	void view_faculty();
     void master_faculty_edit_menu(admin &a);
@@ -75,11 +71,7 @@ class admin{
     void remove_course();
     void view_course();
     void master_assign_course_menu(admin &a);
-    void assign_counsellor();
-    void remove_counsellor();
-    void view_counsellor();
-    void master_assign_counsellor_menu(admin &a);
-    void assign_clstchr();
+	void assign_clstchr();
     void remove_clstchr();
     void view_clstchr();
     void master_assign_clstchr_menu(admin &a);
@@ -91,7 +83,6 @@ class admin{
 	void master_faculty_menu(admin &a);
 	void add_student();
 	void update_student();
-    void shift_student();
 	void delete_student();
 	void view_student();
     void master_student_menu(admin &a);
@@ -167,26 +158,6 @@ static int view_clstchr_details(void *NotUsed, int argc, char **argv, char **azC
     gbl_input[i] = argv[i] ? argv[i] : "NULL";
     }
     cout << "\nFaculty with id " << gbl_input[0] << " is already assigned as CLASSTEACHER of" << gbl_input[1];
-    return 0;
-}
-
-static int view_section_details(void *NotUsed, int argc, char **argv, char **azColName){
-	for(int i = 0; i<argc; i++){
-    string data = argv[0] ? argv[0] : "NULL";
-    if(data.length() == 7)
-    cout << data << " ";
-    else{
-    data = " " + data;
-    cout << data << " ";
-    }
-	}
-    return 0;
-}
-
-static int view_counsellor_details(void *NotUsed, int argc, char **argv, char **azColName){
-	for(int i = 0; i<argc; i++){
-    printf("%s   ", argv[i] ? argv[i] : "NULL");
-    }
     return 0;
 }
 
@@ -303,9 +274,9 @@ void view_table(string str, string id){
 	else if(str == "CLSTCHR")
     view = "SELECT S.SECTIONID,S.CLSTCHR,F.FACULTYNAME,F.QUALIFICATION,F.DESIGNATION,F.RESEARCHAREA FROM SECTION S LEFT JOIN FACULTY F ON S.CLSTCHR = F.FACULTYID WHERE SECTIONID LIKE '" + ("  " + id + "%") + "';";
 	else if(str == "FACULTY")
-    view = "SELECT FACULTYID,FACULTYNAME,QUALIFICATION,DESIGNATION,RESEARCHAREA from FACULTY WHERE DEPTNO = '" + id + "' ORDER BY " + (str + "ID");
+    view = "SELECT FACULTYID,FACULTYNAME,QUALIFICATION,DESIGNATION,RESEARCHAREA,WORKING from FACULTY WHERE DEPTNO = '" + id + "' AND WORKING = 'Y' ORDER BY " + (str + "ID");
     else
-    view = "SELECT STUDENTID,STUDENTNAME from STUDENT WHERE DEPTNO = '" + id + "' ORDER BY " + (str + "ID");
+    view = "SELECT STUDENTID,STUDENTNAME from STUDENT WHERE DEPTNO = '" + id + "' AND WORKING = 'Y' ORDER BY " + (str + "ID");
 	const char *line = view.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
@@ -320,51 +291,6 @@ void padded_input_string(char str[], int num){
 	len = len + 1;
 	}
     str[len] = '\0';
-}
-
-void create_padded_string(int offset_index, string str, string &old_offset_string, string &new_offset_string){
-	if(offset_index<10)
-    old_offset_string = str + "00" + to_string(offset_index);
-    else if(offset_index<100)
-    old_offset_string = str + "0" + to_string(offset_index);
-    else if(offset_index<1000)
-    old_offset_string =  str + to_string(offset_index);
-    if(offset_index - 1 <10)
-    new_offset_string = str + "00" + to_string(offset_index - 1);
-    else if(offset_index - 1 <100)
-    new_offset_string = str + "0" + to_string(offset_index - 1);
-    else if(offset_index - 1 <1000)
-    new_offset_string = str + to_string(offset_index - 1);
-}
-
-void create_lesser_padded_string(int old_offset_index, string str, string &old_offset_string, string &new_offset_string){
-    if(old_offset_index<10)
-    old_offset_string = str + "00" + to_string(old_offset_index);
-    else if(old_offset_index<100)
-    old_offset_string = str + "0" + to_string(old_offset_index);
-    else if(old_offset_index<1000)
-    old_offset_string =  str + to_string(old_offset_index);
-    if(old_offset_index - 1 <10)
-    new_offset_string = str + "00" + to_string(old_offset_index - 1);
-    else if(old_offset_index - 1 <100)
-    new_offset_string = str + "0" + to_string(old_offset_index - 1);
-    else if(old_offset_index - 1 <1000)
-    new_offset_string = str + to_string(old_offset_index - 1);
-}
-
-void create_greater_padded_string(int old_offset_index, string str, string &old_offset_string, string &new_offset_string){
-    if(old_offset_index<10)
-    old_offset_string = str + "00" + to_string(old_offset_index);
-    else if(old_offset_index<100)
-    old_offset_string = str + "0" + to_string(old_offset_index);
-    else if(old_offset_index<1000)
-    old_offset_string = str + to_string(old_offset_index);
-    if(old_offset_index + 1 <10)
-    new_offset_string = str + "00" + to_string(old_offset_index + 1);
-    else if(old_offset_index + 1 <100)
-    new_offset_string = str + "0" + to_string(old_offset_index + 1);
-    else if(old_offset_index + 1 <1000)
-    new_offset_string = str + to_string(old_offset_index + 1);
 }
 
 void admin :: login_master(){
@@ -422,8 +348,8 @@ void add_faculty_function(string &faculty_id, string faculty_deptno){
 
 void admin :: add_faculty(){
     sqlite3 *db;
-    int rc, n, dept_id;
     sqlite3_open("SAMS.db", &db);
+    int rc, n, dept_id;
 	char *zErrMsg, *sql, ch, name[40], qualification[30], designation[40], research_area[60];
 	a: cout << "Enter the number of faculty(ies) : ";
 	cin >> excp;
@@ -490,7 +416,7 @@ void admin :: add_faculty(){
     string faculty_designation = designation;
     string faculty_researcharea = research_area;
     set_foreignkeys(db);
-	string insert_faculty = "INSERT INTO FACULTY VALUES ('" + faculty_id + "', '" + faculty_name + "', '" + faculty_qualification + "', '" + faculty_designation + "', '" + faculty_researcharea + "', '" + faculty_deptno + "', '" + gbl_password + "');";
+	string insert_faculty = "INSERT INTO FACULTY VALUES ('" + faculty_id + "', '" + faculty_name + "', '" + faculty_qualification + "', '" + faculty_designation + "', '" + faculty_researcharea + "', 'Y', '" + faculty_deptno + "', '" + gbl_password + "');";
     const char *line = insert_faculty.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, create_insert_table, 0, &zErrMsg);
@@ -529,7 +455,7 @@ int update_faculty_function(string &faculty_id, int id, string faculty_deptno){
 	rc = sqlite3_open("SAMS.db", &db);
     cout << "\n\nEnter the ID to be updated : ";
     cin >> faculty_id;
-    string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ faculty_id +"' AND DEPTNO = '"+ faculty_deptno +"');";
+    string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ faculty_id +"' AND DEPTNO = '"+ faculty_deptno +"' AND WORKING = 'Y');";
     const char *line = search_faculty.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
@@ -707,163 +633,6 @@ void admin :: update_faculty(){
 }
 }
 
-void admin :: shift_faculty(){
-	sqlite3 *db;
-	char *zErrMsg, *sql;
-    int rc = 0, dept_id = 0;
-    select_branch_view_function(dept_id);
-    string old_faculty_id, new_faculty_id;
-	int id = dept_id - 1;
-	string faculty_deptno = dept_no[id];
-    system("CLS");
-	view_faculty_function(faculty_deptno);
-	if(gbl_data == 0){
-    cout << "\nERROR: No Faculty Details Found...." << endl;
-	cout << endl;
-	clear_screen();
-	return;
-	}
-    cout << "\nDisplaying Details of faculty(ies) of branch " << dept[id] << "..."<< endl;
-    cout << "\n\nID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA" << endl;
-    view_table("FACULTY", faculty_deptno);
-    sqlite3_open("SAMS.db", &db);
-	cout << "\n\nEnter the id to be shifted : ";
-	cin >> old_faculty_id;
-	string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ old_faculty_id +"' AND DEPTNO = '"+ faculty_deptno +"');";
-    const char *line = search_faculty.c_str();
-    sql = strdup(line);
-    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
-    if(rc == 0){
-    sqlite3_close(db);
-    cout << "\nFaculty with requested ID doesn't exist..." << endl;
-    cout << "\nUnable to shift requested details of faculty... Try Again using valid ID...\n" << endl;
-    clear_screen();
-    return;
-    }
-    cout << "\nEnter the id corresponding to the location where " << old_faculty_id << " is to be shifted : ";
-	cin >> new_faculty_id;
-	search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ new_faculty_id +"' AND DEPTNO = '"+ faculty_deptno +"');";
-    line = search_faculty.c_str();
-    sql = strdup(line);
-    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
-    if(rc == 0){
-    sqlite3_close(db);
-    cout << "\nFaculty with requested ID doesn't exist..." << endl;
-    cout << "\nUnable to shift requested details of faculty... Try Again using valid ID...\n" << endl;
-    clear_screen();
-    return;
-    }
-    string old_offset_string = old_faculty_id.substr(2,3);
-    string new_offset_string = new_faculty_id.substr(2,3);
-    int old_offset_index = stoi(old_offset_string);
-    int new_offset_index = stoi(new_offset_string);
-	if(old_offset_index == new_offset_index){
-	sqlite3_close(db);
-    cout << "\nRequested details shifted successfully..." << endl;
-    cout << endl;
-    clear_screen();
-    return;
-	}
-	else if(old_offset_index > new_offset_index){
-    old_offset_index--;
-	sqlite3_open("SAMS.db", &db);
-    string update_faculty = "UPDATE FACULTY set FACULTYID = 'TEMP' WHERE FACULTYID = '"+ old_faculty_id +"';";
-    const char *line = update_faculty.c_str();
-    sql = strdup(line);
-	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-	string update_hod = "UPDATE BRANCH set HOD = 'TEMP' WHERE HOD = '"+ old_faculty_id +"';";
-    line = update_hod.c_str();
-    sql = strdup(line);
-	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-	string update_clstchr = "UPDATE SECTION set CLSTCHR = 'TEMP' WHERE CLSTCHR = '"+ old_faculty_id +"';";
-    line = update_clstchr.c_str();
-    sql = strdup(line);
-	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-    while(old_offset_index>=new_offset_index){
-    create_greater_padded_string(old_offset_index,faculty_deptno,old_offset_string,new_offset_string);
-    string update_faculty = "UPDATE FACULTY set FACULTYID = '"+ new_offset_string +"' WHERE FACULTYID = '"+ old_offset_string +"';";
-    const char *line = update_faculty.c_str();
-    sql = strdup(line);
-    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-    string update_hod = "UPDATE BRANCH set HOD = '"+ new_offset_string +"' WHERE HOD = '"+ old_offset_string +"';";
-    line = update_hod.c_str();
-    sql = strdup(line);
-	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-	string update_clstchr = "UPDATE SECTION set CLSTCHR = '"+ new_offset_string +"' WHERE CLSTCHR = '"+ old_offset_string +"';";
-    line = update_clstchr.c_str();
-    sql = strdup(line);
-	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-    old_offset_index--;
-    }
-    update_faculty = "UPDATE FACULTY set FACULTYID = '"+ new_faculty_id +"' WHERE FACULTYID = 'TEMP';";
-    line = update_faculty.c_str();
-    sql = strdup(line);
-	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-	update_hod = "UPDATE BRANCH set HOD = '"+ new_faculty_id +"' WHERE HOD = 'TEMP';";
-    line = update_hod.c_str();
-    sql = strdup(line);
-	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-    update_clstchr = "UPDATE SECTION set CLSTCHR = '"+ new_faculty_id +"' WHERE CLSTCHR = 'TEMP';";
-    line = update_clstchr.c_str();
-    sql = strdup(line);
-	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-	sqlite3_close(db);
-    cout << "\nRequested details shifted successfully..." << endl;
-    cout << endl;
-    clear_screen();
-    return;
-	}
-	else if(old_offset_index < new_offset_index){
-    old_offset_index++;
-	sqlite3_open("SAMS.db", &db);
-    string update_faculty = "UPDATE FACULTY set FACULTYID = 'TEMP' WHERE FACULTYID = '"+ old_faculty_id +"';";
-    const char *line = update_faculty.c_str();
-    sql = strdup(line);
-	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-	string update_hod = "UPDATE BRANCH set HOD = 'TEMP' WHERE HOD = '"+ old_faculty_id +"';";
-    line = update_hod.c_str();
-    sql = strdup(line);
-	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-	string update_clstchr = "UPDATE SECTION set CLSTCHR = 'TEMP' WHERE CLSTCHR = '"+ old_faculty_id +"';";
-    line = update_clstchr.c_str();
-    sql = strdup(line);
-	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-    while(old_offset_index<=new_offset_index){
-    create_lesser_padded_string(old_offset_index,faculty_deptno,old_offset_string,new_offset_string);
-    string update_faculty = "UPDATE FACULTY set FACULTYID = '"+ new_offset_string +"' WHERE FACULTYID = '"+ old_offset_string +"';";
-    const char *line = update_faculty.c_str();
-    sql = strdup(line);
-    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-    string update_hod = "UPDATE BRANCH set HOD = '"+ new_offset_string +"' WHERE HOD = '"+ old_offset_string +"';";
-    line = update_hod.c_str();
-    sql = strdup(line);
-	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-	string update_clstchr = "UPDATE SECTION set CLSTCHR = '"+ new_offset_string +"' WHERE CLSTCHR = '"+ old_offset_string +"';";
-    line = update_clstchr.c_str();
-    sql = strdup(line);
-	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-    old_offset_index++;
-    }
-    update_faculty = "UPDATE FACULTY set FACULTYID = '"+ new_faculty_id +"' WHERE FACULTYID = 'TEMP';";
-    line = update_faculty.c_str();
-    sql = strdup(line);
-	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-	update_hod = "UPDATE BRANCH set HOD = '"+ new_faculty_id +"' WHERE HOD = 'TEMP';";
-    line = update_hod.c_str();
-    sql = strdup(line);
-	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-	update_clstchr = "UPDATE SECTION set CLSTCHR = '"+ new_faculty_id +"' WHERE CLSTCHR = 'TEMP';";
-    line = update_clstchr.c_str();
-    sql = strdup(line);
-	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-	sqlite3_close(db);
-    cout << "\nRequested details shifted successfully..." << endl;
-    cout << endl;
-    clear_screen();
-    return;
-	}
-}
-
 void admin :: delete_faculty(){
     sqlite3 *db;
     string faculty_id;
@@ -886,7 +655,7 @@ void admin :: delete_faculty(){
     sqlite3_open("SAMS.db", &db);
 	cout << "\n\nEnter the id to be deleted : ";
 	cin >> faculty_id;
-	string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ faculty_id +"' AND DEPTNO = '"+ faculty_deptno +"');";
+	string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ faculty_id +"' AND DEPTNO = '"+ faculty_deptno +"'  AND WORKING = 'Y');";
     const char *line = search_faculty.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
@@ -917,13 +686,8 @@ void admin :: delete_faculty(){
     goto b;
 	}
 	if(choice == 1){
-    string old_offset_string = "";
-    string new_offset_string = "";
-    string offset_string = faculty_id.substr(2,3);
-    int offset_index = stoi(offset_string);
-    offset_index++;
     sqlite3_open("SAMS.db", &db);
-    string delete_faculty = "DELETE from FACULTY where FACULTYID = '"+ faculty_id + "' AND DEPTNO = '" + faculty_deptno + "';";
+    string delete_faculty = "UPDATE FACULTY set WORKING = 'N' where FACULTYID = '"+ faculty_id + "' AND DEPTNO = '" + faculty_deptno + "';";
     const char *line = delete_faculty.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
@@ -935,22 +699,6 @@ void admin :: delete_faculty(){
     line = update_clstchr.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-    while(offset_index<=gbl_data){
-    create_padded_string(offset_index,faculty_deptno,old_offset_string,new_offset_string);
-    string update_faculty = "UPDATE FACULTY set FACULTYID = '"+ new_offset_string +"' WHERE FACULTYID = '"+ old_offset_string +"';";
-    const char *line = update_faculty.c_str();
-    sql = strdup(line);
-    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-    string update_hod = "UPDATE BRANCH set HOD = '"+ new_offset_string +"' WHERE HOD = '"+ old_offset_string +"';";
-    line = update_hod.c_str();
-    sql = strdup(line);
-	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-	string update_clstchr = "UPDATE SECTION set CLSTCHR = '"+ new_offset_string +"' WHERE CLSTCHR = '"+ old_offset_string +"';";
-    line = update_clstchr.c_str();
-    sql = strdup(line);
-	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-    offset_index++;
-    }
 	sqlite3_close(db);
     cout << "\nRequested details deleted successfully..." << endl;
     cout << endl;
@@ -980,7 +728,7 @@ void admin :: view_faculty(){
 	}
 	else{
     cout << "\nDisplaying Details of faculty(ies) of branch " << dept[id] << "..."<< endl;
-    cout << "\n\nID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA" << endl;
+    cout << "\n\nID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA\t\tWORKING SENIORITY" << endl;
     view_table("FACULTY", faculty_deptno);
     cout << "\nDetails of all faculty(ies) of branch " << dept[id] << " displayed successfully..." << endl;
     cout << endl;
@@ -991,14 +739,13 @@ void admin :: view_faculty(){
 
 void admin :: master_faculty_edit_menu(admin &a){
     int option = 0;
-	while(option !=6){
+	while(option !=5){
 	a: cout << "\nAccessing Faculty EDIT Operations...\n\n\n";
 	cout << "Type '1' ----> Add Faculty\n";
 	cout << "Type '2' ----> Update Faculty\n";
-	cout << "Type '3' ----> Shift Faculty\n";
-	cout << "Type '4' ----> Delete Faculty\n";
-	cout << "Type '5' ----> View Faculty\n";
-	cout << "Type '6' ----> Back to Main Menu\n";
+	cout << "Type '3' ----> Delete Faculty\n";
+	cout << "Type '4' ----> View Faculty\n";
+	cout << "Type '5' ----> Back to Main Menu\n";
 	cout << "\nEnter Here : ";
     cin >> excp;
 	roc = check_exception(excp);
@@ -1020,18 +767,14 @@ void admin :: master_faculty_edit_menu(admin &a){
 	}
 	else if(option == 3){
 	system("CLS");
-	a.shift_faculty();
-	}
-	else if(option == 4){
-	system("CLS");
 	a.delete_faculty();
 	}
-	else if(option == 5){
+	else if(option == 4){
 	system("CLS");
 	a.view_faculty();
 	}
 	}
-	if(option == 6){
+	if(option == 5){
 	cout << "Redirecting back...\n";
 	clear_screen();
 	return;
@@ -1077,142 +820,6 @@ void admin :: master_assign_course_menu(admin &a){
 	else if(option == 3){
 	system("CLS");
 	//a.view_course();
-	}
-	}
-	if(option == 4){
-	cout << "Redirecting back...\n";
-	clear_screen();
-	return;
-	}
-}
-
-void counsellor_details(sqlite3 *db, string branch_id, int i){
-    int rc;
-    char *sql, *zErrMsg = 0;
-    string search_counsellor = "SELECT COUNSELLORID from STUDENT WHERE SECTION LIKE '" + ("  %" + branch_id + "%") + "' AND STUDENTID LIKE '%" + to_string(i) + "';";
-    const char *line = search_counsellor.c_str();
-    sql = strdup(line);
-    rc = sqlite3_exec(db, sql, view_counsellor_details, 0, &zErrMsg);
-    cout << endl;
-}
-
-void admin :: assign_counsellor(){
-    sqlite3 *db;
-    char *zErrMsg = 0, *sql;
-    string faculty_id, section_id;
-    int rc, dept_id, min_index, max_index;
-	select_branch_view_function(dept_id);
-	int id = dept_id - 1;
-	string faculty_deptno = dept_no[id];
-	string branch_id = dept[id];
-	system("CLS");
-	view_faculty_function(faculty_deptno);
-	if(gbl_data == 0){
-    cout << "\nERROR: No Faculty Details Found...." << endl;
-	cout << endl;
-	}
-	else{
-    cout << "\nDisplaying Details of faculty(ies) of branch " << dept[id] << "..."<< endl;
-    cout << "\n\nID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA" << endl;
-    view_table("FACULTY", faculty_deptno);
-    sqlite3_open("SAMS.db", &db);
-	cout << "\n\nEnter the id to be made Counsellor : ";
-	cin >> faculty_id;
-	string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ faculty_id +"' AND DEPTNO = '"+ faculty_deptno +"');";
-    const char *line = search_faculty.c_str();
-    sql = strdup(line);
-    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
-    if(rc == 0){
-    cout << "\nFaculty with requested ID doesn't exist..." << endl;
-    cout << "\nUnable to access requested details of faculty... Try Again using valid ID...\n" << endl;
-    clear_screen();
-    return;
-    }
-    system("CLS");
-    cout << "\nDisplaying Details of Section(s) of branch " << dept[id] << "..."<< endl;
-    cout << "\n\nROLLNUMBERS ";
-    string search_counsellor = "SELECT SEC.SECTIONID from SECTION SEC INNER JOIN STUDENT STU ON SEC.SECTIONID = STU.SECTION WHERE SEC.SECTIONID LIKE '" + ("  %" + branch_id + "%") + "' AND STU.STUDENTID LIKE '%1' ORDER BY SEC.SEMESTER;";
-    line = search_counsellor.c_str();
-    sql = strdup(line);
-    rc = sqlite3_exec(db, sql, view_section_details, 0, &zErrMsg);
-    cout << endl;
-    for(int i=1; i<=180; i = i+5){
-    int index = i + 4;
-    if(i<10 && index<10){
-    cout << "        " + to_string(i) + "-" + to_string(index) << "   ";
-    counsellor_details(db,branch_id,i);
-    }
-    else if(i<10 && index>=10){
-    cout << "       " + to_string(i) + "-" + to_string(index) << "   ";
-    counsellor_details(db,branch_id,i);
-    }
-    else if(i<100 && index<100){
-    cout << "      " + to_string(i) + "-" +  to_string(index) << "   ";
-    counsellor_details(db,branch_id,i);
-    }
-    else if(i<100 && index>=100){
-    cout << "     " + to_string(i) + "-" + to_string(index) << "   ";
-    counsellor_details(db,branch_id,i);
-    }
-    else if(i>100){
-    cout << "    " << to_string(i) + "-" + to_string(index) << "   ";
-    counsellor_details(db,branch_id,i);
-    }
-    }
-    cout << "\n\nEnter Section : ";
-    cin >> section_id;
-    section_id = "  " + section_id;
-    string search_section = "SELECT EXISTS(SELECT * from SECTION WHERE SECTIONID = '"+ section_id +"' AND DEPTNO = '"+ faculty_deptno +"');";
-    line = search_section.c_str();
-    sql = strdup(line);
-    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
-    if(rc == 0){
-    cout << "\nSection with requested ID doesn't exist..." << endl;
-    cout << "\nUnable to access requested details of Section... Try Again using valid ID...\n" << endl;
-    clear_screen();
-    return;
-    }
-    }
-    clear_screen();
-    return;
-}
-
-void admin :: remove_counsellor(){
-}
-
-void admin :: view_counsellor(){
-}
-
-void admin :: master_assign_counsellor_menu(admin &a){
-    int option = 0;
-	while(option !=4){
-	a: cout << "\nAccessing Faculty ASSIGN COUNSELLOR Operations...\n\n\n";
-	cout << "Type '1' ----> Add Students\n";
-	cout << "Type '2' ----> Remove Students\n";
-	cout << "Type '3' ----> View Students\n";
-	cout << "Type '4' ----> Back to Main Menu\n";
-	cout << "\nEnter Here : ";
-    cin >> excp;
-	roc = check_exception(excp);
-	while(roc){
-	b : error_message();
-	goto a;
-	}
-	option = stoi(excp);
-	if(option>4 || option<1){
-	goto b;
-	}
-	else if(option == 1){
-	system("CLS");
-	a.assign_counsellor();
-	}
-	else if(option == 2){
-	system("CLS");
-	a.remove_counsellor();
-	}
-	else if(option == 3){
-	system("CLS");
-	a.view_counsellor();
 	}
 	}
 	if(option == 4){
@@ -1390,7 +997,7 @@ void admin :: assign_clstchr(){
     sqlite3_open("SAMS.db", &db);
 	cout << "\n\nEnter the id to be made Class Teacher : ";
 	cin >> faculty_id;
-	string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ faculty_id +"' AND DEPTNO = '"+ faculty_deptno +"');";
+	string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ faculty_id +"' AND DEPTNO = '"+ faculty_deptno +"'  AND WORKING = 'Y');";
     const char *line = search_faculty.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
@@ -1597,7 +1204,7 @@ void admin :: assign_head(){
     sqlite3_open("SAMS.db", &db);
 	cout << "\n\nEnter the id to be made Head of Department : ";
 	cin >> faculty_id;
-	string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ faculty_id +"' AND DEPTNO = '"+ faculty_deptno +"');";
+	string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ faculty_id +"' AND DEPTNO = '"+ faculty_deptno +"'  AND WORKING = 'Y');";
     const char *line = search_faculty.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
@@ -1760,13 +1367,12 @@ void admin :: master_assign_head_menu(admin &a){
 
 void admin :: master_faculty_assign_menu(admin &a){
     int option = 0;
-	while(option !=5){
+	while(option !=4){
 	a: cout << "\nAccessing Faculty ASSIGN Operations...\n\n\n";
 	cout << "Type '1' ----> Assign a Course\n";
-	cout << "Type '2' ----> Assign as Counsellor\n";
-	cout << "Type '3' ----> Assign as Class Teacher\n";
-	cout << "Type '4' ----> Assign as Head of Department\n";
-	cout << "Type '5' ----> Back to Main Menu\n";
+	cout << "Type '2' ----> Assign as Class Teacher\n";
+	cout << "Type '3' ----> Assign as Head of Department\n";
+	cout << "Type '4' ----> Back to Main Menu\n";
 	cout << "\nEnter Here : ";
     cin >> excp;
 	roc = check_exception(excp);
@@ -1775,7 +1381,7 @@ void admin :: master_faculty_assign_menu(admin &a){
 	goto a;
 	}
 	option = stoi(excp);
-	if(option>5 || option<1){
+	if(option>4 || option<1){
 	goto b;
 	}
 	else if(option == 1){
@@ -1784,18 +1390,14 @@ void admin :: master_faculty_assign_menu(admin &a){
 	}
 	else if(option == 2){
 	system("CLS");
-	a.master_assign_counsellor_menu(a);
-	}
-	else if(option == 3){
-	system("CLS");
 	a.master_assign_clstchr_menu(a);
 	}
-	else if(option == 4){
+	else if(option == 3){
 	system("CLS");
     a.master_assign_head_menu(a);
 	}
 	}
-	if(option == 5){
+	if(option == 4){
 	cout << "Redirecting back...\n";
 	clear_screen();
 	return;
@@ -1961,7 +1563,7 @@ void admin :: add_student(){
     strcpy(char_student_yearjoined, student_yearjoined.c_str());
 	string string_student_academic_year = char_student_yearjoined;
     set_foreignkeys(db);
-    string insert_student = "INSERT INTO STUDENT (STUDENTID,STUDENTNAME,YEARJOINED,SEMESTER,SECTION,DEPTNO,STUDENTPASSWORD) VALUES ('" + student_id + "', '" + student_name + "', '" + string_student_academic_year + "', " + student_sem + ", '" + student_sec + "', '" + student_deptno + "', '" + gbl_password + "');";
+    string insert_student = "INSERT INTO STUDENT VALUES ('" + student_id + "', '" + student_name + "', '" + string_student_academic_year + "', " + student_sem + ", '" + student_sec + "', 'Y', '" + student_deptno + "', '" + gbl_password + "');";
 	const char *line = insert_student.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, create_insert_table, 0, &zErrMsg);
@@ -2000,7 +1602,7 @@ int update_student_function(string &student_id, int id, string student_deptno){
 	rc = sqlite3_open("SAMS.db", &db);
     cout << "\n\nEnter the ID to be updated : ";
     cin >> student_id;
-    string search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDENTID = '"+ student_id +"' AND DEPTNO = '"+ student_deptno +"');";
+    string search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDENTID = '"+ student_id +"' AND DEPTNO = '"+ student_deptno +"' AND WORKING = 'Y');";
     const char *line = search_student.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
@@ -2085,122 +1687,6 @@ void admin :: update_student(){
 }
 }
 
-void admin :: shift_student(){
-    sqlite3 *db;
-	char *zErrMsg, *sql;
-    int rc = 0, dept_id = 0;
-    select_branch_view_function(dept_id);
-    string old_student_id, new_student_id;
-	int id = dept_id - 1;
-	string student_deptno = dept_no[id];
-	string student_id = "B" + student_deptno;
-    system("CLS");
-	view_student_function(student_deptno);
-	if(gbl_data == 0){
-    cout << "\nERROR: No Student Details Found...." << endl;
-	cout << endl;
-	clear_screen();
-	return;
-	}
-    cout << "\nDisplaying Details of student(s) of branch " << dept[id] << "..."<< endl;
-    cout << "\n\nID       NAME" << endl;
-    view_table("STUDENT", student_deptno);
-    sqlite3_open("SAMS.db", &db);
-	cout << "\n\nEnter the id to be shifted : ";
-	cin >> old_student_id;
-	string search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDENTID = '"+ old_student_id +"' AND DEPTNO = '"+ student_deptno +"');";
-    const char *line = search_student.c_str();
-    sql = strdup(line);
-    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
-    if(rc == 0){
-    sqlite3_close(db);
-    cout << "\nStudent with requested ID doesn't exist..." << endl;
-    cout << "\nUnable to shift requested details of Student... Try Again using valid ID...\n" << endl;
-    clear_screen();
-    return;
-    }
-    cout << "\nEnter the id corresponding to the location where " << old_student_id << " is to be shifted : ";
-	cin >> new_student_id;
-	search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDENTID = '"+ new_student_id +"' AND DEPTNO = '"+ student_deptno +"');";
-    line = search_student.c_str();
-    sql = strdup(line);
-    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
-    if(rc == 0){
-    sqlite3_close(db);
-    cout << "\nStudent with requested ID doesn't exist..." << endl;
-    cout << "\nUnable to shift requested details of student... Try Again using valid ID...\n" << endl;
-    clear_screen();
-    return;
-    }
-    string old_offset_string = old_student_id.substr(2,3);
-    string new_offset_string = new_student_id.substr(2,3);
-    int old_offset_index = stoi(old_offset_string);
-    int new_offset_index = stoi(new_offset_string);
-	if(old_offset_index == new_offset_index){
-	sqlite3_close(db);
-    cout << "\nRequested details shifted successfully..." << endl;
-    cout << endl;
-    clear_screen();
-    return;
-	}
-	else if(old_offset_index > new_offset_index){
-    old_offset_index--;
-	sqlite3_open("SAMS.db", &db);
-    set_foreignkeys(db);
-    string update_student = "UPDATE STUDENT set STUDENTID = 'TEMP' WHERE STUDENTID = '"+ old_student_id +"';";
-    const char *line = update_student.c_str();
-    sql = strdup(line);
-	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-    while(old_offset_index>=new_offset_index){
-    create_greater_padded_string(old_offset_index,student_deptno,old_offset_string,new_offset_string);
-    set_foreignkeys(db);
-    string update_student = "UPDATE STUDENT set STUDENTID = '"+ new_offset_string +"' WHERE STUDENTID = '"+ old_offset_string +"';";
-    const char *line = update_student.c_str();
-    sql = strdup(line);
-    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-    old_offset_index--;
-    }
-    set_foreignkeys(db);
-    update_student = "UPDATE STUDENT set STUDENTID = '"+ new_student_id +"' WHERE STUDENTID = 'TEMP';";
-    line = update_student.c_str();
-    sql = strdup(line);
-	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-	sqlite3_close(db);
-    cout << "\nRequested details shifted successfully..." << endl;
-    cout << endl;
-    clear_screen();
-    return;
-	}
-	else if(old_offset_index < new_offset_index){
-    old_offset_index++;
-	sqlite3_open("SAMS.db", &db);
-	set_foreignkeys(db);
-    string update_student = "UPDATE STUDENT set STUDENTID = 'TEMP' WHERE STUDENTID = '"+ old_student_id +"';";
-    const char *line = update_student.c_str();
-    sql = strdup(line);
-	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-    while(old_offset_index<=new_offset_index){
-    create_lesser_padded_string(old_offset_index,student_deptno,old_offset_string,new_offset_string);
-    set_foreignkeys(db);
-    string update_student = "UPDATE STUDENT set STUDENTID = '"+ new_offset_string +"' WHERE STUDENTID = '"+ old_offset_string +"';";
-    const char *line = update_student.c_str();
-    sql = strdup(line);
-    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-    old_offset_index++;
-    }
-    set_foreignkeys(db);
-    update_student = "UPDATE STUDENT set STUDENTID = '"+ new_student_id +"' WHERE STUDENTID = 'TEMP';";
-    line = update_student.c_str();
-    sql = strdup(line);
-	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-	sqlite3_close(db);
-    cout << "\nRequested details shifted successfully..." << endl;
-    cout << endl;
-    clear_screen();
-    return;
-	}
-}
-
 void admin :: delete_student(){
     sqlite3 *db;
     string student_id;
@@ -2223,7 +1709,7 @@ void admin :: delete_student(){
     sqlite3_open("SAMS.db", &db);
 	cout << "\n\nEnter the id to be deleted : ";
 	cin >> student_id;
-	string search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDENTID = '"+ student_id +"' AND DEPTNO = '"+ student_deptno +"');";
+	string search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDENTID = '"+ student_id +"' AND DEPTNO = '"+ student_deptno +"'  AND WORKING = 'Y');";
     const char *line = search_student.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
@@ -2253,26 +1739,12 @@ void admin :: delete_student(){
 	goto b;
 	}
 	if(choice == 1){
-    string old_offset_string = "";
-    string new_offset_string = "";
-    string offset_string = student_id.substr(2,3);
-    int offset_index = stoi(offset_string);
-    offset_index++;
     sqlite3_open("SAMS.db", &db);
     set_foreignkeys(db);
-    string delete_student = "DELETE from STUDENT where STUDENTID = '"+ student_id + "' AND DEPTNO = '" + student_deptno + "';";
+    string delete_student = "UPDATE STUDENT set WORKING = 'N' where STUDENTID = '"+ student_id + "' AND DEPTNO = '" + student_deptno + "';";
     const char *line = delete_student.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-    while(offset_index<=gbl_data){
-    create_padded_string(offset_index,student_deptno,old_offset_string,new_offset_string);
-    set_foreignkeys(db);
-    string update_student = "UPDATE STUDENT set STUDENTID = '"+ new_offset_string +"' WHERE STUDENTID = '"+ old_offset_string +"';";
-    const char *line = update_student.c_str();
-    sql = strdup(line);
-    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
-    offset_index++;
-    }
 	sqlite3_close(db);
     cout << "\nRequested details deleted successfully..." << endl;
     cout << endl;
@@ -2313,14 +1785,13 @@ void admin :: view_student(){
 
 void admin :: master_student_menu(admin &a){
 	int option = 0;
-	while(option !=6){
+	while(option !=5){
 	a: cout << "\nAccessing Student Operations...\n\n\n";
 	cout << "Type '1' ----> Add Student\n";
 	cout << "Type '2' ----> Update Student\n";
-	cout << "Type '3' ----> Shift Student\n";
-	cout << "Type '4' ----> Delete Student\n";
-	cout << "Type '5' ----> View Student\n";
-	cout << "Type '6' ----> Back to Main Menu\n";
+	cout << "Type '3' ----> Delete Student\n";
+	cout << "Type '4' ----> View Student\n";
+	cout << "Type '5' ----> Back to Main Menu\n";
 	cout << "\nEnter Here : ";
     cin >> excp;
 	roc = check_exception(excp);
@@ -2329,7 +1800,7 @@ void admin :: master_student_menu(admin &a){
 	goto a;
 	}
 	option = stoi(excp);
-	if(option>6 || option<1){
+	if(option>5 || option<1){
 	goto b;
 	}
 	else if(option == 1){
@@ -2342,18 +1813,14 @@ void admin :: master_student_menu(admin &a){
 	}
 	else if(option == 3){
 	system("CLS");
-	a.shift_student();
-	}
-	else if(option == 4){
-	system("CLS");
 	a.delete_student();
 	}
-	else if(option == 5){
+	else if(option == 4){
 	system("CLS");
 	a.view_student();
 	}
 	}
-	if(option == 6){
+	if(option == 5){
 	cout << "Redirecting back to Admin Page\n";
 	clear_screen();
 	return;
@@ -2400,7 +1867,7 @@ int course_teacher :: login_teacher(){
     string faculty_deptno;
     char *zErrMsg = 0, *sql;
     rc = sqlite3_open("SAMS.db", &db);
-	string search_faculty = "SELECT EXISTS(SELECT * from FACULTY);";
+	string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE WORKING = 'Y');";
     const char *line = search_faculty.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
@@ -2417,7 +1884,7 @@ int course_teacher :: login_teacher(){
     cout << "Enter Password : ";
 	cin >> teacher_password;
 	rc = sqlite3_open("SAMS.db", &db);
-	search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ teacher_id +"' AND FACULTYPASSWORD = '"+ teacher_password +"');";
+	search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ teacher_id +"' AND FACULTYPASSWORD = '"+ teacher_password +"'  AND WORKING = 'Y');";
     line = search_faculty.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
@@ -2501,7 +1968,7 @@ int section :: login_student(){
     string student_deptno;
     char *zErrMsg = 0, *sql;
     rc = sqlite3_open("SAMS.db", &db);
-	string search_student = "SELECT EXISTS(SELECT * from STUDENT);";
+	string search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE WORKING = 'Y');";
     const char *line = search_student.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
@@ -2518,7 +1985,7 @@ int section :: login_student(){
 	cout << "Enter Password : ";
 	cin >> student_password;
 	rc = sqlite3_open("SAMS.db", &db);
-	search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDENTID = '"+ student_id +"' AND STUDENTPASSWORD = '"+ student_password +"');";
+	search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDENTID = '"+ student_id +"' AND STUDENTPASSWORD = '"+ student_password +"'  AND WORKING = 'Y');";
     line = search_student.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
@@ -2651,13 +2118,13 @@ void table_creation_function(sqlite3 *db){
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
     sql = strdup("CREATE TABLE SECTION(SECTIONID VARCHAR2 (10) PRIMARY KEY, CLSTCHR VARCHAR2 (6) REFERENCES FACULTY (FACULTYID), SEMESTER INTEGER NOT NULL, DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID));");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
-    sql = strdup("CREATE TABLE FACULTY(FACULTYID VARCHAR2(6) PRIMARY KEY, FACULTYNAME  VARCHAR2 (40) NOT NULL, QUALIFICATION VARCHAR2 (30), DESIGNATION VARCHAR2 (40), RESEARCHAREA VARCHAR2 (60), DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID), FACULTYPASSWORD VARCHAR2(8));");
+    sql = strdup("CREATE TABLE FACULTY(FACULTYID VARCHAR2(6) PRIMARY KEY, FACULTYNAME  VARCHAR2 (40) NOT NULL, QUALIFICATION VARCHAR2 (30), DESIGNATION VARCHAR2 (40), RESEARCHAREA VARCHAR2 (60), WORKING VARCHAR2 (1) NOT NULL, DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID), FACULTYPASSWORD VARCHAR2(8));");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
-    sql = strdup("CREATE TABLE STUDENT(STUDENTID VARCHAR2 (8) PRIMARY KEY, STUDENTNAME  VARCHAR2 (40) NOT NULL, YEARJOINED VARCHAR2 (4) NOT NULL, SEMESTER NUMBER NOT NULL, SECTION VARCHAR2 (10) NOT NULL REFERENCES SECTION (SECTIONID), COUNSELLORID VARCHAR2(6) REFERENCES FACULTY (FACULTYID), FIRSTSEM NUMBER (7,2), SECONDSEM NUMBER (7,2), THIRDSEM NUMBER (7,2), FOURTHSEM NUMBER (7,2), FIFTHSEM NUMBER (7,2), SIXTHSEM NUMBER (7,2), SEVENTHSEM NUMBER (7,2), EIGHTHSEM NUMBER (7,2), DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID), STUDENTPASSWORD VARCHAR2(8));");
+    sql = strdup("CREATE TABLE STUDENT(STUDENTID VARCHAR2 (8) PRIMARY KEY, STUDENTNAME  VARCHAR2 (40) NOT NULL, YEARJOINED VARCHAR2 (4) NOT NULL, SEMESTER NUMBER NOT NULL, SECTION VARCHAR2 (10) NOT NULL REFERENCES SECTION (SECTIONID), WORKING VARCHAR2 (1) NOT NULL, FIRSTSEM NUMBER (7,2), SECONDSEM NUMBER (7,2), THIRDSEM NUMBER (7,2), FOURTHSEM NUMBER (7,2), FIFTHSEM NUMBER (7,2), SIXTHSEM NUMBER (7,2), SEVENTHSEM NUMBER (7,2), EIGHTHSEM NUMBER (7,2), DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID), STUDENTPASSWORD VARCHAR2(8));");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
     sql = strdup("CREATE TABLE COURSE(COURSEID VARCHAR2 (10), COURSECODE VARCHAR2 (10) NOT NULL, COURSETYPE VARCHAR2 (1) NOT NULL, COURSENAME VARCHAR2 (30) NOT NULL, SECTION VARCHAR2 (10) REFERENCES SECTION (SECTIONID), CRSTCHR VARCHAR2 (6) REFERENCES FACULTY (FACULTYID), DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID), PRIMARY KEY (COURSEID,SECTION));");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
-    sql = strdup("CREATE TABLE GRADEREPORT(COURSEID VARCHAR2 (10) NOT NULL REFERENCES COURSE (COURSEID), STUDENTID VARCHAR2 (8) NOT NULL REFERENCES STUDENT (STUDENTID), SECTIONID VARCHAR2(10) NOT NULL REFERENCES SECTION (SECTIONID), M1 NUMBER, A1 NUMBER, MSE1 NUMBER, M2 NUMBER, A2 NUMBER, MSE2 NUMBER, INTERNALS NUMBER, EXTERNALS NUMBER, GRADE VARCHAR2 (1), GRADEPOINT INTEGER, PRIMARY KEY (COURSEID, STUDENTID))");
+    sql = strdup("CREATE TABLE GRADEREPORT(COURSEID VARCHAR2 (10) NOT NULL REFERENCES COURSE (COURSEID), STUDENTID VARCHAR2 (8) NOT NULL REFERENCES STUDENT (STUDENTID), SECTIONID VARCHAR2(10) NOT NULL REFERENCES SECTION (SECTIONID), WORKING VARCHAR2 (1) NOT NULL, M1 NUMBER, A1 NUMBER, MSE1 NUMBER, M2 NUMBER, A2 NUMBER, MSE2 NUMBER, INTERNALS NUMBER, EXTERNALS NUMBER, GRADE VARCHAR2 (1), GRADEPOINT INTEGER, PRIMARY KEY (COURSEID, STUDENTID))");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
     sql = strdup("INSERT INTO BRANCH (BRANCHID,BRANCHCODE,BRANCHNAME,PHONE) VALUES ('CS', '   CSE', 'Computer Science & Engineering', '7633301122'); \
     INSERT INTO BRANCH (BRANCHID,BRANCHCODE,BRANCHNAME,PHONE) VALUES ('AI', '   CSM', 'Computer Science & Engineering (Artificial Intelligence & Machine Learning)', '9000128377'); \
