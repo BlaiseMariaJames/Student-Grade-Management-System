@@ -41,7 +41,6 @@ class section : public class_teacher{
 	int login_student();
 	void student_main_menu(section &s);
 	void view_marks();
-	void view_attendance();
 	void view_account(string student_id);
 	void update_account(string student_id);
 };
@@ -276,7 +275,7 @@ void view_table(string str, string id){
 	else if(str == "FACULTY")
     view = "SELECT FACULTYID,FACULTYNAME,QUALIFICATION,DESIGNATION,RESEARCHAREA,WORKING from FACULTY WHERE DEPTNO = '" + id + "' AND WORKING = 'Y' ORDER BY " + (str + "ID");
     else
-    view = "SELECT STUDENTID,STUDENTNAME from STUDENT WHERE DEPTNO = '" + id + "' AND WORKING = 'Y' ORDER BY " + (str + "ID");
+    view = "SELECT STUDENTID,STUDENTNAME,YEARJOINED,SEMESTER,SECTION,CONTACTNUMBER from STUDENT WHERE DEPTNO = '" + id + "' AND STUDYING = 'Y' ORDER BY " + (str + "ID");
 	const char *line = view.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
@@ -1439,7 +1438,7 @@ void admin :: master_faculty_menu(admin &a){
 }
 
 void add_student_function(string &student_id, string &section, string year, string semester){
-    int rc = 0;
+    int rc=0;
     sqlite3 *db;
 	string str = "";
 	char *zErrMsg, *sql;
@@ -1476,8 +1475,8 @@ void add_student_function(string &student_id, string &section, string year, stri
 void admin :: add_student(){
 	sqlite3 *db;
 	sqlite3_open("SAMS.db", &db);
-    int rc, n, sem, dept_id, yearjoined;
 	char *zErrMsg, *sql, ch, name[40];
+    int rc, n, sem, mode, cat, dept_id, yearjoined;
 	a: cout << "Enter the number of student(s) : ";
 	cin >> excp;
 	roc = check_exception(excp);
@@ -1537,8 +1536,70 @@ void admin :: add_student(){
     if(sem>8 || sem<1){
     goto f;
 	}
+    g: cout << "\nSelect Mode of Admission" << endl;
+    cout << "\nType 1 ---> Category - A" << endl;
+    cout << "Type 2 ---> Category - B" << endl;
+    cout << "\nEnter Here : ";
+    cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	h: error_message();
+    cout << "Enter the number of student(s) : " << n << endl;
+	cout << "\nEntering Details of " << n << " student(s)..." << endl;
+	cout << "\nEntering Details of student " << i+1 << endl;
+	select_branch_function();
+	cout << dept[id] << endl;
+	cout << "Enter Year Joined : " << yearjoined << endl;
+    cout << "Enter Semester : " << sem << endl;
+	goto g;
+	}
+    mode = stoi(excp);
+    if(mode>2 || mode<1){
+    goto h;
+	}
+	string student_mode = "";
+	if(mode == 1)
+	student_mode = "A";
+	else
+    student_mode = "B";
+    i: cout << "\nSelect Category\n" << endl;
+    cout << "Type 1 ---> OC" << endl;
+    cout << "Type 2 ---> BC" << endl;
+    cout << "Type 3 ---> SC" << endl;
+    cout << "Type 4 ---> ST" << endl;
+    cout << "Type 5 ---> Minority" << endl;
+    cout << "\nEnter Here : ";
+    cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	j: error_message();
+    cout << "Enter the number of student(s) : " << n << endl;
+	cout << "\nEntering Details of " << n << " student(s)..." << endl;
+	cout << "\nEntering Details of student " << i+1 << endl;
+	select_branch_function();
+	cout << dept[id] << endl;
+	cout << "Enter Year Joined : " << yearjoined << endl;
+    cout << "Enter Semester : " << sem << endl;
+	cout << "Enter Mode of Admission : Category - " << student_mode << endl;
+	goto i;
+	}
+    cat = stoi(excp);
+    if(cat>5 || cat<1){
+    goto j;
+	}
+	string student_cat = "";
+	if(cat == 1)
+	student_cat = "OC";
+	else if(cat == 2)
+    student_cat = "BC";
+    else if(cat == 3)
+    student_cat = "SC";
+    else if(cat == 4)
+    student_cat = "ST";
+    else if(cat == 5)
+    student_cat = "Minority";
 	string student_sem = to_string(sem);
-    add_student_function(branch_id, student_sec, student_yearjoined,student_sem);
+    add_student_function(branch_id,student_sec,student_yearjoined,student_sem);
     student_sec = "  " + student_sem + student_sec;
 	cout << "Enter the number of student(s) : " << n << endl;
 	cout << "\nEntering Details of " << n << " student(s)..." << endl;
@@ -1546,6 +1607,8 @@ void admin :: add_student(){
 	cout << "\nEnter Branch : " << dept[id] << endl;
 	cout << "Enter Year Joined : " << yearjoined << endl;
 	cout << "Enter Semester : " << sem << endl;
+	cout << "Enter Mode of Admission : Category - " << student_mode << endl;
+	cout << "Enter Category : " << student_cat << endl;
 	cout << "Enter Student Name : ";
 	cin >> ch;
 	int j=0;
@@ -1563,11 +1626,14 @@ void admin :: add_student(){
     strcpy(char_student_yearjoined, student_yearjoined.c_str());
 	string string_student_academic_year = char_student_yearjoined;
     set_foreignkeys(db);
-    string insert_student = "INSERT INTO STUDENT VALUES ('" + student_id + "', '" + student_name + "', '" + string_student_academic_year + "', " + student_sem + ", '" + student_sec + "', 'Y', '" + student_deptno + "', '" + gbl_password + "');";
+    string insert_student = "INSERT INTO STUDENT (STUDENTID,STUDENTNAME,YEARJOINED,SEMESTER,SECTION,STUDYING,DEPTNO,STUDENTPASSWORD) VALUES ('" + student_id + "', '" + student_name + "', '" + string_student_academic_year + "', " + student_sem + ", '" + student_sec + "', 'Y', '" + student_deptno + "', '" + gbl_password + "');";
 	const char *line = insert_student.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, create_insert_table, 0, &zErrMsg);
     if( rc != SQLITE_OK ){
+    if(strcmp(zErrMsg,"FOREIGN KEY constraint failed")==0)
+    cout << "\nERROR: Maximum number of students reached for Department " << dept[id] << endl;
+    else
     fprintf(stderr, "\nSQL error: %s\n", zErrMsg);
     sqlite3_free(zErrMsg);
     cout << "\nUnable to register requested details of student... Try Again with valid ID...\n" << endl;
@@ -1602,7 +1668,7 @@ int update_student_function(string &student_id, int id, string student_deptno){
 	rc = sqlite3_open("SAMS.db", &db);
     cout << "\n\nEnter the ID to be updated : ";
     cin >> student_id;
-    string search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDENTID = '"+ student_id +"' AND DEPTNO = '"+ student_deptno +"' AND WORKING = 'Y');";
+    string search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDENTID = '"+ student_id +"' AND DEPTNO = '"+ student_deptno +"' AND STUDYING = 'Y');";
     const char *line = search_student.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
@@ -1709,7 +1775,7 @@ void admin :: delete_student(){
     sqlite3_open("SAMS.db", &db);
 	cout << "\n\nEnter the id to be deleted : ";
 	cin >> student_id;
-	string search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDENTID = '"+ student_id +"' AND DEPTNO = '"+ student_deptno +"'  AND WORKING = 'Y');";
+	string search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDENTID = '"+ student_id +"' AND DEPTNO = '"+ student_deptno +"'  AND STUDYING = 'Y');";
     const char *line = search_student.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
@@ -1741,7 +1807,7 @@ void admin :: delete_student(){
 	if(choice == 1){
     sqlite3_open("SAMS.db", &db);
     set_foreignkeys(db);
-    string delete_student = "UPDATE STUDENT set WORKING = 'N' where STUDENTID = '"+ student_id + "' AND DEPTNO = '" + student_deptno + "';";
+    string delete_student = "UPDATE STUDENT set STUDYING = 'N' where STUDENTID = '"+ student_id + "' AND DEPTNO = '" + student_deptno + "';";
     const char *line = delete_student.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
@@ -1968,7 +2034,7 @@ int section :: login_student(){
     string student_deptno;
     char *zErrMsg = 0, *sql;
     rc = sqlite3_open("SAMS.db", &db);
-	string search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE WORKING = 'Y');";
+	string search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDYING = 'Y');";
     const char *line = search_student.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
@@ -1985,7 +2051,7 @@ int section :: login_student(){
 	cout << "Enter Password : ";
 	cin >> student_password;
 	rc = sqlite3_open("SAMS.db", &db);
-	search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDENTID = '"+ student_id +"' AND STUDENTPASSWORD = '"+ student_password +"'  AND WORKING = 'Y');";
+	search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDENTID = '"+ student_id +"' AND STUDENTPASSWORD = '"+ student_password +"'  AND STUDYING = 'Y');";
     line = search_student.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
@@ -2024,14 +2090,13 @@ void section :: view_account(string student_id){
 
 void section :: student_main_menu(section &s){
 	int option = 0;
-	while(option !=4){
+	while(option !=3){
 	a: cout << "\nWelcome " << student_id << "\n\n\n";
     cout << "Personal Info : " << endl;
 	s.view_account(student_id);
 	cout << "Type '1' ----> View My Marks\n";
-	cout << "Type '2' ----> View My Attendance\n";
-	cout << "Type '3' ----> Update My Account/Password\n";
-	cout << "Type '4' ----> Back to Main Menu\n";
+	cout << "Type '2' ----> Update My Account/Password\n";
+	cout << "Type '3' ----> Back to Main Menu\n";
 	cout << "\nEnter Here : ";
 	cin >> excp;
 	roc = check_exception(excp);
@@ -2040,7 +2105,7 @@ void section :: student_main_menu(section &s){
 	goto a;
 	}
 	option = stoi(excp);
-	if(option>4 || option<1){
+	if(option>3 || option<1){
     goto b;
 	}
 	else if(option == 1){
@@ -2048,15 +2113,11 @@ void section :: student_main_menu(section &s){
 	//s.view_marks();
 	}
 	else if(option == 2){
-	system("CLS");
-	//s.view_attendance();
-	}
-	else if(option == 3){
     system("CLS");
 	//s.update_account(student_id);
 	}
 	}
-	if(option == 4){
+	if(option == 3){
 	cout << "Redirecting back to Main Menu\n";
 	clear_screen();
 	return;
@@ -2120,11 +2181,11 @@ void table_creation_function(sqlite3 *db){
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
     sql = strdup("CREATE TABLE FACULTY(FACULTYID VARCHAR2(6) PRIMARY KEY, FACULTYNAME  VARCHAR2 (40) NOT NULL, QUALIFICATION VARCHAR2 (30), DESIGNATION VARCHAR2 (40), RESEARCHAREA VARCHAR2 (60), WORKING VARCHAR2 (1) NOT NULL, DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID), FACULTYPASSWORD VARCHAR2(8));");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
-    sql = strdup("CREATE TABLE STUDENT(STUDENTID VARCHAR2 (8) PRIMARY KEY, STUDENTNAME  VARCHAR2 (40) NOT NULL, YEARJOINED VARCHAR2 (4) NOT NULL, SEMESTER NUMBER NOT NULL, SECTION VARCHAR2 (10) NOT NULL REFERENCES SECTION (SECTIONID), WORKING VARCHAR2 (1) NOT NULL, FIRSTSEM NUMBER (7,2), SECONDSEM NUMBER (7,2), THIRDSEM NUMBER (7,2), FOURTHSEM NUMBER (7,2), FIFTHSEM NUMBER (7,2), SIXTHSEM NUMBER (7,2), SEVENTHSEM NUMBER (7,2), EIGHTHSEM NUMBER (7,2), DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID), STUDENTPASSWORD VARCHAR2(8));");
+    sql = strdup("CREATE TABLE STUDENT(STUDENTID VARCHAR2 (8) PRIMARY KEY, STUDENTNAME  VARCHAR2 (40) NOT NULL, YEARJOINED VARCHAR2 (4) NOT NULL, SEMESTER NUMBER NOT NULL, SECTION VARCHAR2 (10) NOT NULL REFERENCES SECTION (SECTIONID), STUDYING VARCHAR2 (1) NOT NULL, CONTACTNUMBER NUMBER(10), FIRSTSEM NUMBER (7,2), SECONDSEM NUMBER (7,2), THIRDSEM NUMBER (7,2), FOURTHSEM NUMBER (7,2), FIFTHSEM NUMBER (7,2), SIXTHSEM NUMBER (7,2), SEVENTHSEM NUMBER (7,2), EIGHTHSEM NUMBER (7,2), DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID), STUDENTPASSWORD VARCHAR2(8));");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
     sql = strdup("CREATE TABLE COURSE(COURSEID VARCHAR2 (10), COURSECODE VARCHAR2 (10) NOT NULL, COURSETYPE VARCHAR2 (1) NOT NULL, COURSENAME VARCHAR2 (30) NOT NULL, SECTION VARCHAR2 (10) REFERENCES SECTION (SECTIONID), CRSTCHR VARCHAR2 (6) REFERENCES FACULTY (FACULTYID), DEPTNO VARCHAR2 (3) NOT NULL REFERENCES BRANCH (BRANCHID), PRIMARY KEY (COURSEID,SECTION));");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
-    sql = strdup("CREATE TABLE GRADEREPORT(COURSEID VARCHAR2 (10) NOT NULL REFERENCES COURSE (COURSEID), STUDENTID VARCHAR2 (8) NOT NULL REFERENCES STUDENT (STUDENTID), SECTIONID VARCHAR2(10) NOT NULL REFERENCES SECTION (SECTIONID), WORKING VARCHAR2 (1) NOT NULL, M1 NUMBER, A1 NUMBER, MSE1 NUMBER, M2 NUMBER, A2 NUMBER, MSE2 NUMBER, INTERNALS NUMBER, EXTERNALS NUMBER, GRADE VARCHAR2 (1), GRADEPOINT INTEGER, PRIMARY KEY (COURSEID, STUDENTID))");
+    sql = strdup("CREATE TABLE GRADEREPORT(COURSEID VARCHAR2 (10) NOT NULL REFERENCES COURSE (COURSEID), STUDENTID VARCHAR2 (8) NOT NULL REFERENCES STUDENT (STUDENTID), SECTIONID VARCHAR2(10) NOT NULL REFERENCES SECTION (SECTIONID), M1 NUMBER, A1 NUMBER, MSE1 NUMBER, M2 NUMBER, A2 NUMBER, MSE2 NUMBER, INTERNALS NUMBER, EXTERNALS NUMBER, GRADE VARCHAR2 (1), GRADEPOINT INTEGER, PRIMARY KEY (COURSEID, STUDENTID))");
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
     sql = strdup("INSERT INTO BRANCH (BRANCHID,BRANCHCODE,BRANCHNAME,PHONE) VALUES ('CS', '   CSE', 'Computer Science & Engineering', '7633301122'); \
     INSERT INTO BRANCH (BRANCHID,BRANCHCODE,BRANCHNAME,PHONE) VALUES ('AI', '   CSM', 'Computer Science & Engineering (Artificial Intelligence & Machine Learning)', '9000128377'); \
