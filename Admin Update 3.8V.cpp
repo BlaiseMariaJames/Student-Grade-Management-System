@@ -42,7 +42,7 @@ class section : public class_teacher{
 	void student_main_menu(section &s);
 	void view_marks();
 	void view_account(string student_id);
-	void update_account(string student_id);
+	void update_stdpass();
 };
 
 class course_teacher : public class_teacher{
@@ -54,7 +54,7 @@ class course_teacher : public class_teacher{
 	void add_student_marks();
 	void view_overall_marks();
 	void view_account(string faculty_id);
-	void update_account(string faculty_id);
+	void update_tchrpass();
 };
 
 class admin{
@@ -178,6 +178,9 @@ static int view_student_account(void *NotUsed, int argc, char **argv, char **azC
     gbl_input[i] = argv[i] ? argv[i] : "NULL";
     }
     cout << "Name : " << gbl_input[0] << endl;
+    cout << "Semester : " << gbl_input[1] << endl;
+    cout << "Section :" << gbl_input[2] << endl;
+    cout << "Contact : " << gbl_input[3] << endl;
     return 0;
 }
 
@@ -1451,7 +1454,6 @@ void add_student_function(string &student_id, string &section, string year, stri
 	if(gbl_data == 0){
 	section = section + "1";
     student_id = student_id + "001";
-    system("CLS");
     }
     else{
     gbl_data++;
@@ -1468,15 +1470,15 @@ void add_student_function(string &student_id, string &section, string year, stri
     section = section + "2";
     else if(gbl_data<181)
     section = section + "3";
-    system("CLS");
     }
 }
 
 void admin :: add_student(){
 	sqlite3 *db;
+    long long contact;
 	sqlite3_open("SAMS.db", &db);
 	char *zErrMsg, *sql, ch, name[40];
-    int rc, n, sem, mode, cat, dept_id, yearjoined;
+    int rc, n, dept_id, sem, yearjoined;
 	a: cout << "Enter the number of student(s) : ";
 	cin >> excp;
 	roc = check_exception(excp);
@@ -1536,11 +1538,21 @@ void admin :: add_student(){
     if(sem>8 || sem<1){
     goto f;
 	}
-    g: cout << "\nSelect Mode of Admission" << endl;
-    cout << "\nType 1 ---> Category - A" << endl;
-    cout << "Type 2 ---> Category - B" << endl;
-    cout << "\nEnter Here : ";
-    cin >> excp;
+	string student_sem = to_string(sem);
+    add_student_function(branch_id,student_sec,student_yearjoined,student_sem);
+    student_sec = "  " + student_sem + student_sec;
+    cout << "Enter Student Name : ";
+	cin >> ch;
+	int j=0;
+	while (ch != '\n' && j<30){
+    name[j] = ch;
+    ch = cin.get();
+    j++;
+	}
+	name[j] = '\0';
+	padded_input_string(name, 39);
+	g: cout << "Enter Contact Number : ";
+	cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
 	h: error_message();
@@ -1550,83 +1562,22 @@ void admin :: add_student(){
 	select_branch_function();
 	cout << dept[id] << endl;
 	cout << "Enter Year Joined : " << yearjoined << endl;
-    cout << "Enter Semester : " << sem << endl;
+	cout << "Enter Name : " << name << endl;
 	goto g;
 	}
-    mode = stoi(excp);
-    if(mode>2 || mode<1){
+	contact = stoll(excp);
+    if(contact>9999999999 || contact<1000000000){
     goto h;
 	}
-	string student_mode = "";
-	if(mode == 1)
-	student_mode = "A";
-	else
-    student_mode = "B";
-    i: cout << "\nSelect Category\n" << endl;
-    cout << "Type 1 ---> OC" << endl;
-    cout << "Type 2 ---> BC" << endl;
-    cout << "Type 3 ---> SC" << endl;
-    cout << "Type 4 ---> ST" << endl;
-    cout << "Type 5 ---> Minority" << endl;
-    cout << "\nEnter Here : ";
-    cin >> excp;
-	roc = check_exception(excp);
-	while(roc){
-	j: error_message();
-    cout << "Enter the number of student(s) : " << n << endl;
-	cout << "\nEntering Details of " << n << " student(s)..." << endl;
-	cout << "\nEntering Details of student " << i+1 << endl;
-	select_branch_function();
-	cout << dept[id] << endl;
-	cout << "Enter Year Joined : " << yearjoined << endl;
-    cout << "Enter Semester : " << sem << endl;
-	cout << "Enter Mode of Admission : Category - " << student_mode << endl;
-	goto i;
-	}
-    cat = stoi(excp);
-    if(cat>5 || cat<1){
-    goto j;
-	}
-	string student_cat = "";
-	if(cat == 1)
-	student_cat = "OC";
-	else if(cat == 2)
-    student_cat = "BC";
-    else if(cat == 3)
-    student_cat = "SC";
-    else if(cat == 4)
-    student_cat = "ST";
-    else if(cat == 5)
-    student_cat = "Minority";
-	string student_sem = to_string(sem);
-    add_student_function(branch_id,student_sec,student_yearjoined,student_sem);
-    student_sec = "  " + student_sem + student_sec;
-	cout << "Enter the number of student(s) : " << n << endl;
-	cout << "\nEntering Details of " << n << " student(s)..." << endl;
-	cout << "\nEntering Details of student " << i+1 << endl;
-	cout << "\nEnter Branch : " << dept[id] << endl;
-	cout << "Enter Year Joined : " << yearjoined << endl;
-	cout << "Enter Semester : " << sem << endl;
-	cout << "Enter Mode of Admission : Category - " << student_mode << endl;
-	cout << "Enter Category : " << student_cat << endl;
-	cout << "Enter Student Name : ";
-	cin >> ch;
-	int j=0;
-	while (ch != '\n' && j<30){
-    name[j] = ch;
-    ch = cin.get();
-    j++;
-	}
-	name[j] = '\0';
-	padded_input_string(name, 29);
     string student_name = name;
     string year_offset = student_yearjoined.substr(2,2);
 	string student_id = "B" + year_offset + branch_id;
+	string contact_number = to_string(contact);
     char char_student_yearjoined[student_yearjoined.size() + 1];
     strcpy(char_student_yearjoined, student_yearjoined.c_str());
 	string string_student_academic_year = char_student_yearjoined;
     set_foreignkeys(db);
-    string insert_student = "INSERT INTO STUDENT (STUDENTID,STUDENTNAME,YEARJOINED,SEMESTER,SECTION,STUDYING,DEPTNO,STUDENTPASSWORD) VALUES ('" + student_id + "', '" + student_name + "', '" + string_student_academic_year + "', " + student_sem + ", '" + student_sec + "', 'Y', '" + student_deptno + "', '" + gbl_password + "');";
+    string insert_student = "INSERT INTO STUDENT (STUDENTID,STUDENTNAME,YEARJOINED,SEMESTER,SECTION,STUDYING,CONTACTNUMBER,DEPTNO,STUDENTPASSWORD) VALUES ('" + student_id + "', '" + student_name + "', '" + string_student_academic_year + "', " + student_sem + ", '" + student_sec + "', 'Y', "+ contact_number +", '" + student_deptno + "', '" + gbl_password + "');";
 	const char *line = insert_student.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, create_insert_table, 0, &zErrMsg);
@@ -1663,7 +1614,7 @@ int update_student_function(string &student_id, int id, string student_deptno){
     sqlite3 *db;
 	char *zErrMsg, *sql;
 	cout << "\nDisplaying Details of student(s) of branch " << dept[id] << "..."<< endl;
-    cout << "\n\nID       NAME" << endl;
+    cout << "\n\nID\t NAME\t\t\t\t\t YEAR SEM SECTION CONTACT" << endl;
     view_table("STUDENT", student_deptno);
 	rc = sqlite3_open("SAMS.db", &db);
     cout << "\n\nEnter the ID to be updated : ";
@@ -1703,7 +1654,8 @@ void admin :: update_student(){
 	a: cout << "Selected Branch : " << dept[id] << endl;
     cout << "\nSelect the field to be updated...\n\n\n";
 	cout << "Type '1' ----> Update Name\n";
-	cout << "Type '2' ----> Back to Main Menu\n";
+	cout << "Type '2' ----> Update Contact Number\n";
+	cout << "Type '3' ----> Back to Main Menu\n";
 	cout << "\nEnter Here : ";
 	cin >> excp;
 	roc = check_exception(excp);
@@ -1712,7 +1664,7 @@ void admin :: update_student(){
 	goto a;
 	}
 	option = stoi(excp);
-	if(option>2 || option<1){
+	if(option>3 || option<1){
     goto b;
 	}
 	else if(option == 1){
@@ -1745,7 +1697,38 @@ void admin :: update_student(){
     return;
 	}
 	}
-	if(option == 2){
+    else if(option == 2){
+	system("CLS");
+	long long contact;
+    rc = update_student_function(student_id, id, student_deptno);
+	if(rc == 0)
+    return;
+	else if(rc == 1){
+    sqlite3_open("SAMS.db", &db);
+    c: cout << "Enter Contact Number : ";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	d: error_message();
+	goto c;
+	}
+	contact = stoll(excp);
+    if(contact>9999999999 || contact<1000000000){
+    goto d;
+    }
+    string new_contact_number = to_string(contact);
+	string update_student = "UPDATE STUDENT set CONTACTNUMBER = '"+ new_contact_number +"' WHERE STUDENTID = '"+ student_id +"';";
+    const char *line = update_student.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+    sqlite3_close(db);
+    cout << "\nRequested details updated successfully..." << endl;
+    cout << endl;
+    clear_screen();
+    return;
+	}
+	}
+	if(option == 3){
 	cout << "Redirecting back...\n";
 	clear_screen();
 	return;
@@ -1770,7 +1753,7 @@ void admin :: delete_student(){
 	return;
 	}
     cout << "\nDisplaying Details of student(s) of branch " << dept[id] << "..."<< endl;
-    cout << "\n\nID       NAME" << endl;
+    cout << "\n\nID\t NAME\t\t\t\t\t YEAR SEM SECTION CONTACT" << endl;
     view_table("STUDENT", student_deptno);
     sqlite3_open("SAMS.db", &db);
 	cout << "\n\nEnter the id to be deleted : ";
@@ -1794,7 +1777,7 @@ void admin :: delete_student(){
 	while(roc){
 	b: error_message();
     cout << "\nDisplaying Details of student(s) of branch " << dept[id] << "..."<< endl;
-    cout << "\n\nID       NAME" << endl;
+    cout << "\n\nID\t NAME\t\t\t\t\t YEAR SEM SECTION CONTACT" << endl;
     view_table("STUDENT", student_deptno);
     cout << "\n\nEnter the id to be deleted : " << student_id << endl;
 	goto a;
@@ -1840,7 +1823,7 @@ void admin :: view_student(){
 	}
 	else{
     cout << "\nDisplaying Details of student(s) of branch " << dept[id] << "..."<< endl;
-    cout << "\n\nID       NAME" << endl;
+    cout << "\n\nID\t NAME\t\t\t\t\t YEAR SEM SECTION CONTACT" << endl;
     view_table("STUDENT", student_deptno);
     cout << "\nDetails of all student(s) of branch " << dept[id] << " displayed successfully..." << endl;
     cout << endl;
@@ -1995,7 +1978,7 @@ void course_teacher :: teacher_main_menu(course_teacher &t){
 	t.view_account(teacher_id);
     cout << "Type '1' ----> Edit Student Marks\n";
     cout << "Type '2' ----> View Overall Marks\n";
-	cout << "Type '3' ----> Update My Account/Password\n";
+	cout << "Type '3' ----> Update My Password\n";
 	cout << "Type '4' ----> Back to Main Menu\n";
     cout << "\nEnter Here : ";
 	cin >> excp;
@@ -2017,7 +2000,7 @@ void course_teacher :: teacher_main_menu(course_teacher &t){
     //t.view_overall_marks();
     }
     else if(option == 3){
-    //t.update_account(teacher_id);
+	//t.update_tchrpass;
     system("CLS");
     }
 	}
@@ -2079,7 +2062,7 @@ void section :: view_account(string student_id){
     sqlite3 *db;
 	char *zErrMsg, *sql;
 	rc = sqlite3_open("SAMS.db", &db);
-    string search_student = "SELECT STUDENTNAME from STUDENT WHERE STUDENTID = '" + student_id + "';";
+    string search_student = "SELECT STUDENTNAME,SEMESTER,SECTION,CONTACTNUMBER from STUDENT WHERE STUDENTID = '" + student_id + "';";
     const char *line = search_student.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, view_student_account, 0, &zErrMsg);
@@ -2095,7 +2078,7 @@ void section :: student_main_menu(section &s){
     cout << "Personal Info : " << endl;
 	s.view_account(student_id);
 	cout << "Type '1' ----> View My Marks\n";
-	cout << "Type '2' ----> Update My Account/Password\n";
+	cout << "Type '2' ----> Update My Password\n";
 	cout << "Type '3' ----> Back to Main Menu\n";
 	cout << "\nEnter Here : ";
 	cin >> excp;
@@ -2114,7 +2097,7 @@ void section :: student_main_menu(section &s){
 	}
 	else if(option == 2){
     system("CLS");
-	//s.update_account(student_id);
+	//s.update_stdpass;
 	}
 	}
 	if(option == 3){
