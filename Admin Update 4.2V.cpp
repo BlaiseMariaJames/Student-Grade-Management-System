@@ -85,6 +85,9 @@ class admin{
 	void delete_student();
 	void view_student();
     void master_student_menu(admin &a);
+    void view_archived_faculty();
+    void view_archived_student();
+    void master_archives_menu(admin &a);
 	void master_main_menu(admin &a);
 };
 
@@ -271,26 +274,32 @@ void select_branch_view_function(int &dept_id){
 	}
 }
 
-void view_faculty_function(string faculty_deptno){
+void view_faculty_function(string faculty_deptno, bool archived){
     int rc = 0;
     sqlite3 *db;
-	string str = "";
+	string str = "", search_faculty;
 	char *zErrMsg, *sql;
 	sqlite3_open("SAMS.db", &db);
-    string search_faculty = "SELECT COUNT(*) FROM FACULTY WHERE DEPTNO = '" + faculty_deptno + "' AND WORKING = 'Y';";
+	if(archived == false)
+    search_faculty = "SELECT COUNT(*) FROM FACULTY WHERE DEPTNO = '" + faculty_deptno + "' AND WORKING = 'Y';";
+    else
+    search_faculty = "SELECT COUNT(*) FROM FACULTY WHERE DEPTNO = '" + faculty_deptno + "' AND WORKING = 'N';";
     const char *line = search_faculty.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, search_table, 0, &zErrMsg);
     sqlite3_close(db);
 }
 
-void view_student_function(string student_deptno){
+void view_student_function(string student_deptno, bool archived){
     int rc = 0;
     sqlite3 *db;
-	string str = "";
+	string str = "", search_student;
 	char *zErrMsg, *sql;
 	sqlite3_open("SAMS.db", &db);
-    string search_student = "SELECT COUNT(*) FROM STUDENT WHERE DEPTNO = '" + student_deptno + "' AND STUDYING = 'Y';";
+	if(archived == false)
+    search_student = "SELECT COUNT(*) FROM STUDENT WHERE DEPTNO = '" + student_deptno + "' AND STUDYING = 'Y';";
+    else
+    search_student = "SELECT COUNT(*) FROM STUDENT WHERE DEPTNO = '" + student_deptno + "' AND STUDYING = 'N';";
     const char *line = search_student.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, search_table, 0, &zErrMsg);
@@ -309,8 +318,16 @@ void view_table(string str, string id){
     view = "SELECT S.SECTIONID,S.CLSTCHR,F.FACULTYNAME,F.QUALIFICATION,F.DESIGNATION,F.RESEARCHAREA FROM SECTION S LEFT JOIN FACULTY F ON S.CLSTCHR = F.FACULTYID WHERE SECTIONID LIKE '" + ("  " + id + "%") + "';";
 	else if(str == "FACULTY")
     view = "SELECT FACULTYID,FACULTYNAME,QUALIFICATION,DESIGNATION,RESEARCHAREA from FACULTY WHERE DEPTNO = '" + id + "' AND WORKING = 'Y' ORDER BY " + (str + "ID");
-    else
+    else if(str == "STUDENT")
     view = "SELECT STUDENTID,STUDENTNAME,YEARJOINED,SEMESTER,SECTION,CONTACTNUMBER from STUDENT WHERE DEPTNO = '" + id + "' AND STUDYING = 'Y' ORDER BY " + (str + "ID");
+	else if(str == "A-FACULTY"){
+    str = str.substr(2);
+    view = "SELECT FACULTYID,FACULTYNAME,QUALIFICATION,DESIGNATION,RESEARCHAREA from FACULTY WHERE DEPTNO = '" + id + "' AND WORKING = 'N' ORDER BY " + (str + "ID");
+	}
+    else if(str == "A-STUDENT"){
+    str = str.substr(2);
+    view = "SELECT STUDENTID,STUDENTNAME,YEARJOINED,SEMESTER,SECTION,CONTACTNUMBER from STUDENT WHERE DEPTNO = '" + id + "' AND STUDYING = 'N' ORDER BY " + (str + "ID");
+    }
 	const char *line = view.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
@@ -504,7 +521,7 @@ void admin :: update_faculty(){
 	int id = dept_id - 1;
 	string faculty_deptno = dept_no[id];
     system("CLS");
-	view_faculty_function(faculty_deptno);
+	view_faculty_function(faculty_deptno, false);
 	if(gbl_data == 0){
     cout << "\nERROR: No Faculty Details Found...." << endl;
 	cout << endl;
@@ -666,7 +683,7 @@ void admin :: delete_faculty(){
 	int id = dept_id - 1;
 	string faculty_deptno = dept_no[id];
     system("CLS");
-	view_faculty_function(faculty_deptno);
+	view_faculty_function(faculty_deptno, false);
 	if(gbl_data == 0){
     cout << "\nERROR: No Faculty Details Found...." << endl;
 	cout << endl;
@@ -745,7 +762,7 @@ void admin :: view_faculty(){
 	int id = dept_id - 1;
 	string faculty_deptno = dept_no[id];
 	system("CLS");
-	view_faculty_function(faculty_deptno);
+	view_faculty_function(faculty_deptno, false);
 	if(gbl_data == 0){
     cout << "\nERROR: No Faculty Details Found...." << endl;
 	cout << endl;
@@ -873,7 +890,7 @@ void admin :: assign_course(){
 	string faculty_deptno = dept_no[id];
 	string branch_id = dept[id];
 	system("CLS");
-	view_faculty_function(faculty_deptno);
+	view_faculty_function(faculty_deptno, false);
 	if(gbl_data == 0){
     cout << "\nERROR: No Faculty Details Found...." << endl;
 	cout << endl;
@@ -990,8 +1007,18 @@ void admin :: remove_course(){
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
     if(rc == 0){
-    cout << "\nCourse with requested code doesn't exist..." << endl;
-    cout << "\nUnable to access requested details of faculty... Try Again using valid code...\n" << endl;
+    cout << "\nCourse with requested Code doesn't exist..." << endl;
+    cout << "\nUnable to access requested details of faculty... Try Again using valid Code...\n" << endl;
+    clear_screen();
+    return;
+    }
+    string search_faculty = "SELECT EXISTS(SELECT * from COURSE WHERE CRSTCHR IS NOT NULL AND COURSECODE = '"+ course_id +"' AND SECTION = '"+ section_id +"');";
+    line = search_faculty.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nCourse with requested Code is not alloted to any faculty yet..." << endl;
+    cout << "\nUnable to access requested details of faculty... Try Again using valid Code...\n" << endl;
     clear_screen();
     return;
     }
@@ -1278,7 +1305,7 @@ void admin :: assign_clstchr(){
 	string faculty_deptno = dept_no[id];
 	string branch_id = dept[id];
 	system("CLS");
-	view_faculty_function(faculty_deptno);
+	view_faculty_function(faculty_deptno, false);
 	if(gbl_data == 0){
     cout << "\nERROR: No Faculty Details Found...." << endl;
 	cout << endl;
@@ -1485,7 +1512,7 @@ void admin :: assign_head(){
 	string faculty_deptno = dept_no[id];
 	string branch_id = dept[id];
 	system("CLS");
-	view_faculty_function(faculty_deptno);
+	view_faculty_function(faculty_deptno, false);
 	if(gbl_data == 0){
     cout << "\nERROR: No Faculty Details Found...." << endl;
 	cout << endl;
@@ -1935,7 +1962,7 @@ void admin :: update_student(){
 	int id = dept_id - 1;
 	string student_deptno = dept_no[id];
     system("CLS");
-	view_student_function(student_deptno);
+	view_student_function(student_deptno, false);
 	if(gbl_data == 0){
     cout << "\nERROR: No Student Details Found...." << endl;
 	cout << endl;
@@ -2036,7 +2063,7 @@ void admin :: delete_student(){
 	int id = dept_id - 1;
 	string student_deptno = dept_no[id];
     system("CLS");
-	view_student_function(student_deptno);
+	view_student_function(student_deptno, false);
 	if(gbl_data == 0){
     cout << "\nERROR: No Student Details Found...." << endl;
 	cout << endl;
@@ -2107,7 +2134,7 @@ void admin :: view_student(){
 	int id = dept_id - 1;
 	string student_deptno = dept_no[id];
 	system("CLS");
-	view_student_function(student_deptno);
+	view_student_function(student_deptno, false);
 	if(gbl_data == 0){
     cout << "\nERROR: No Student Details Found...." << endl;
 	cout << endl;
@@ -2167,12 +2194,60 @@ void admin :: master_student_menu(admin &a){
 	}
 }
 
-void admin :: master_main_menu(admin &a){
-	int option = 0;
+void admin :: view_archived_faculty(){
+    sqlite3 *db;
+    int rc, dept_id;
+    char *zErrMsg = 0, *sql;
+	select_branch_view_function(dept_id);
+	int id = dept_id - 1;
+	string faculty_deptno = dept_no[id];
+	system("CLS");
+	view_faculty_function(faculty_deptno, true);
+	if(gbl_data == 0){
+    cout << "\nERROR: No Faculty Details Found...." << endl;
+    cout << endl;
+	}
+	else{
+    cout << "\nDisplaying Details of faculty(ies) of branch " << dept[id] << "..."<< endl;
+    cout << "\n\nID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA" << endl;
+    view_table("A-FACULTY", faculty_deptno);
+    cout << "\nDetails of all faculty(ies) of branch " << dept[id] << " displayed successfully..." << endl;
+    cout << endl;
+	}
+    clear_screen();
+    return;
+}
+
+void admin :: view_archived_student(){
+    sqlite3 *db;
+    int rc, dept_id;
+    char *zErrMsg = 0, *sql;
+    select_branch_view_function(dept_id);
+	int id = dept_id - 1;
+	string student_deptno = dept_no[id];
+	system("CLS");
+	view_student_function(student_deptno, true);
+	if(gbl_data == 0){
+    cout << "\nERROR: No Student Details Found...." << endl;
+    cout << endl;
+	}
+	else{
+    cout << "\nDisplaying Details of student(s) of branch " << dept[id] << "..."<< endl;
+    cout << "\n\nID\t NAME\t\t\t\t\t YEAR SEM SECTION CONTACT" << endl;
+    view_table("A-STUDENT", student_deptno);
+    cout << "\nDetails of all student(s) of branch " << dept[id] << " displayed successfully..." << endl;
+    cout << endl;
+	}
+    clear_screen();
+    return;
+}
+
+void admin :: master_archives_menu(admin &a){
+    int option = 0;
 	while(option !=3){
-	a: cout << "\nWelcome Admin\n\n\n";
-	cout << "Type '1' ----> Manage Faculty Data\n";
-	cout << "Type '2' ----> Manage Student Data\n";
+	a: cout << "\nAccessing Archive Operations...\n\n\n";
+	cout << "Type '1' ----> View Faculty Data\n";
+	cout << "Type '2' ----> View Student Data\n";
 	cout << "Type '3' ----> Back to Main Menu\n";
 	cout << "\nEnter Here : ";
     cin >> excp;
@@ -2187,14 +2262,53 @@ void admin :: master_main_menu(admin &a){
 	}
 	else if(option == 1){
 	system("CLS");
+	a.view_archived_faculty();
+	}
+	else if(option == 2){
+	system("CLS");
+	a.view_archived_student();
+	}
+	}
+	if(option == 3){
+	cout << "Redirecting back to Main Menu\n";
+	clear_screen();
+	return;
+	}
+}
+
+void admin :: master_main_menu(admin &a){
+	int option = 0;
+	while(option !=4){
+	a: cout << "\nWelcome Admin\n\n\n";
+	cout << "Type '1' ----> Manage Faculty Data\n";
+	cout << "Type '2' ----> Manage Student Data\n";
+	cout << "Type '3' ----> Archives\n";
+	cout << "Type '4' ----> Back to Main Menu\n";
+	cout << "\nEnter Here : ";
+    cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	b : error_message();
+	goto a;
+	}
+	option = stoi(excp);
+	if(option>4 || option<1){
+	goto b;
+	}
+	else if(option == 1){
+	system("CLS");
 	a.master_faculty_menu(a);
 	}
 	else if(option == 2){
 	system("CLS");
 	a.master_student_menu(a);
 	}
+    else if(option == 3){
+	system("CLS");
+	a.master_archives_menu(a);
 	}
-	if(option == 3){
+	}
+	if(option == 4){
 	cout << "Redirecting back to Main Menu\n";
 	clear_screen();
 	return;
@@ -2442,6 +2556,7 @@ void main_menu(){
 	}
 	}
 	if(option == 4){
+    cout << "\nProgram Terminated Successfully";
 	exit(0);
 	}
 }
