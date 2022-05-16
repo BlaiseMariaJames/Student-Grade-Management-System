@@ -163,8 +163,13 @@ static int view_course_details(void *NotUsed, int argc, char **argv, char **azCo
     gbl_input[i] = data;
     }
     for(int i=0; i<argc; i++){
-    if(i%2==0)
-    cout << gbl_input[i] << gbl_input[i+1] << endl;
+    if(i%6==0){
+    string data = gbl_input[i];
+    if(data[8] == ' ')
+    cout << " " << gbl_input[i] << gbl_input[i+1] << gbl_input[i+2] << gbl_input[i+3] << gbl_input[i+4] << gbl_input[i+5] << endl;
+    else
+    cout << gbl_input[i] << " " << gbl_input[i+1] << gbl_input[i+2] << gbl_input[i+3] << gbl_input[i+4] << gbl_input[i+5] << endl;
+    }
     }
     return 0;
 }
@@ -272,7 +277,7 @@ void view_faculty_function(string faculty_deptno){
 	string str = "";
 	char *zErrMsg, *sql;
 	sqlite3_open("SAMS.db", &db);
-    string search_faculty = "SELECT COUNT(*) FROM FACULTY WHERE DEPTNO = '" + faculty_deptno + "';";
+    string search_faculty = "SELECT COUNT(*) FROM FACULTY WHERE DEPTNO = '" + faculty_deptno + "' AND WORKING = 'Y';";
     const char *line = search_faculty.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, search_table, 0, &zErrMsg);
@@ -285,7 +290,7 @@ void view_student_function(string student_deptno){
 	string str = "";
 	char *zErrMsg, *sql;
 	sqlite3_open("SAMS.db", &db);
-    string search_student = "SELECT COUNT(*) FROM STUDENT WHERE DEPTNO = '" + student_deptno + "';";
+    string search_student = "SELECT COUNT(*) FROM STUDENT WHERE DEPTNO = '" + student_deptno + "' AND STUDYING = 'Y';";
     const char *line = search_student.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, search_table, 0, &zErrMsg);
@@ -842,8 +847,8 @@ void admin :: assign_course(){
     return;
     }
     cout << "\nDisplaying Details of Course(s) of Section" << section_id << endl;
-    cout << "\nCOURSE\t  CODE\t   FACULTY" << endl;
-    search_course = "SELECT COURSEID || \" \" || COURSECODE, CRSTCHR from COURSE WHERE SECTION = '"+ section_id +"';";
+    cout << "\nCOURSE_ID CODE\t    FACULTY\t\t NAME\t\t\t\t        QUALIFICATION\t\t     DESIGNATION\t\t\t    RESEARCH AREA" << endl;
+    search_course = "SELECT CRS.COURSEID || \" \" || CRS.COURSECODE, CRS.CRSTCHR, F.FACULTYNAME, F.QUALIFICATION, F.DESIGNATION, F.RESEARCHAREA from COURSE CRS LEFT JOIN FACULTY F ON CRS.CRSTCHR = F.FACULTYID WHERE CRS.SECTION = '"+ section_id +"';";
     line = search_course.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, view_course_details, 0, &zErrMsg);
@@ -855,8 +860,8 @@ void admin :: assign_course(){
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
     if(rc == 0){
-    cout << "\nCourse with requested ID doesn't exist..." << endl;
-    cout << "\nUnable to access requested details of Section... Try Again using valid ID...\n" << endl;
+    cout << "\nCourse with requested Code doesn't exist..." << endl;
+    cout << "\nUnable to access requested details of Section... Try Again using valid Code...\n" << endl;
     clear_screen();
     return;
     }
@@ -920,7 +925,7 @@ void admin :: assign_course(){
     return;
     }
     if(choice == 2){
-    cout << "\nNo changes were made...." << endl;
+    cout << "\nNo changes were made....\n" << endl;
     clear_screen();
     return;
 	}
@@ -931,9 +936,151 @@ void admin :: assign_course(){
 }
 
 void admin :: remove_course(){
+    sqlite3 *db;
+    int rc, sem;
+    char *zErrMsg = 0, *sql;
+    string faculty_id, section_id, course_id;
+    sqlite3_open("SAMS.db", &db);
+    a: cout << "Enter Course Details..." << endl;
+    cout << "\nEnter Semester : ";
+    cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	b : error_message();
+	goto a;
+	}
+	sem = stoi(excp);
+	if(sem>8 || sem<1){
+	goto b;
+	}
+	cout << "\nEnter Section : ";
+	cin >> section_id;
+	section_id = "  " + to_string(sem) + section_id;
+    string search_section = "SELECT EXISTS(SELECT * from SECTION WHERE SECTIONID = '"+ section_id +"');";
+    const char *line = search_section.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nSection with requested ID doesn't exist..." << endl;
+    cout << "\nUnable to access requested details of Section... Try Again using valid ID...\n" << endl;
+    clear_screen();
+    return;
+    }
+    string search_course = "SELECT EXISTS(SELECT * from COURSE WHERE SECTION = '"+ section_id +"');";
+    line = search_course.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nSection with requested ID doesn't have any courses available..." << endl;
+    cout << "\nUnable to access requested details of Section... Try Again using valid ID...\n" << endl;
+    clear_screen();
+    return;
+    }
+    cout << "\nDisplaying Details of Course(s) of Section" << section_id << endl;
+    cout << "\nCOURSE_ID CODE\t    FACULTY\t\t NAME\t\t\t\t        QUALIFICATION\t\t     DESIGNATION\t\t\t    RESEARCH AREA" << endl;
+    search_course = "SELECT CRS.COURSEID || \" \" || CRS.COURSECODE, CRS.CRSTCHR, F.FACULTYNAME, F.QUALIFICATION, F.DESIGNATION, F.RESEARCHAREA from COURSE CRS LEFT JOIN FACULTY F ON CRS.CRSTCHR = F.FACULTYID WHERE CRS.SECTION = '"+ section_id +"';";
+    line = search_course.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, view_course_details, 0, &zErrMsg);
+    cout << endl;
+	cout << "Enter the Course Code of Faculty to be removed as Faculty of Section" + section_id << " : ";
+	cin >> course_id;
+	search_course = "SELECT EXISTS(SELECT * from COURSE WHERE COURSECODE = '"+ course_id +"' AND SECTION = '"+ section_id +"');";
+    line = search_course.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nCourse with requested code doesn't exist..." << endl;
+    cout << "\nUnable to access requested details of faculty... Try Again using valid code...\n" << endl;
+    clear_screen();
+    return;
+    }
+    c: cout << "\n\nAre you sure to remove the requested faculty from being COURSE TEACHER of " + course_id << " of Section" + section_id + " ? ";
+	cout << "\nPress '1' if 'YES' or '2' if 'NO'";
+	cout << "\nEnter Here : ";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+    d: error_message();
+	cout << "\n\nEnter the Course Code of Faculty to be removed as Faculty of Section" + section_id << " : " << course_id;
+	goto c;
+	}
+	int choice = stoi(excp);
+	if(choice!=1 && choice!=2){
+    goto d;
+	}
+    if(choice == 1){
+    sqlite3_open("SAMS.db", &db);
+    string update_faculty = "UPDATE COURSE set CRSTCHR = NULL WHERE COURSECODE = '"+ course_id +"' AND SECTION = '"+ section_id +"';";
+    line = update_faculty.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+	sqlite3_close(db);
+    cout << "\nRequested faculty removed from being as Course Teacher successfully..." << endl;
+    cout << endl;
+    clear_screen();
+    return;
+    }
+    if(choice == 2){
+    cout << "\nNo changes were made....\n" << endl;
+    clear_screen();
+    return;
+	}
+	clear_screen();
+	return;
 }
 
 void admin :: view_course(){
+    sqlite3 *db;
+    int rc, dept_id, sem;
+    char *zErrMsg = 0, *sql;
+    string faculty_id, section_id, course_id;
+    sqlite3_open("SAMS.db", &db);
+    a: cout << "Enter Semester : ";
+    cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	b : error_message();
+	goto a;
+	}
+	sem = stoi(excp);
+	if(sem>8 || sem<1){
+	goto b;
+	}
+	cout << "\nEnter Section : ";
+	cin >> section_id;
+	section_id = "  " + to_string(sem) + section_id;
+    string search_section = "SELECT EXISTS(SELECT * from SECTION WHERE SECTIONID = '"+ section_id +"');";
+    const char *line = search_section.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nSection with requested ID doesn't exist..." << endl;
+    cout << "\nUnable to access requested details of Section... Try Again using valid ID...\n" << endl;
+    clear_screen();
+    return;
+    }
+    string search_course = "SELECT EXISTS(SELECT * from COURSE WHERE SECTION = '"+ section_id +"');";
+    line = search_course.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nSection with requested ID doesn't have any courses available..." << endl;
+    cout << "\nUnable to access requested details of Section... Try Again using valid ID...\n" << endl;
+    clear_screen();
+    return;
+    }
+    cout << "\nDisplaying Details of Course(s) of Section" << section_id << endl;
+    cout << "\nCOURSE_ID CODE\t    FACULTY\t\t NAME\t\t\t\t        QUALIFICATION\t\t     DESIGNATION\t\t\t    RESEARCH AREA" << endl;
+    search_course = "SELECT CRS.COURSEID || \" \" || CRS.COURSECODE, CRS.CRSTCHR, F.FACULTYNAME, F.QUALIFICATION, F.DESIGNATION, F.RESEARCHAREA from COURSE CRS LEFT JOIN FACULTY F ON CRS.CRSTCHR = F.FACULTYID WHERE CRS.SECTION = '"+ section_id +"';";
+    line = search_course.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, view_course_details, 0, &zErrMsg);
+	sqlite3_close(db);
+    cout << "\nDetails of Course(s) of Section" << section_id << " successfully..." << endl;
+    cout << endl;
+    clear_screen();
+    return;
 }
 
 void admin :: master_assign_course_menu(admin &a){
@@ -961,11 +1108,11 @@ void admin :: master_assign_course_menu(admin &a){
 	}
 	else if(option == 2){
 	system("CLS");
-	//a.remove_course();
+	a.remove_course();
 	}
 	else if(option == 3){
 	system("CLS");
-	//a.view_course();
+	a.view_course();
 	}
 	}
 	if(option == 4){
@@ -2350,7 +2497,7 @@ void table_creation_function(sqlite3 *db){
 	INSERT INTO COURSE (COURSEID,COURSECODE,COURSETYPE,COURSENAME,CREDITS,SECTION,DEPTNO) VALUES ('U18TP402','SIS','P','SOFT AND INTERPERSONAL SKILLS',1,'  4IT1','MH'); \
 	INSERT INTO COURSE (COURSEID,COURSECODE,COURSETYPE,COURSENAME,CREDITS,SECTION,DEPTNO) VALUES ('U18OE403E','MP','T','MICRO PROCESSORS',3,'  4IT1','ECE'); \
 	INSERT INTO COURSE (COURSEID,COURSECODE,COURSETYPE,COURSENAME,CREDITS,SECTION,DEPTNO) VALUES ('U18IT404','TOC','T','THEORY OF COMPUTATION',3,'  4IT1','IT'); \
-	INSERT INTO COURSE (COURSEID,COURSECODE,COURSETYPE,COURSENAME,CREDITS,SECTION,DEPTNO) VALUES ('U18IT405','DBMS','T','DATABASE MANAGEMENT SYSTEMS',4,' 4IT1','IT'); \
+	INSERT INTO COURSE (COURSEID,COURSECODE,COURSETYPE,COURSENAME,CREDITS,SECTION,DEPTNO) VALUES ('U18IT405','DBMS','T','DATABASE MANAGEMENT SYSTEMS',4,'  4IT1','IT'); \
 	INSERT INTO COURSE (COURSEID,COURSECODE,COURSETYPE,COURSENAME,CREDITS,SECTION,DEPTNO) VALUES ('U18IT406','JP','T','JAVA PROGRAMMING',3,'  4IT1','IT'); \
 	INSERT INTO COURSE (COURSEID,COURSECODE,COURSETYPE,COURSENAME,CREDITS,SECTION,DEPTNO) VALUES ('U18IT407','JPLAB','P','JAVA PROGRAMMING LAB',1,'  4IT1','IT'); \
 	INSERT INTO COURSE (COURSEID,COURSECODE,COURSETYPE,COURSENAME,CREDITS,SECTION,DEPTNO) VALUES ('U18IT408','DBMSLAB','P','DATABASE MANAGEMENT SYSTEMS LAB',1,'  4IT1','IT'); \
