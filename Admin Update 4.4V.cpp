@@ -226,7 +226,7 @@ void set_foreignkeys(sqlite3 *db){
     rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
 }
 
-void select_branch_function(){
+void faculty_select_branch_function(){
 	cout << "\nSelect Branch \n\n";
 	cout << "Type '1' -----> CSE\n";
 	cout << "Type '2' -----> CSM\n";
@@ -243,8 +243,24 @@ void select_branch_function(){
 	cout << "\nEnter Here : ";
 }
 
+void student_select_branch_function(){
+	cout << "\nSelect Branch \n\n";
+	cout << "Type '1' -----> CSE\n";
+	cout << "Type '2' -----> CSM\n";
+	cout << "Type '3' -----> CSN\n";
+	cout << "Type '4' -----> CSO\n";
+	cout << "Type '5' ----->  IT\n";
+	cout << "Type '6' -----> ECE\n";
+	cout << "Type '7' -----> EEE\n";
+	cout << "Type '8' -----> ECI\n";
+	cout << "Type '9' -----> CIV\n";
+	cout << "Type '10' ---->  ME\n";
+	cout << "\nEnter Here : ";
+}
+
 void select_branch_insert_function(int i, int n, string str1, string str2, int &dept_id){
-	a: select_branch_function();
+	a: if(str2 == "faculty") faculty_select_branch_function();
+	else student_select_branch_function();
     cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
@@ -255,13 +271,14 @@ void select_branch_insert_function(int i, int n, string str1, string str2, int &
 	goto a;
 	}
 	dept_id = stoi(excp);
-    if(dept_id>12 || dept_id<1){
+    if((str2 == "faculty") ? (dept_id>12 || dept_id<1) : (dept_id>10 || dept_id<1)){
     goto b;
 	}
 }
 
-void select_branch_view_function(int &dept_id){
-	a: select_branch_function();
+void select_branch_view_function(int &dept_id, string str){
+	a: if(str == "faculty") faculty_select_branch_function();
+	else student_select_branch_function();
     cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
@@ -269,7 +286,7 @@ void select_branch_view_function(int &dept_id){
 	goto a;
 	}
 	dept_id = stoi(excp);
-    if(dept_id>12 || dept_id<1){
+    if((str == "faculty") ? (dept_id>12 || dept_id<1) : (dept_id>10 || dept_id<1)){
     goto b;
 	}
 }
@@ -517,7 +534,7 @@ void admin :: update_faculty(){
 	char *zErrMsg, *sql;
     int option = 0, rc = 0, dept_id = 0;
     while(option !=5){
-	select_branch_view_function(dept_id);
+	select_branch_view_function(dept_id, "faculty");
 	int id = dept_id - 1;
 	string faculty_deptno = dept_no[id];
     system("CLS");
@@ -679,7 +696,7 @@ void admin :: delete_faculty(){
     string faculty_id;
 	char *zErrMsg, *sql;
     int rc = 0, dept_id = 0;
-    select_branch_view_function(dept_id);
+    select_branch_view_function(dept_id, "faculty");
 	int id = dept_id - 1;
 	string faculty_deptno = dept_no[id];
     system("CLS");
@@ -758,7 +775,7 @@ void admin :: view_faculty(){
     sqlite3 *db;
     int rc, dept_id;
     char *zErrMsg = 0, *sql;
-	select_branch_view_function(dept_id);
+	select_branch_view_function(dept_id, "faculty");
 	int id = dept_id - 1;
 	string faculty_deptno = dept_no[id];
 	system("CLS");
@@ -917,7 +934,7 @@ void admin :: assign_course(){
     }
     system("CLS");
     cout << "Registering Faculty Details...." << endl;
-	select_branch_view_function(dept_id);
+	select_branch_view_function(dept_id, "faculty");
 	int id = dept_id - 1;
 	string faculty_deptno = dept_no[id];
 	string branch_id = dept[id];
@@ -1331,7 +1348,7 @@ void admin :: assign_clstchr(){
     int rc, dept_id, sem;
     char *zErrMsg = 0, *sql;
     string faculty_id, section_id;
-	select_branch_view_function(dept_id);
+	select_branch_view_function(dept_id, "faculty");
 	int id = dept_id - 1;
 	string faculty_deptno = dept_no[id];
 	string branch_id = dept[id];
@@ -1553,7 +1570,7 @@ void admin :: assign_head(){
     int rc, dept_id;
     string faculty_id;
     char *zErrMsg = 0, *sql;
-	select_branch_view_function(dept_id);
+	select_branch_view_function(dept_id, "faculty");
 	int id = dept_id - 1;
 	string faculty_deptno = dept_no[id];
 	string branch_id = dept[id];
@@ -1863,7 +1880,7 @@ void admin :: add_student(){
     cout << "Enter the number of student(s) : " << n << endl;
 	cout << "\nEntering Details of " << n << " student(s)..." << endl;
 	cout << "\nEntering Details of student " << i+1 << endl;
-	select_branch_function();
+	student_select_branch_function();
 	cout << dept[id] << endl;
 	c: cout << "Enter Year Joined (>=2015): ";
 	cin >> excp;
@@ -1873,7 +1890,7 @@ void admin :: add_student(){
     cout << "Enter the number of student(s) : " << n << endl;
 	cout << "\nEntering Details of " << n << " student(s)..." << endl;
 	cout << "\nEntering Details of student " << i+1 << endl;
-	select_branch_function();
+	student_select_branch_function();
 	cout << dept[id] << endl;
 	goto c;
 	}
@@ -1893,7 +1910,7 @@ void admin :: add_student(){
     cout << "Enter the number of student(s) : " << n << endl;
 	cout << "\nEntering Details of " << n << " student(s)..." << endl;
 	cout << "\nEntering Details of student " << i+1 << endl;
-	select_branch_function();
+	student_select_branch_function();
 	cout << dept[id] << endl;
 	cout << "Enter Year Joined : " << yearjoined << endl;
 	goto e;
@@ -1923,7 +1940,7 @@ void admin :: add_student(){
     cout << "Enter the number of student(s) : " << n << endl;
 	cout << "\nEntering Details of " << n << " student(s)..." << endl;
 	cout << "\nEntering Details of student " << i+1 << endl;
-	select_branch_function();
+	student_select_branch_function();
 	cout << dept[id] << endl;
 	cout << "Enter Year Joined : " << yearjoined << endl;
 	cout << "Enter Name : " << name << endl;
@@ -2004,7 +2021,7 @@ void admin :: update_student(){
 	char *zErrMsg, *sql;
     int option = 0, rc = 0, dept_id = 0;
     while(option !=3){
-    select_branch_view_function(dept_id);
+    select_branch_view_function(dept_id, "student");
 	int id = dept_id - 1;
 	string student_deptno = dept_no[id];
     system("CLS");
@@ -2105,7 +2122,7 @@ void admin :: delete_student(){
     string student_id;
 	char *zErrMsg, *sql;
 	int rc = 0, dept_id = 0;
-    select_branch_view_function(dept_id);
+    select_branch_view_function(dept_id, "student");
 	int id = dept_id - 1;
 	string student_deptno = dept_no[id];
     system("CLS");
@@ -2176,7 +2193,7 @@ void admin :: view_student(){
     sqlite3 *db;
     int rc, dept_id;
     char *zErrMsg = 0, *sql;
-    select_branch_view_function(dept_id);
+    select_branch_view_function(dept_id, "student");
 	int id = dept_id - 1;
 	string student_deptno = dept_no[id];
 	system("CLS");
@@ -2244,7 +2261,7 @@ void admin :: view_archived_faculty(){
     sqlite3 *db;
     int rc, dept_id;
     char *zErrMsg = 0, *sql;
-	select_branch_view_function(dept_id);
+	select_branch_view_function(dept_id, "faculty");
 	int id = dept_id - 1;
 	string faculty_deptno = dept_no[id];
 	system("CLS");
@@ -2268,7 +2285,7 @@ void admin :: view_archived_student(){
     sqlite3 *db;
     int rc, dept_id;
     char *zErrMsg = 0, *sql;
-    select_branch_view_function(dept_id);
+    select_branch_view_function(dept_id, "student");
 	int id = dept_id - 1;
 	string student_deptno = dept_no[id];
 	system("CLS");
