@@ -3,12 +3,14 @@
 #include<iostream>
 #include<stdlib.h>
 #include<string.h>
+#include<algorithm>
 #include<sqlite3.h>
 using namespace std;
 
 int gbl_data = 0;
 bool roc = false;
 string excp = "";
+string gbl_info[100];
 string gbl_password = "1234";
 char dept[12][4] = {"CSE","CSM","CSN","CSO","IT","ECE","EEE","ECI","CE","ME","EMH","ENG"};
 char dept_no[12][4] = {"CS","AI","CN","IN","IT","EC","EE","CI","CE","ME","MH","EN"};
@@ -173,6 +175,13 @@ static int view_course_details(void *NotUsed, int argc, char **argv, char **azCo
     else
     cout << gbl_input[i] << " " << gbl_input[i+1] << gbl_input[i+2] << gbl_input[i+3] << gbl_input[i+4] << gbl_input[i+5] << endl;
     }
+    }
+    return 0;
+}
+
+static int view_section_details(void *NotUsed, int argc, char **argv, char **azColName){
+	for(int i = 0; i<argc; i++){
+    gbl_info[i] = argv[i] ? argv[i] : "NULL";
     }
     return 0;
 }
@@ -1347,43 +1356,13 @@ void admin :: assign_clstchr(){
     sqlite3 *db;
     int rc, dept_id, sem;
     char *zErrMsg = 0, *sql;
-    string faculty_id, section_id;
-	select_branch_view_function(dept_id, "faculty");
-	int id = dept_id - 1;
-	string faculty_deptno = dept_no[id];
-	string branch_id = dept[id];
-	system("CLS");
-	view_faculty_function(faculty_deptno, false);
-	if(gbl_data == 0){
-    cout << "\nERROR: No Faculty Details Found...." << endl;
-	cout << endl;
-	}
-	else{
-    cout << "\nDisplaying Details of faculty(ies) of branch " << dept[id] << "..."<< endl;
-    cout << "\n\nID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA" << endl;
-    view_table("FACULTY", faculty_deptno);
+    string faculty_id, section_id, course_id;
     sqlite3_open("SAMS.db", &db);
-	cout << "\n\nEnter the id to be made Class Teacher : ";
-	cin >> faculty_id;
-	string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ faculty_id +"' AND DEPTNO = '"+ faculty_deptno +"'  AND WORKING = 'Y');";
-    const char *line = search_faculty.c_str();
-    sql = strdup(line);
-    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
-    if(rc == 0){
-    cout << "\nFaculty with requested ID doesn't exist..." << endl;
-    cout << "\nUnable to access requested details of faculty... Try Again using valid ID...\n" << endl;
-    clear_screen();
-    return;
-    }
-    a: cout << "\nEnter Semester : ";
+    a: cout << "Enter Semester : ";
     cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
 	b : error_message();
-	cout << "\nDisplaying Details of faculty(ies) of branch " << dept[id] << "..."<< endl;
-    cout << "\n\nID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA" << endl;
-    view_table("FACULTY", faculty_deptno);
-	cout << "\n\nEnter the id to be made Class Teacher : " << faculty_id << endl;
 	goto a;
 	}
 	sem = stoi(excp);
@@ -1393,21 +1372,66 @@ void admin :: assign_clstchr(){
 	cout << "\nEnter Section : ";
 	cin >> section_id;
 	section_id = "  " + to_string(sem) + section_id;
-    string search_section = "SELECT EXISTS(SELECT * from SECTION WHERE SECTIONID = '"+  section_id +"');";
-    line = search_section.c_str();
+    string search_section = "SELECT EXISTS(SELECT * from SECTION WHERE SECTIONID = '"+ section_id +"');";
+    const char *line = search_section.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
     if(rc == 0){
     cout << "\nSection with requested ID doesn't exist..." << endl;
-    cout << "\nUnable to access requested details of section... Try Again using valid ID...\n" << endl;
+    cout << "\nUnable to access requested details of Section... Try Again using valid ID...\n" << endl;
     clear_screen();
     return;
     }
-    check_clstchr(branch_id,faculty_deptno,faculty_id,section_id);
-    cout << endl;
+    string search_course = "SELECT EXISTS(SELECT * from COURSE WHERE SECTION = '"+ section_id +"');";
+    line = search_course.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nSection with requested ID doesn't have any faculty allotted so far..." << endl;
+    cout << "\nUnable to access requested details of Section... Try Again using valid ID...\n" << endl;
     clear_screen();
     return;
-	}
+    }
+    cout << "\nDisplaying Details of Course(s) of Section" << section_id << endl;
+    cout << "\nCOURSE_ID CODE\t    FACULTY\t\t NAME\t\t\t\t        QUALIFICATION\t\t     DESIGNATION\t\t\t    RESEARCH AREA" << endl;
+    search_course = "SELECT CRS.COURSEID || \" \" || CRS.COURSECODE, CRS.CRSTCHR, F.FACULTYNAME, F.QUALIFICATION, F.DESIGNATION, F.RESEARCHAREA from COURSE CRS LEFT JOIN FACULTY F ON CRS.CRSTCHR = F.FACULTYID WHERE CRS.SECTION = '"+ section_id +"';";
+    line = search_course.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, view_course_details, 0, &zErrMsg);
+    cout << endl;
+    cout << "Enter the Course Code of Faculty to be made Class Teacher of Section" + section_id << " : ";
+	cin >> course_id;
+	search_course = "SELECT EXISTS(SELECT * from COURSE WHERE COURSECODE = '"+ course_id +"' AND SECTION = '"+ section_id +"');";
+    line = search_course.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nCourse with requested Code doesn't exist..." << endl;
+    cout << "\nUnable to access requested details of faculty... Try Again using valid Code...\n" << endl;
+    clear_screen();
+    return;
+    }
+    string search_faculty = "SELECT EXISTS(SELECT * from COURSE WHERE CRSTCHR IS NOT NULL AND COURSECODE = '"+ course_id +"' AND SECTION = '"+ section_id +"');";
+    line = search_faculty.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nCourse with requested Code is not allotted to any faculty yet..." << endl;
+    cout << "\nUnable to access requested details of faculty... Try Again using valid Code...\n" << endl;
+    clear_screen();
+    return;
+    }
+    search_faculty = "SELECT FACULTYID, DEPTNO from FACULTY WHERE FACULTYID = (SELECT CRSTCHR from COURSE WHERE COURSECODE = '"+ course_id +"' AND SECTION = '"+ section_id +"');";
+    line = search_faculty.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, view_section_details, 0, &zErrMsg);
+    faculty_id = gbl_info[0];
+    string faculty_deptno = gbl_info[1];
+    int n = sizeof(dept_no)/sizeof(dept_no[0]);
+    auto itr = find(dept_no, dept_no + n, faculty_deptno);
+    string branch_id = dept[distance(dept_no, itr)];
+	check_clstchr(branch_id,faculty_deptno,faculty_id,section_id);
+    cout << endl;
     clear_screen();
     return;
 }
