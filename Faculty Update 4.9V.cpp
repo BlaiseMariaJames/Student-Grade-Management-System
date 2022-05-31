@@ -53,7 +53,7 @@ class course_teacher : public class_teacher{
 	public:
 	int login_teacher(bool &cls, string &clstchr_id, string &section_id);
 	void teacher_main_menu(course_teacher &t);
-	void add_student_marks();
+	void add_student_marks(string faculty_id);
 	void view_overall_marks();
 	void view_account(string faculty_id);
 	void update_tchrpass(string faculty_id);
@@ -354,6 +354,8 @@ void view_table(string str, string id){
     str = str.substr(2);
     view = "SELECT STUDENTID,STUDENTNAME,YEARJOINED,SEMESTER,SECTION,CONTACTNUMBER from STUDENT WHERE DEPTNO = '" + id + "' AND STUDYING = 'N' ORDER BY " + (str + "ID");
     }
+    else if(str == "COURSE")
+    view = "SELECT SECTION, COURSECODE from COURSE WHERE CRSTCHR = '"+ id +"';";
 	const char *line = view.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
@@ -2469,8 +2471,44 @@ int course_teacher :: login_teacher(bool &cls, string &clstchr_id, string &secti
 	return 0;
 }
 
-void course_teacher :: add_student_marks(){
-
+void course_teacher :: add_student_marks(string faculty_id){
+    int rc;
+    sqlite3 *db;
+	char *zErrMsg, *sql;
+    string section_id, course_id;
+    sqlite3_open("SAMS.db", &db);
+	cout << "\nDisplaying Details of Course(s) you are allotted to...\n" << endl;
+	cout << "   SEC CODE" << endl;
+    view_table("COURSE",faculty_id);
+    cout << "\nEnter Section : ";
+	cin >> section_id;
+	section_id = "  " + section_id;
+    string search_section = "SELECT EXISTS(SELECT * from COURSE WHERE SECTION = '"+ section_id +"' AND CRSTCHR = '"+ faculty_id +"');";
+    const char *line = search_section.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nYou are not allotted to the Section with requested ID or Section with requested ID doesn't exist..." << endl;
+    cout << "\nUnable to access requested details of Section... Try Again using valid ID...\n" << endl;
+    clear_screen();
+    return;
+    }
+    cout << "\nEnter Course Code (of Section" + section_id << ") : ";
+	cin >> course_id;
+	string search_course = "SELECT EXISTS(SELECT * from COURSE WHERE COURSECODE = '"+ course_id +"' AND SECTION = '"+ section_id +"' AND CRSTCHR = '"+ faculty_id +"');";
+    line = search_course.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nYou are not allotted to the Course with requested ID or Course with requested Code doesn't exist..." << endl;
+    cout << "\nUnable to access requested details of Course... Try Again using valid Code...\n" << endl;
+    clear_screen();
+    return;
+    }
+	sqlite3_close(db);
+	cout << endl;
+    clear_screen();
+	return;
 }
 
 void course_teacher :: view_overall_marks(){
@@ -2562,7 +2600,7 @@ void course_teacher :: teacher_main_menu(course_teacher &t){
 	}
     else if(option == 1){
     system("CLS");
-    //t.add_student_marks();
+    t.add_student_marks(teacher_id);
     }
     else if(option == 2){
     system("CLS");
