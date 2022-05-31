@@ -179,13 +179,6 @@ static int view_course_details(void *NotUsed, int argc, char **argv, char **azCo
     return 0;
 }
 
-static int view_section_details(void *NotUsed, int argc, char **argv, char **azColName){
-	for(int i = 0; i<argc; i++){
-    gbl_info[i] = argv[i] ? argv[i] : "NULL";
-    }
-    return 0;
-}
-
 static int view_hod_details(void *NotUsed, int argc, char **argv, char **azColName){
 	string gbl_input[100];
 	for(int i = 0; i<argc; i++){
@@ -225,6 +218,13 @@ static int view_student_account(void *NotUsed, int argc, char **argv, char **azC
     cout << "Semester : " << gbl_input[1] << endl;
     cout << "Section :" << gbl_input[2] << endl;
     cout << "Contact : " << gbl_input[3] << endl;
+    return 0;
+}
+
+static int view_details(void *NotUsed, int argc, char **argv, char **azColName){
+	for(int i = 0; i<argc; i++){
+    gbl_info[i] = argv[i] ? argv[i] : "NULL";
+    }
     return 0;
 }
 
@@ -1430,7 +1430,7 @@ void admin :: assign_clstchr(){
     search_faculty = "SELECT FACULTYID, DEPTNO from FACULTY WHERE FACULTYID = (SELECT CRSTCHR from COURSE WHERE COURSECODE = '"+ course_id +"' AND SECTION = '"+ section_id +"');";
     line = search_faculty.c_str();
     sql = strdup(line);
-    rc = sqlite3_exec(db, sql, view_section_details, 0, &zErrMsg);
+    rc = sqlite3_exec(db, sql, view_details, 0, &zErrMsg);
     faculty_id = gbl_info[0];
     string faculty_deptno = gbl_info[1];
     int n = sizeof(dept_no)/sizeof(dept_no[0]);
@@ -2462,7 +2462,7 @@ int course_teacher :: login_teacher(bool &cls, string &clstchr_id, string &secti
     search_cls = "SELECT SECTIONID FROM SECTION WHERE CLSTCHR = '"+ teacher_id +"'";
     line = search_cls.c_str();
     sql = strdup(line);
-    rc = sqlite3_exec(db, sql, view_section_details, 0, &zErrMsg);
+    rc = sqlite3_exec(db, sql, view_details, 0, &zErrMsg);
     sqlite3_close(db);
     section_id = gbl_info[0];
 	}
@@ -2472,19 +2472,40 @@ int course_teacher :: login_teacher(bool &cls, string &clstchr_id, string &secti
 }
 
 void course_teacher :: add_student_marks(string faculty_id){
-    int rc;
     sqlite3 *db;
+    int rc, num, marks[7];
 	char *zErrMsg, *sql;
-    string section_id, course_id;
+    string student_id, section_id, course_id, course_type;
     sqlite3_open("SAMS.db", &db);
+    string check_crstchr = "SELECT EXISTS(SELECT * from COURSE WHERE CRSTCHR = '"+ faculty_id +"');";
+    const char *line = check_crstchr.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nYou are not allotted to any Section so far..." << endl;
+    cout << "\nUnable to access requested details of Faculty... Try Again using valid ID...\n" << endl;
+    clear_screen();
+    return;
+    }
 	cout << "\nDisplaying Details of Course(s) you are allotted to...\n" << endl;
-	cout << "   SEC CODE" << endl;
+	cout << "   SEC CODE     NAME" << endl;
     view_table("COURSE",faculty_id);
+    cout << "\nRegistering the details of Section and Course whose marks are to be entered..." << endl;
     cout << "\nEnter Section : ";
 	cin >> section_id;
 	section_id = "  " + section_id;
+	string search_strength = "SELECT EXISTS(SELECT * from STUDENT WHERE SECTION = '"+ section_id +"');";
+    line = search_strength.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nERROR: No Student Details Found...." << endl;
+	cout << endl;
+	clear_screen();
+	return;
+    }
     string search_section = "SELECT EXISTS(SELECT * from COURSE WHERE SECTION = '"+ section_id +"' AND CRSTCHR = '"+ faculty_id +"');";
-    const char *line = search_section.c_str();
+    line = search_section.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
     if(rc == 0){
@@ -2504,6 +2525,113 @@ void course_teacher :: add_student_marks(string faculty_id){
     cout << "\nUnable to access requested details of Course... Try Again using valid Code...\n" << endl;
     clear_screen();
     return;
+    }
+    string search_type = "SELECT COURSETYPE FROM COURSE WHERE COURSECODE = '" + course_id +"' AND SECTION = '"+ section_id +"';";
+    line = search_type.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, view_details, 0, &zErrMsg);
+    course_type = gbl_info[0];
+    system("CLS");
+    cout << "Entering details of Section" << section_id << endl;
+    cout << "\nEnter the number of student(s) : ";
+    cin >> num;
+    cout << "\nEntering Details of " << num << " student(s)..." << endl;
+    while(num>0){
+    cout << "\nEnter Roll Number : ";
+    cin >> student_id;
+    string search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDENTID = '"+ student_id +"' AND SECTION = '"+ section_id +"');";
+    line = search_student.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nStudent with requested ID doesn't exist..." << endl;
+    cout << "\nUnable to access requested details of Student... Try Again using valid ID...\n" << endl;
+    clear_screen();
+    return;
+    }
+    if(course_type == "T"){
+    a : cout << "\nEnter minor 1 marks of " << course_id << " : ";
+    cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	b: cout << "Choose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
+	goto a;
+	}
+	marks[0] = stoi(excp);
+	if(marks[0]>10 || marks[0]<0){
+    goto b;
+	}
+	c : cout << "Enter assignment 1 marks of " << course_id << " : ";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	d: cout << "Choose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
+	goto c;
+	}
+	marks[1] = stoi(excp);
+	if(marks[1]>10 || marks[1]<0){
+    goto d;
+	}
+	e : cout << "Enter mse 1 marks of " << course_id << " : ";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	f: cout << "Choose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
+	goto e;
+	}
+	marks[2] = stoi(excp);
+	if(marks[2]>30 || marks[2]<0){
+    goto f;
+	}
+	g : cout << "Enter minor 2 marks of " << course_id << " : ";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	h: cout << "Choose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
+	goto g;
+	}
+	marks[3] = stoi(excp);
+	if(marks[3]>10 || marks[3]<0){
+    goto h;
+	}
+	i : cout << "Enter assignment 2 marks of " << course_id << " : ";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	j: cout << "Choose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
+	goto i;
+	}
+	marks[4] = stoi(excp);
+	if(marks[4]>10 || marks[4]<0){
+    goto j;
+	}
+	k : cout << "Enter mse 2 marks of " << course_id << " : ";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	l: cout << "Choose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
+	goto k;
+	}
+	marks[5] = stoi(excp);
+	if(marks[5]>30 || marks[5]<0){
+    goto l;
+	}
+	m : cout << "Enter ese marks of " << course_id << " : ";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	n: cout << "Choose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
+	goto m;
+	}
+	marks[6] = stoi(excp);
+	if(marks[6]>60 || marks[6]<0){
+    goto n;
+	}
+    }
+    else{
+
+    }
+    num--;
     }
 	sqlite3_close(db);
 	cout << endl;
