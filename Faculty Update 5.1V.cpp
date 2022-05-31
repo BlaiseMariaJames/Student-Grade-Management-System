@@ -54,6 +54,7 @@ class course_teacher : public class_teacher{
 	int login_teacher(bool &cls, string &clstchr_id, string &section_id);
 	void teacher_main_menu(course_teacher &t);
 	void add_student_marks(string faculty_id);
+	void update_student_marks();
 	void view_overall_marks();
 	void view_account(string faculty_id);
 	void update_tchrpass(string faculty_id);
@@ -2473,7 +2474,8 @@ int course_teacher :: login_teacher(bool &cls, string &clstchr_id, string &secti
 
 void course_teacher :: add_student_marks(string faculty_id){
     sqlite3 *db;
-    int rc, num, marks[7];
+    int rc, num;
+    float marks[7];
 	char *zErrMsg, *sql;
     string student_id, section_id, course_id, course_type;
     sqlite3_open("SAMS.db", &db);
@@ -2488,7 +2490,7 @@ void course_teacher :: add_student_marks(string faculty_id){
     return;
     }
 	cout << "\nDisplaying Details of Course(s) you are allotted to...\n" << endl;
-	cout << "   SEC CODE     NAME" << endl;
+	cout << "   SEC CODE" << endl;
     view_table("COURSE",faculty_id);
     cout << "\nRegistering the details of Section and Course whose marks are to be entered..." << endl;
     cout << "\nEnter Section : ";
@@ -2545,6 +2547,16 @@ void course_teacher :: add_student_marks(string faculty_id){
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
     if(rc == 0){
     cout << "\nStudent with requested ID doesn't exist..." << endl;
+    cout << "\nUnable to access requested details of Student... Try Again using valid ID...\n" << endl;
+    clear_screen();
+    return;
+    }
+    search_student = "SELECT EXISTS(SELECT * from GRADEREPORT WHERE STUDENTID = '"+ student_id +"' AND COURSEID = '"+ course_id +"');";
+    line = search_student.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc != 0){
+    cout << "\nStudent with requested ID is already assigned with marks, cannot update at this point of time..." << endl;
     cout << "\nUnable to access requested details of Student... Try Again using valid ID...\n" << endl;
     clear_screen();
     return;
@@ -2627,9 +2639,75 @@ void course_teacher :: add_student_marks(string faculty_id){
 	if(marks[6]>60 || marks[6]<0){
     goto n;
 	}
+	o: cout << "\n\nAre you sure that the entered marks are correct  ? ";
+	cout << "\nPress '1' if 'YES' or '2' if 'NO'";
+	cout << "\nEnter Here : ";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+    p: cout << "Choose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
+	goto o;
+	}
+	int choice = stoi(excp);
+	if(choice!=1 && choice!=2){
+    goto p;
+	}
+    if(choice == 1){
+    float teacher_assessment = (marks[0] + marks[1] + marks[3] + marks[4])/4;
+    float mid_average = (marks[2] > marks[5]) ? ((0.7 * marks[2]) + (0.3 * marks[5])) : ((0.7 * marks[5]) + (0.3 * marks[2]));
+    float internal_marks = teacher_assessment + mid_average;
+    string insert_marks = "INSERT INTO GRADEREPORT (COURSEID,STUDENTID,SECTIONID,M1,A1,MSE1,M2,A2,MSE2,INTERNALS,EXTERNALS) VALUES ('" + course_id + "', '" + student_id + "', '" + section_id + "', '" + to_string(marks[0]) + "', '" + to_string(marks[1])  + "', '" + to_string(marks[2])  + "', '" + to_string(marks[3])  + "', '" + to_string(marks[4])  + "', '" + to_string(marks[5])  + "', '" + to_string(internal_marks) + "', '" +  to_string(marks[6]) + "');";
+    const char *line = insert_marks.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, create_insert_table, 0, &zErrMsg);
+    }
+    if(choice == 2)
+    goto a;
     }
     else{
-
+    q: cout << "\nEnter internal marks of " << course_id << " : ";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	r: cout << "Choose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
+	goto q;
+	}
+	marks[0] = stoi(excp);
+	if(marks[0]>40 || marks[0]<0){
+    goto r;
+	}
+	s : cout << "Enter external marks of " << course_id << " : ";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	t: cout << "Choose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
+	goto s;
+	}
+	marks[1] = stoi(excp);
+	if(marks[1]>60 || marks[1]<0){
+    goto t;
+	}
+	u: cout << "\n\nAre you sure that the entered marks are correct  ? ";
+	cout << "\nPress '1' if 'YES' or '2' if 'NO'";
+	cout << "\nEnter Here : ";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+    v: cout << "Choose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
+	goto u;
+	}
+	int choice = stoi(excp);
+	if(choice!=1 && choice!=2){
+    goto v;
+	}
+    if(choice == 1){
+    string insert_marks = "INSERT INTO GRADEREPORT (COURSEID,STUDENTID,SECTIONID,INTERNALS,EXTERNALS) VALUES ('" + course_id + "', '" + student_id + "', '" + section_id + "', '" + to_string(marks[0]) + "', '" + to_string(marks[1])  + "');";
+    const char *line = insert_marks.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, create_insert_table, 0, &zErrMsg);
+    }
+    if(choice == 2)
+    goto q;
     }
     num--;
     }
@@ -2707,14 +2785,15 @@ void course_teacher :: view_account(string faculty_id){
 
 void course_teacher :: teacher_main_menu(course_teacher &t){
 	int option = 0;
-	while(option !=4){
+	while(option !=5){
     a: cout << "\nWelcome " << teacher_id << "\n\n\n";
 	cout << "Personal Info : " << endl;
 	t.view_account(teacher_id);
-    cout << "Type '1' ----> Edit Student Marks\n";
-    cout << "Type '2' ----> View Overall Marks\n";
-	cout << "Type '3' ----> Update My Password\n";
-	cout << "Type '4' ----> Back to Main Menu\n";
+    cout << "Type '1' ----> Add Student Marks\n";
+    cout << "Type '2' ----> Update Student Marks\n";
+    cout << "Type '3' ----> View Overall Marks\n";
+	cout << "Type '4' ----> Update My Password\n";
+	cout << "Type '5' ----> Back to Main Menu\n";
     cout << "\nEnter Here : ";
 	cin >> excp;
 	roc = check_exception(excp);
@@ -2723,7 +2802,7 @@ void course_teacher :: teacher_main_menu(course_teacher &t){
 	goto a;
 	}
 	option = stoi(excp);
-	if(option>4 || option<1){
+	if(option>5 || option<1){
     goto b;
 	}
     else if(option == 1){
@@ -2732,14 +2811,18 @@ void course_teacher :: teacher_main_menu(course_teacher &t){
     }
     else if(option == 2){
     system("CLS");
-    //t.view_overall_marks();
+    //t.update_overall_marks();
     }
     else if(option == 3){
+    system("CLS");
+    //t.view_overall_marks();
+    }
+    else if(option == 4){
     system("CLS");
 	t.update_tchrpass(teacher_id);
     }
 	}
-	if(option == 4){
+	if(option == 5){
 	cout << "Redirecting back to Main Menu\n";
 	clear_screen();
 	return;
