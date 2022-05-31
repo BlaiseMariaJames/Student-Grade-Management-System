@@ -34,7 +34,7 @@ class class_teacher : public student{
 	void view_subject_wise_marks();
 	void view_overall_marks();
 	void generate_cgpa(student* s, class_teacher &ct);
-	void class_teacher_main_menu(student* s, class_teacher &ct);
+	void class_teacher_main_menu(student* s, class_teacher &ct, string &clstchr_id, string &section_id);
 };
 
 class section : public class_teacher{
@@ -51,7 +51,7 @@ class course_teacher : public class_teacher{
 	protected:
 	string teacher_id, teacher_password, subject;
 	public:
-	int login_teacher();
+	int login_teacher(bool &cls, string &clstchr_id, string &section_id);
 	void teacher_main_menu(course_teacher &t);
 	void add_student_marks();
 	void view_overall_marks();
@@ -2409,7 +2409,7 @@ void admin :: master_main_menu(admin &a){
 	}
 }
 
-int course_teacher :: login_teacher(){
+int course_teacher :: login_teacher(bool &cls, string &clstchr_id, string &section_id){
     sqlite3 *db;
     int rc, count = 3;
     string faculty_deptno;
@@ -2436,7 +2436,6 @@ int course_teacher :: login_teacher(){
     line = search_faculty.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
-    sqlite3_close(db);
 	if(rc == 0){
     cout << "Login Unsuccessful!!!";
 	if(count <= 0){
@@ -2449,8 +2448,23 @@ int course_teacher :: login_teacher(){
 	clear_screen();
 	goto a;
 	}
-	else
+	else{
 	cout << "\nLogin Successful!!!\n";
+	string search_cls = "SELECT EXISTS(SELECT * from SECTION WHERE CLSTCHR = '"+ teacher_id +"');";
+	line = search_cls.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+	if(rc != 0){
+    cls = true;
+    clstchr_id = teacher_id;
+    search_cls = "SELECT SECTIONID FROM SECTION WHERE CLSTCHR = '"+ teacher_id +"'";
+    line = search_cls.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, view_section_details, 0, &zErrMsg);
+    sqlite3_close(db);
+    section_id = gbl_info[0];
+	}
+	}
 	clear_screen();
 	return 0;
 }
@@ -2508,6 +2522,53 @@ void course_teacher :: teacher_main_menu(course_teacher &t){
 	clear_screen();
 	return;
 	}
+}
+
+void class_teacher :: class_teacher_main_menu(student* s, class_teacher &ct, string &clstchr_id, string &section_id){
+    course_teacher t;
+    teacher_id = clstchr_id;
+    cout << "\nWelcome " << teacher_id << "\n\n\n";
+	cout << "Personal Info : " << endl;
+	t.view_account(teacher_id);
+    /*
+    int option = 0;
+	while(option !=4){
+		a: cout << "\nWelcome " << class_teacher_id << "\n\n\n";
+		cout << "Type '1' ----> To Generate Result (Mandatory) Warning!!! : To be run only once.\n";
+		cout << "Type '2' ----> View Subject-Wise Marks\n";
+		cout << "Type '3' ----> View Student Marks (Overall)\n";
+		cout << "Type '4' ----> Back to Main Menu\n";
+		cout << "\nEnter Here : ";
+		cin >> option;
+		if(option>4 || option<1){
+		cout << "\nChoose a Valid Option (1-4)\n\n";
+		system("PAUSE");
+		system("CLS");
+		goto a;
+		}
+		else if(option == 1){
+		system("CLS");
+		generate(s,ct);
+		cout << "\n\nMarks Generated Successfully... \n\nWarning!!! : Please Don't Generate Again\n\n";
+		system("PAUSE");
+		system("CLS");
+		}
+		else if(option == 2){
+		system("CLS");
+		view_subject_wise_marks();
+		}
+		else if(option == 3){
+		system("CLS");
+		view_overall_marks();
+	}
+	if(option == 4){
+	cout << "Redirecting back to Main Menu\n";
+	system("PAUSE");
+	system("CLS");
+	return;
+	}
+  }
+  */
 }
 
 int section :: login_student(){
@@ -2633,12 +2694,20 @@ void main_menu(){
 	a.master_main_menu(a);
 	}
 	else if(option == 2){
+    bool cls = false;
+    string clstchr_id = "";
+    string section_id = "";
 	cout << "Redirecting to Faculty Login Page\n";
 	clear_screen();
 	course_teacher t;
-	int exist = t.login_teacher();
-	if(exist!=-1)
+	int exist = t.login_teacher(cls,clstchr_id,section_id);
+	if(exist!=-1 && cls==false)
 	t.teacher_main_menu(t);
+	else if(exist!=-1 && cls==true){
+    student s[60];
+    class_teacher ct;
+    ct.class_teacher_main_menu(s, ct, clstchr_id, section_id);
+	}
 	}
 	else if(option == 3){
 	cout << "Redirecting to Student Login Page\n";
