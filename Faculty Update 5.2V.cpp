@@ -54,8 +54,8 @@ class course_teacher : public class_teacher{
 	int login_teacher(bool &cls, string &clstchr_id, string &section_id);
 	void teacher_main_menu(course_teacher &t);
 	void add_student_marks(string faculty_id);
-	void update_student_marks();
-	void view_overall_marks();
+	void update_student_marks(string faculty_id);
+	void view_overall_marks(string faculty_id);
 	void view_account(string faculty_id);
 	void update_tchrpass(string faculty_id);
 };
@@ -198,6 +198,18 @@ static int view_clstchr_details(void *NotUsed, int argc, char **argv, char **azC
     return 0;
 }
 
+static int view_grade_details(void *NotUsed, int argc, char **argv, char **azColName){
+	string gbl_input[100];
+	for(int i = 0; i<argc; i++){
+    gbl_input[i] = (argv[i] ? argv[i] : "");
+    }
+    for(int i=0; i<argc; i++){
+    if(i%11==0)
+    cout << gbl_input[i] << "        " << gbl_input[i+1] << gbl_input[i+2] << "\t\t" << gbl_input[i+3] << "\t" << gbl_input[i+4] << "\t " << gbl_input[i+5] << "\t" << gbl_input[i+6] << "\t" << gbl_input[i+7] << "\t " << gbl_input[i+8] << "\t" << gbl_input[i+9] << "\t" << gbl_input[i+10] << endl;
+    }
+    return 0;
+}
+
 static int view_faculty_account(void *NotUsed, int argc, char **argv, char **azColName){
 	string gbl_input[100];
 	for(int i = 0; i<argc; i++){
@@ -222,7 +234,7 @@ static int view_student_account(void *NotUsed, int argc, char **argv, char **azC
     return 0;
 }
 
-static int view_details(void *NotUsed, int argc, char **argv, char **azColName){
+static int extract_details(void *NotUsed, int argc, char **argv, char **azColName){
 	for(int i = 0; i<argc; i++){
     gbl_info[i] = argv[i] ? argv[i] : "NULL";
     }
@@ -333,7 +345,7 @@ void view_student_function(string student_deptno, bool archived){
     sqlite3_close(db);
 }
 
-void view_table(string str, string id){
+void view_table(string str, string id, string id2){
 	int rc = 0;
     sqlite3 *db;
 	string view;
@@ -357,7 +369,7 @@ void view_table(string str, string id){
     }
     else if(str == "COURSE")
     view = "SELECT SECTION, COURSECODE from COURSE WHERE CRSTCHR = '"+ id +"';";
-	const char *line = view.c_str();
+    const char *line = view.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     sqlite3_close(db);
@@ -521,7 +533,7 @@ int update_faculty_function(string &faculty_id, int id, string faculty_deptno){
 	char *zErrMsg, *sql;
     cout << "\nDisplaying Details of faculty(ies) of branch " << dept[id] << "..."<< endl;
     cout << "\n\nID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA" << endl;
-    view_table("FACULTY", faculty_deptno);
+    view_table("FACULTY", faculty_deptno, "");
 	rc = sqlite3_open("SAMS.db", &db);
     cout << "\n\nEnter the ID to be updated : ";
     cin >> faculty_id;
@@ -721,7 +733,7 @@ void admin :: delete_faculty(){
 	}
     cout << "\nDisplaying Details of faculty(ies) of branch " << dept[id] << "..."<< endl;
     cout << "\n\nID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA" << endl;
-    view_table("FACULTY", faculty_deptno);
+    view_table("FACULTY", faculty_deptno, "");
     sqlite3_open("SAMS.db", &db);
 	cout << "\n\nEnter the id to be deleted : ";
 	cin >> faculty_id;
@@ -745,7 +757,7 @@ void admin :: delete_faculty(){
     b: error_message();
     cout << "\nDisplaying Details of faculty(ies) of branch " << dept[id] << "..."<< endl;
     cout << "\n\nID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA" << endl;
-    view_table("FACULTY", faculty_deptno);
+    view_table("FACULTY", faculty_deptno, "");
 	rc = sqlite3_open("SAMS.db", &db);
     cout << "\n\nEnter the id to be deleted : " << faculty_id << endl;
 	goto a;
@@ -803,7 +815,7 @@ void admin :: view_faculty(){
 	else{
     cout << "\nDisplaying Details of faculty(ies) of branch " << dept[id] << "..."<< endl;
     cout << "\n\nID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA" << endl;
-    view_table("FACULTY", faculty_deptno);
+    view_table("FACULTY", faculty_deptno, "");
     cout << "\nDetails of all faculty(ies) of branch " << dept[id] << " displayed successfully..." << endl;
     cout << endl;
 	}
@@ -963,7 +975,7 @@ void admin :: assign_course(){
 	else{
     cout << "\nDisplaying Details of faculty(ies) of branch " << dept[id] << "..."<< endl;
     cout << "\n\nID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA" << endl;
-    view_table("FACULTY", faculty_deptno);
+    view_table("FACULTY", faculty_deptno, "");
     sqlite3_open("SAMS.db", &db);
 	cout << "\n\nEnter the id to be made as Faculty of " + course_id << " of Section" + section_id << " : ";
 	cin >> faculty_id;
@@ -986,7 +998,7 @@ void admin :: assign_course(){
     f: error_message();
     cout << "\nDisplaying Details of faculty(ies) of branch " << dept_id << "..."<< endl;
     cout << "\n\nID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA" << endl;
-    view_table("FACULTY", faculty_deptno);
+    view_table("FACULTY", faculty_deptno, "");
 	cout << "\n\nEnter the id to be made as Faculty of " + course_id << " of Section" + section_id << " : " << faculty_id << endl;
 	goto e;
 	}
@@ -1223,7 +1235,7 @@ void clstchr_confirmation(int &choice, string dept_id, string faculty_deptno, st
     b: error_message();
     cout << "\nDisplaying Details of faculty(ies) of branch " << dept_id << "..."<< endl;
     cout << "\n\nID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA" << endl;
-    view_table("FACULTY", faculty_deptno);
+    view_table("FACULTY", faculty_deptno, "");
 	cout << "\n\nEnter the id to be made Class Teacher : " << faculty_id << endl;
 	cout << "Enter the Section: " << section_id << endl;
 	goto a;
@@ -1431,7 +1443,7 @@ void admin :: assign_clstchr(){
     search_faculty = "SELECT FACULTYID, DEPTNO from FACULTY WHERE FACULTYID = (SELECT CRSTCHR from COURSE WHERE COURSECODE = '"+ course_id +"' AND SECTION = '"+ section_id +"');";
     line = search_faculty.c_str();
     sql = strdup(line);
-    rc = sqlite3_exec(db, sql, view_details, 0, &zErrMsg);
+    rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
     faculty_id = gbl_info[0];
     string faculty_deptno = gbl_info[1];
     int n = sizeof(dept_no)/sizeof(dept_no[0]);
@@ -1461,7 +1473,7 @@ void admin :: remove_clstchr(){
 	}
     cout << "\nDisplaying Details of Class Teachers(s) of Semester " + to_string(semester) << endl;
     cout << "\n\nSECTION ID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA" << endl;
-    view_table("CLSTCHR", to_string(semester));
+    view_table("CLSTCHR", to_string(semester), "");
     sqlite3_open("SAMS.db", &db);
 	cout << "\n\nEnter the id to be removed from being Class Teacher : ";
 	cin >> faculty_id;
@@ -1484,7 +1496,7 @@ void admin :: remove_clstchr(){
     d: error_message();
     cout << "\nDisplaying Details of Class Teacher(s) of Semester " + to_string(semester) << endl;
     cout << "\n\nSECTION ID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA" << endl;
-    view_table("CLSTCHR", to_string(semester));
+    view_table("CLSTCHR", to_string(semester), "");
 	cout << "\n\nEnter the id to be removed from being Class Teacher : " << faculty_id << endl;
 	goto c;
 	}
@@ -1527,7 +1539,7 @@ void admin :: view_clstchr(){
 	}
     cout << "\nDisplaying Details of Class Teacher(s) of Semester " + to_string(semester) << endl;
     cout << "\n\nSECTION ID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA" << endl;
-    view_table("CLSTCHR", to_string(semester));
+    view_table("CLSTCHR", to_string(semester), "");
     cout << "\nDetails of all Class Teacher(s) of Semester " + to_string(semester) + " displayed successfully..." << endl;
     cout << endl;
     clear_screen();
@@ -1614,7 +1626,7 @@ void admin :: assign_head(){
 	else{
     cout << "\nDisplaying Details of faculty(ies) of branch " << dept[id] << "..."<< endl;
     cout << "\n\nID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA" << endl;
-    view_table("FACULTY", faculty_deptno);
+    view_table("FACULTY", faculty_deptno, "");
     sqlite3_open("SAMS.db", &db);
 	cout << "\n\nEnter the id to be made Head of Department : ";
 	cin >> faculty_id;
@@ -1638,7 +1650,7 @@ void admin :: assign_head(){
     b: error_message();
     cout << "\nDisplaying Details of faculty(ies) of branch " << dept[id] << "..."<< endl;
     cout << "\n\nID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA" << endl;
-    view_table("FACULTY", faculty_deptno);
+    view_table("FACULTY", faculty_deptno, "");
 	cout << "\n\nEnter the id to be made Head of Department : " << faculty_id << endl;
 	goto a;
 	}
@@ -1681,7 +1693,7 @@ void admin :: remove_head(){
     char *zErrMsg = 0, *sql;
     cout << "\nDisplaying Details of HOD(s)..." << endl;
     cout << "\n\nBRANCH ID    NAME\t\t\t\t     QUALIFICATION\t\t   DESIGNATION\t\t\t\t   RESEARCH AREA" << endl;
-    view_table("HOD", "");
+    view_table("HOD", "", "");
     sqlite3_open("SAMS.db", &db);
 	cout << "\n\nEnter the id to be removed from being Head of Department : ";
 	cin >> faculty_id;
@@ -1704,7 +1716,7 @@ void admin :: remove_head(){
     b: error_message();
     cout << "\nDisplaying Details of HOD(s)..." << endl;
     cout << "\n\nBRANCH ID    NAME\t\t\t\t     QUALIFICATION\t\t   DESIGNATION\t\t\t\t   RESEARCH AREA" << endl;
-    view_table("HOD", "");
+    view_table("HOD", "", "");
 	cout << "\n\nEnter the id to be removed from being Head of Department : " << faculty_id << endl;
 	goto a;
 	}
@@ -1736,7 +1748,7 @@ void admin :: view_head(){
     char *zErrMsg = 0, *sql;
     cout << "\nDisplaying Details of HOD(s)..." << endl;
     cout << "\n\nBRANCH ID    NAME\t\t\t\t     QUALIFICATION\t\t   DESIGNATION\t\t\t\t   RESEARCH AREA" << endl;
-    view_table("HOD", "");
+    view_table("HOD", "", "");
     cout << "\nDetails of all HOD(s) displayed successfully..." << endl;
     cout << endl;
     clear_screen();
@@ -2030,7 +2042,7 @@ int update_student_function(string &student_id, int id, string student_deptno){
 	char *zErrMsg, *sql;
 	cout << "\nDisplaying Details of student(s) of branch " << dept[id] << "..."<< endl;
     cout << "\n\nID\t NAME\t\t\t\t\t YEAR SEM SECTION CONTACT" << endl;
-    view_table("STUDENT", student_deptno);
+    view_table("STUDENT", student_deptno, "");
 	rc = sqlite3_open("SAMS.db", &db);
     cout << "\n\nEnter the ID to be updated : ";
     cin >> student_id;
@@ -2169,7 +2181,7 @@ void admin :: delete_student(){
 	}
     cout << "\nDisplaying Details of student(s) of branch " << dept[id] << "..."<< endl;
     cout << "\n\nID\t NAME\t\t\t\t\t YEAR SEM SECTION CONTACT" << endl;
-    view_table("STUDENT", student_deptno);
+    view_table("STUDENT", student_deptno, "");
     sqlite3_open("SAMS.db", &db);
 	cout << "\n\nEnter the id to be deleted : ";
 	cin >> student_id;
@@ -2193,7 +2205,7 @@ void admin :: delete_student(){
 	b: error_message();
     cout << "\nDisplaying Details of student(s) of branch " << dept[id] << "..."<< endl;
     cout << "\n\nID\t NAME\t\t\t\t\t YEAR SEM SECTION CONTACT" << endl;
-    view_table("STUDENT", student_deptno);
+    view_table("STUDENT", student_deptno, "");
     cout << "\n\nEnter the id to be deleted : " << student_id << endl;
 	goto a;
 	}
@@ -2239,7 +2251,7 @@ void admin :: view_student(){
 	else{
     cout << "\nDisplaying Details of student(s) of branch " << dept[id] << "..."<< endl;
     cout << "\n\nID\t NAME\t\t\t\t\t YEAR SEM SECTION CONTACT" << endl;
-    view_table("STUDENT", student_deptno);
+    view_table("STUDENT", student_deptno, "");
     cout << "\nDetails of all student(s) of branch " << dept[id] << " displayed successfully..." << endl;
     cout << endl;
 	}
@@ -2307,7 +2319,7 @@ void admin :: view_archived_faculty(){
 	else{
     cout << "\nDisplaying Details of faculty(ies) of branch " << dept[id] << "..."<< endl;
     cout << "\n\nID    NAME\t\t\t\t      QUALIFICATION\t\t    DESIGNATION\t\t\t\t    RESEARCH AREA" << endl;
-    view_table("A-FACULTY", faculty_deptno);
+    view_table("A-FACULTY", faculty_deptno, "");
     cout << "\nDetails of all faculty(ies) of branch " << dept[id] << " displayed successfully..." << endl;
     cout << endl;
 	}
@@ -2331,7 +2343,7 @@ void admin :: view_archived_student(){
 	else{
     cout << "\nDisplaying Details of student(s) of branch " << dept[id] << "..."<< endl;
     cout << "\n\nID\t NAME\t\t\t\t\t YEAR SEM SECTION CONTACT" << endl;
-    view_table("A-STUDENT", student_deptno);
+    view_table("A-STUDENT", student_deptno, "");
     cout << "\nDetails of all student(s) of branch " << dept[id] << " displayed successfully..." << endl;
     cout << endl;
 	}
@@ -2463,7 +2475,7 @@ int course_teacher :: login_teacher(bool &cls, string &clstchr_id, string &secti
     search_cls = "SELECT SECTIONID FROM SECTION WHERE CLSTCHR = '"+ teacher_id +"'";
     line = search_cls.c_str();
     sql = strdup(line);
-    rc = sqlite3_exec(db, sql, view_details, 0, &zErrMsg);
+    rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
     sqlite3_close(db);
     section_id = gbl_info[0];
 	}
@@ -2491,21 +2503,11 @@ void course_teacher :: add_student_marks(string faculty_id){
     }
 	cout << "\nDisplaying Details of Course(s) you are allotted to...\n" << endl;
 	cout << "   SEC CODE" << endl;
-    view_table("COURSE",faculty_id);
+    view_table("COURSE",faculty_id, "");
     cout << "\nRegistering the details of Section and Course whose marks are to be entered..." << endl;
     cout << "\nEnter Section : ";
 	cin >> section_id;
 	section_id = "  " + section_id;
-	string search_strength = "SELECT EXISTS(SELECT * from STUDENT WHERE SECTION = '"+ section_id +"');";
-    line = search_strength.c_str();
-    sql = strdup(line);
-    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
-    if(rc == 0){
-    cout << "\nERROR: No Student Details Found...." << endl;
-	cout << endl;
-	clear_screen();
-	return;
-    }
     string search_section = "SELECT EXISTS(SELECT * from COURSE WHERE SECTION = '"+ section_id +"' AND CRSTCHR = '"+ faculty_id +"');";
     line = search_section.c_str();
     sql = strdup(line);
@@ -2515,6 +2517,16 @@ void course_teacher :: add_student_marks(string faculty_id){
     cout << "\nUnable to access requested details of Section... Try Again using valid ID...\n" << endl;
     clear_screen();
     return;
+    }
+	string search_strength = "SELECT EXISTS(SELECT * from STUDENT WHERE SECTION = '"+ section_id +"' AND STUDYING = 'Y');";
+    line = search_strength.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nERROR: No Student Details Found...." << endl;
+	cout << endl;
+	clear_screen();
+	return;
     }
     cout << "\nEnter Course Code (of Section" + section_id << ") : ";
 	cin >> course_id;
@@ -2531,17 +2543,17 @@ void course_teacher :: add_student_marks(string faculty_id){
     string search_type = "SELECT COURSETYPE FROM COURSE WHERE COURSECODE = '" + course_id +"' AND SECTION = '"+ section_id +"';";
     line = search_type.c_str();
     sql = strdup(line);
-    rc = sqlite3_exec(db, sql, view_details, 0, &zErrMsg);
+    rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
     course_type = gbl_info[0];
     system("CLS");
     cout << "Entering details of Section" << section_id << endl;
     cout << "\nEnter the number of student(s) : ";
     cin >> num;
     cout << "\nEntering Details of " << num << " student(s)..." << endl;
-    while(num>0){
+    for(int i = 0; i<num; i++){
     cout << "\nEnter Roll Number : ";
     cin >> student_id;
-    string search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDENTID = '"+ student_id +"' AND SECTION = '"+ section_id +"');";
+    string search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDENTID = '"+ student_id +"' AND SECTION = '"+ section_id +"' AND STUDYING = 'Y');";
     line = search_student.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
@@ -2709,16 +2721,182 @@ void course_teacher :: add_student_marks(string faculty_id){
     if(choice == 2)
     goto q;
     }
-    num--;
     }
-	sqlite3_close(db);
-	cout << endl;
-    clear_screen();
+    sqlite3_close(db);
+    cout << "\nDetails of " << num << " student(s) registered successfully..." << endl;
+    cout << endl;
+	clear_screen();
 	return;
 }
 
-void course_teacher :: view_overall_marks(){
+void course_teacher :: update_student_marks(string faculty_id){
+    sqlite3 *db;
+    int rc, num;
+    float marks[7];
+	char *zErrMsg, *sql;
+    string student_id, section_id, course_id, course_type;
+    sqlite3_open("SAMS.db", &db);
+    string check_crstchr = "SELECT EXISTS(SELECT * from COURSE WHERE CRSTCHR = '"+ faculty_id +"');";
+    const char *line = check_crstchr.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nYou are not allotted to any Section so far..." << endl;
+    cout << "\nUnable to access requested details of Faculty... Try Again using valid ID...\n" << endl;
+    clear_screen();
+    return;
+    }
+	cout << "\nDisplaying Details of Course(s) you are allotted to...\n" << endl;
+	cout << "   SEC CODE" << endl;
+    view_table("COURSE",faculty_id, "");
+    cout << "\nRegistering the details of Section and Course whose marks are to be updated..." << endl;
+    cout << "\nEnter Section : ";
+	cin >> section_id;
+	section_id = "  " + section_id;
+    string search_section = "SELECT EXISTS(SELECT * from COURSE WHERE SECTION = '"+ section_id +"' AND CRSTCHR = '"+ faculty_id +"');";
+    line = search_section.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nYou are not allotted to the Section with requested ID or Section with requested ID doesn't exist..." << endl;
+    cout << "\nUnable to access requested details of Section... Try Again using valid ID...\n" << endl;
+    clear_screen();
+    return;
+    }
+	string search_strength = "SELECT EXISTS(SELECT * from STUDENT WHERE SECTION = '"+ section_id +"' AND STUDYING = 'Y');";
+    line = search_strength.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nERROR: No Student Details Found...." << endl;
+	cout << endl;
+	clear_screen();
+	return;
+    }
+    cout << "\nEnter Course Code (of Section" + section_id << ") : ";
+	cin >> course_id;
+	string search_course = "SELECT EXISTS(SELECT * from COURSE WHERE COURSECODE = '"+ course_id +"' AND SECTION = '"+ section_id +"' AND CRSTCHR = '"+ faculty_id +"');";
+    line = search_course.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nYou are not allotted to the Course with requested ID or Course with requested Code doesn't exist..." << endl;
+    cout << "\nUnable to access requested details of Course... Try Again using valid Code...\n" << endl;
+    clear_screen();
+    return;
+    }
+    search_strength = "SELECT EXISTS(SELECT * from GRADEREPORT WHERE SECTIONID = '"+ section_id +"' AND COURSEID = '" + course_id +"');";
+    line = search_strength.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nERROR: No Student Details Found.... Please award marks to students and Try Again..." << endl;
+	cout << endl;
+	clear_screen();
+	return;
+    }
+    string search_type = "SELECT COURSETYPE FROM COURSE WHERE COURSECODE = '" + course_id +"' AND SECTION = '"+ section_id +"';";
+    line = search_type.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
+    course_type = gbl_info[0];
+}
 
+void course_teacher :: view_overall_marks(string faculty_id){
+    sqlite3 *db;
+    int rc, num;
+    float marks[7];
+	char *zErrMsg, *sql;
+    string student_id, section_id, course_id, course_type;
+    sqlite3_open("SAMS.db", &db);
+    string check_crstchr = "SELECT EXISTS(SELECT * from COURSE WHERE CRSTCHR = '"+ faculty_id +"');";
+    const char *line = check_crstchr.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nYou are not allotted to any Section so far..." << endl;
+    cout << "\nUnable to access requested details of Faculty... Try Again using valid ID...\n" << endl;
+    clear_screen();
+    return;
+    }
+	cout << "\nDisplaying Details of Course(s) you are allotted to...\n" << endl;
+	cout << "   SEC CODE" << endl;
+    view_table("COURSE",faculty_id, "");
+    cout << "\nRegistering the details of Section and Course whose marks are to be displayed..." << endl;
+    cout << "\nEnter Section : ";
+	cin >> section_id;
+	section_id = "  " + section_id;
+    string search_section = "SELECT EXISTS(SELECT * from COURSE WHERE SECTION = '"+ section_id +"' AND CRSTCHR = '"+ faculty_id +"');";
+    line = search_section.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nYou are not allotted to the Section with requested ID or Section with requested ID doesn't exist..." << endl;
+    cout << "\nUnable to access requested details of Section... Try Again using valid ID...\n" << endl;
+    clear_screen();
+    return;
+    }
+    string search_strength = "SELECT EXISTS(SELECT * from STUDENT WHERE SECTION = '"+ section_id +"' AND STUDYING = 'Y');";
+    line = search_strength.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nERROR: No Student Details Found...." << endl;
+	cout << endl;
+	clear_screen();
+	return;
+    }
+    cout << "\nEnter Course Code (of Section" + section_id << ") : ";
+	cin >> course_id;
+	string search_course = "SELECT EXISTS(SELECT * from COURSE WHERE COURSECODE = '"+ course_id +"' AND SECTION = '"+ section_id +"' AND CRSTCHR = '"+ faculty_id +"');";
+    line = search_course.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nYou are not allotted to the Course with requested ID or Course with requested Code doesn't exist..." << endl;
+    cout << "\nUnable to access requested details of Course... Try Again using valid Code...\n" << endl;
+    clear_screen();
+    return;
+    }
+    search_strength = "SELECT EXISTS(SELECT * from GRADEREPORT WHERE SECTIONID = '"+ section_id +"' AND COURSEID = '" + course_id +"');";
+    line = search_strength.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nERROR: No Student Details Found.... Please award marks to students and Try Again..." << endl;
+	cout << endl;
+	clear_screen();
+	return;
+    }
+    string search_type = "SELECT COURSETYPE FROM COURSE WHERE COURSECODE = '" + course_id +"' AND SECTION = '"+ section_id +"';";
+    line = search_type.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
+    course_type = gbl_info[0];
+    system("CLS");
+    cout << "\nDisplaying Details of student(s)..." << endl;
+    if(course_type == "T"){
+    cout << "\nROLL NUMBER\tNAME\t\t\t\t\t SECTION\tM1\tA1\tMSE1\tM2\tA2\tMSE2\tINT\tESE"<< endl;
+    string search_grade = "SELECT G.STUDENTID, S.STUDENTNAME, G.SECTIONID, G.M1, G.A1, G.MSE1, G.M2, G.A2, G.MSE2, G.INTERNALS, G.EXTERNALS FROM GRADEREPORT G LEFT JOIN STUDENT S ON G.STUDENTID = S.STUDENTID WHERE COURSEID = '" + course_id + "' AND SECTIONID = '" + section_id + "'";
+    line = search_grade.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, view_grade_details, 0, &zErrMsg);
+    cout << endl;
+    cout << "Details of all student(s) displayed successfully..." << endl;
+    cout << endl;
+    }
+    else{
+    cout << "\nROLL NUMBER\tNAME\t\t\t\t\t SECTION\tINT\tESE"<< endl;
+    string search_grade = "SELECT G.STUDENTID, S.STUDENTNAME, G.SECTIONID, G.INTERNALS, G.EXTERNALS FROM GRADEREPORT G LEFT JOIN STUDENT S ON G.STUDENTID = S.STUDENTID WHERE COURSEID = '" + course_id + "' AND SECTIONID = '" + section_id + "'";
+    line = search_grade.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, view_grade_details, 0, &zErrMsg);
+    cout << endl;
+    cout << "Details of all student(s) displayed successfully..." << endl;
+    cout << endl;
+    }
+    clear_screen();
+    return;
 }
 
 void course_teacher :: update_tchrpass(string faculty_id){
@@ -2811,11 +2989,11 @@ void course_teacher :: teacher_main_menu(course_teacher &t){
     }
     else if(option == 2){
     system("CLS");
-    //t.update_overall_marks();
+    t.update_student_marks(teacher_id);
     }
     else if(option == 3){
     system("CLS");
-    //t.view_overall_marks();
+    t.view_overall_marks(teacher_id);
     }
     else if(option == 4){
     system("CLS");
