@@ -44,7 +44,7 @@ class section : public class_teacher{
 	void student_main_menu(section &s);
 	void view_marks();
 	void view_account(string student_id);
-	void update_stdpass();
+	void update_stdpass(string student_id);
 };
 
 class course_teacher : public class_teacher{
@@ -56,7 +56,7 @@ class course_teacher : public class_teacher{
 	void add_student_marks();
 	void view_overall_marks();
 	void view_account(string faculty_id);
-	void update_tchrpass();
+	void update_tchrpass(string faculty_id);
 };
 
 class admin{
@@ -2469,6 +2469,62 @@ int course_teacher :: login_teacher(bool &cls, string &clstchr_id, string &secti
 	return 0;
 }
 
+void course_teacher :: add_student_marks(){
+
+}
+
+void course_teacher :: view_overall_marks(){
+
+}
+
+void course_teacher :: update_tchrpass(string faculty_id){
+    int rc, choice = 0;
+    sqlite3 *db;
+	char *zErrMsg, *sql;
+	string new_password, con_password;
+	a: cout << "Enter new password : ";
+	cin >> new_password;
+	cout << "\nConfirm password : ";
+	cin >> con_password;
+	if(con_password == new_password){
+    b : cout << "\n\nAre you sure to change your password ? ";
+	cout << "\nPress '1' if 'YES' or '2' if 'NO'";
+	cout << "\nEnter Here : ";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	c: error_message();
+    cout << "Enter new password : " << new_password << endl;
+    cout << "\nConfirm password : " << con_password << endl;
+	goto b;
+	}
+	int choice = stoi(excp);
+	if(choice!=1 && choice!=2){
+    goto c;
+	}
+    if(choice == 1){
+    rc = sqlite3_open("SAMS.db", &db);
+    string update_faculty = "UPDATE FACULTY SET FACULTYPASSWORD = '"+ new_password +"' WHERE FACULTYID = '" + faculty_id + "';";
+    const char *line = update_faculty.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+    sqlite3_close(db);
+    cout << "\nRequested details updated successfully..." << endl;
+    }
+    if(choice == 2)
+    cout << "\nNo changes were made...." << endl;
+    cout << endl;
+    }
+    else{
+    cout << "\nPlease enter correct password...." << endl;
+    cout << endl;
+    clear_screen();
+    goto a;
+    }
+    clear_screen();
+    return;
+}
+
 void course_teacher :: view_account(string faculty_id){
     int rc;
     sqlite3 *db;
@@ -2513,8 +2569,8 @@ void course_teacher :: teacher_main_menu(course_teacher &t){
     //t.view_overall_marks();
     }
     else if(option == 3){
-	//t.update_tchrpass;
     system("CLS");
+	t.update_tchrpass(teacher_id);
     }
 	}
 	if(option == 4){
@@ -2617,6 +2673,54 @@ int section :: login_student(){
 	return 0;
 }
 
+void section :: update_stdpass(string student_id){
+    int rc, choice = 0;
+    sqlite3 *db;
+	char *zErrMsg, *sql;
+	string new_password, con_password;
+	a: cout << "Enter new password : ";
+	cin >> new_password;
+	cout << "\nConfirm password : ";
+	cin >> con_password;
+	if(con_password == new_password){
+    b : cout << "\n\nAre you sure to change your password ? ";
+	cout << "\nPress '1' if 'YES' or '2' if 'NO'";
+	cout << "\nEnter Here : ";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	c: error_message();
+    cout << "Enter new password : " << new_password << endl;
+    cout << "\nConfirm password : " << con_password << endl;
+	goto b;
+	}
+	int choice = stoi(excp);
+	if(choice!=1 && choice!=2){
+    goto c;
+	}
+    if(choice == 1){
+    rc = sqlite3_open("SAMS.db", &db);
+    string update_student = "UPDATE STUDENT SET STUDENTPASSWORD = '"+ new_password +"' WHERE STUDENTID = '" + student_id + "';";
+    const char *line = update_student.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+    sqlite3_close(db);
+    cout << "\nRequested details updated successfully..." << endl;
+    }
+    if(choice == 2)
+    cout << "\nNo changes were made...." << endl;
+    cout << endl;
+    }
+    else{
+    cout << "\nPlease enter correct password...." << endl;
+    cout << endl;
+    clear_screen();
+    goto a;
+    }
+    clear_screen();
+    return;
+}
+
 void section :: view_account(string student_id){
     int rc;
     sqlite3 *db;
@@ -2657,7 +2761,7 @@ void section :: student_main_menu(section &s){
 	}
 	else if(option == 2){
     system("CLS");
-	//s.update_stdpass;
+    s.update_stdpass(student_id);
 	}
 	}
 	if(option == 3){
