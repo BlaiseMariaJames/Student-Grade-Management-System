@@ -758,6 +758,10 @@ void admin :: delete_faculty(){
     const char *line = delete_faculty.c_str();
     sql = strdup(line);
 	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+	string update_course = "UPDATE COURSE set CRSTCHR = NULL WHERE CRSTCHR = '"+ faculty_id +"';";
+    line = update_course.c_str();
+    sql = strdup(line);
+	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
 	string update_hod = "UPDATE BRANCH set HOD = NULL WHERE HOD = '"+ faculty_id +"';";
     line = update_hod.c_str();
     sql = strdup(line);
@@ -1641,7 +1645,10 @@ void admin :: assign_head(){
 	}
     if(choice == 1){
     sqlite3_open("SAMS.db", &db);
-    set_foreignkeys(db);
+    string update_course = "UPDATE COURSE set CRSTCHR = NULL WHERE CRSTCHR = '"+ faculty_id +"';";
+    line = update_course.c_str();
+    sql = strdup(line);
+	rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
     string update_clstchr = "UPDATE SECTION set CLSTCHR = NULL WHERE CLSTCHR = '"+ faculty_id +"';";
     const char *line = update_clstchr.c_str();
     sql = strdup(line);
