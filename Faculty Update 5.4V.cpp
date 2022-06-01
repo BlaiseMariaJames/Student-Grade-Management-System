@@ -1,7 +1,5 @@
 #include<ctime>
-//#include<sstream>
 #include<iostream>
-//#include<stdlib.h>
 #include<string.h>
 #include<algorithm>
 #include<sqlite3.h>
@@ -31,10 +29,10 @@ class class_teacher : public student{
 	void calculate_student_marks(student &s);
 	void calculate_student_cgpa(student &s, int j);
 	void write(student &s, int j, char* roll_number);
-	void view_subject_wise_marks();
-	void view_overall_marks();
+	void view_subject_wise_marks(string section_id);
+	void view_overall_marks(string section_id);
 	void generate_cgpa(student* s, class_teacher &ct);
-	void class_teacher_main_menu(student* s, class_teacher &ct, string &clstchr_id, string &section_id);
+	void class_teacher_main_menu(student* s, class_teacher &ct, string clstchr_id, string section_id);
 };
 
 class section : public class_teacher{
@@ -52,7 +50,7 @@ class course_teacher : public class_teacher{
 	string teacher_id, teacher_password, subject;
 	public:
 	int login_teacher(bool &cls, string &clstchr_id, string &section_id);
-	void teacher_main_menu(course_teacher &t);
+	void teacher_main_menu(course_teacher &t, string clstchr_id);
 	void add_student_marks(string faculty_id);
 	void update_student_marks(string faculty_id);
 	void view_overall_marks(string faculty_id);
@@ -162,19 +160,19 @@ static int view_course_details(void *NotUsed, int argc, char **argv, char **azCo
 	string gbl_input[100];
 	for(int i = 0; i<argc; i++){
     gbl_input[i] = argv[i] ? argv[i] : "";
-    int len = gbl_input[i].length();
-    char data[len+1];
-    strcpy(data,gbl_input[i].c_str());
-    padded_input_string(data,20);
-    gbl_input[i] = data;
     }
+    int len = gbl_input[0].length();
+    char data[len+1];
+    strcpy(data,gbl_input[0].c_str());
+    padded_input_string(data,20);
+    gbl_input[0] = data;
     for(int i=0; i<argc; i++){
     if(i%6==0){
     string data = gbl_input[i];
     if(data[8] == ' ')
-    cout << " " << gbl_input[i] << gbl_input[i+1] << gbl_input[i+2] << gbl_input[i+3] << gbl_input[i+4] << gbl_input[i+5] << endl;
+    cout << " " << gbl_input[i] << gbl_input[i+1] << "\t\t " << gbl_input[i+2] << gbl_input[i+3] << gbl_input[i+4] << gbl_input[i+5] << endl;
     else
-    cout << gbl_input[i] << " " << gbl_input[i+1] << gbl_input[i+2] << gbl_input[i+3] << gbl_input[i+4] << gbl_input[i+5] << endl;
+    cout << gbl_input[i] << " " << gbl_input[i+1] << "\t\t " << gbl_input[i+2] << gbl_input[i+3] << gbl_input[i+4] << gbl_input[i+5] << endl;
     }
     }
     return 0;
@@ -201,7 +199,7 @@ static int view_clstchr_details(void *NotUsed, int argc, char **argv, char **azC
 static int view_grade_details(void *NotUsed, int argc, char **argv, char **azColName){
 	string gbl_input[100];
 	for(int i = 0; i<argc; i++){
-    gbl_input[i] = (argv[i] ? argv[i] : "");
+    gbl_input[i] = (argv[i] ? argv[i] : "NA");
     }
     for(int i=0; i<argc; i++){
     if(i%11==0)
@@ -2189,7 +2187,6 @@ void admin :: delete_student(){
     const char *line = search_student.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
-    sqlite3_close(db);
 	if(rc == 0){
     cout << "\nStudent with requested ID doesn't exist..." << endl;
     cout << "\nUnable to delete requested details of student... Try Again using valid ID...\n" << endl;
@@ -2484,6 +2481,132 @@ int course_teacher :: login_teacher(bool &cls, string &clstchr_id, string &secti
 	return 0;
 }
 
+void class_teacher :: view_subject_wise_marks(string section_id){
+    int rc;
+    sqlite3 *db;
+    char *zErrMsg = 0, *sql;
+    string course_id, course_type;
+    sqlite3_open("SAMS.db", &db);
+    cout << "\nDisplaying Details of Course(s) of Section" << section_id << endl;
+    cout << "\nCOURSE_ID CODE\t    FACULTY\t\t NAME\t\t\t\t        QUALIFICATION\t\t     DESIGNATION\t\t\t    RESEARCH AREA" << endl;
+    string search_course = "SELECT CRS.COURSEID || \" \" || CRS.COURSECODE, CRS.CRSTCHR, F.FACULTYNAME, F.QUALIFICATION, F.DESIGNATION, F.RESEARCHAREA from COURSE CRS LEFT JOIN FACULTY F ON CRS.CRSTCHR = F.FACULTYID WHERE CRS.SECTION = '"+ section_id +"';";
+    const char *line = search_course.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, view_course_details, 0, &zErrMsg);
+    cout << endl;
+    cout << "Enter the Course Code whose marks are to be displayed : ";
+	cin >> course_id;
+	search_course = "SELECT EXISTS(SELECT * from COURSE WHERE COURSECODE = '"+ course_id +"' AND SECTION = '"+ section_id +"');";
+    line = search_course.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nCourse with requested Code doesn't exist..." << endl;
+    cout << "\nUnable to access requested details of course... Try Again using valid Code...\n" << endl;
+    clear_screen();
+    return;
+    }
+    string search_strength = "SELECT EXISTS(SELECT * from GRADEREPORT WHERE SECTIONID = '"+ section_id +"' AND COURSEID = '" + course_id +"');";
+    line = search_strength.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nERROR: No Student Details Found.... Please wait till the corresponding faculty awards marks to students and Try Again..." << endl;
+	cout << endl;
+	clear_screen();
+	return;
+    }
+    string search_type = "SELECT COURSETYPE FROM COURSE WHERE COURSECODE = '" + course_id +"' AND SECTION = '"+ section_id +"';";
+    line = search_type.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
+    course_type = gbl_info[0];
+    system("CLS");
+    cout << "\nDisplaying Details of student(s)..." << endl;
+    if(course_type == "T"){
+    cout << "\nROLL NUMBER\tNAME\t\t\t\t\t SECTION\tM1\tA1\tMSE1\tM2\tA2\tMSE2\tINT\tESE"<< endl;
+    string search_grade = "SELECT G.STUDENTID, S.STUDENTNAME, G.SECTIONID, G.M1, G.A1, G.MSE1, G.M2, G.A2, G.MSE2, G.INTERNALS, G.EXTERNALS FROM GRADEREPORT G LEFT JOIN STUDENT S ON G.STUDENTID = S.STUDENTID WHERE COURSEID = '" + course_id + "' AND SECTIONID = '" + section_id + "'";
+    line = search_grade.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, view_grade_details, 0, &zErrMsg);
+    sqlite3_close(db);
+    cout << endl;
+    cout << "Details of all student(s) displayed successfully..." << endl;
+    cout << endl;
+    }
+    else{
+    cout << "\nROLL NUMBER\tNAME\t\t\t\t\t SECTION\tINT\tESE"<< endl;
+    string search_grade = "SELECT G.STUDENTID, S.STUDENTNAME, G.SECTIONID, G.INTERNALS, G.EXTERNALS FROM GRADEREPORT G LEFT JOIN STUDENT S ON G.STUDENTID = S.STUDENTID WHERE COURSEID = '" + course_id + "' AND SECTIONID = '" + section_id + "'";
+    line = search_grade.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, view_grade_details, 0, &zErrMsg);
+    sqlite3_close(db);
+    cout << endl;
+    cout << "Details of all student(s) displayed successfully..." << endl;
+    cout << endl;
+    }
+    clear_screen();
+    return;
+}
+
+void class_teacher :: view_overall_marks(string section_id){
+
+}
+
+void class_teacher :: class_teacher_main_menu(student* s, class_teacher &ct, string clstchr_id, string section_id){
+    course_teacher t;
+    teacher_id = clstchr_id;
+    int option = 0;
+	while(option !=5){
+    a: cout << "\nWelcome " << teacher_id << "\n\n";
+	cout << "Logged in as Class Teacher\nYou are currently accessing operations of Section :" + section_id << endl;
+	cout << "\nPersonal Info : " << endl;
+	t.view_account(teacher_id);
+    cout << "\nType '1' ----> To Generate Result (Mandatory) Warning!!! : To be run only once.\n";
+    cout << "Type '2' ----> View Subject-Wise Marks\n";
+    cout << "Type '3' ----> View Student Marks (Overall)\n";
+    cout << "Type '4' ----> View other allotted sections/Update Password\n";
+    cout << "Type '5' ----> Back to Main Menu\n";
+    cout << "\nEnter Here : ";
+    cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	b: error_message();
+	goto a;
+	}
+	option = stoi(excp);
+	if(option>5 || option<1){
+    goto b;
+	}
+    else if(option == 1){
+    system("CLS");
+    /*
+    generate(s,ct);
+    cout << "\n\nMarks Generated Successfully... \n\nWarning!!! : Please Don't Generate Again\n\n";
+    system("PAUSE");
+    system("CLS");
+    */
+    }
+    else if(option == 2){
+    system("CLS");
+    view_subject_wise_marks(section_id);
+    }
+    else if(option == 3){
+    system("CLS");
+    view_overall_marks(section_id);
+	}
+	else if(option == 4){
+    system("CLS");
+    t.teacher_main_menu(t, teacher_id);
+	}
+	}
+	if(option == 5){
+	cout << "Redirecting back to Main Menu\n";
+	clear_screen();
+	return;
+	}
+}
+
 void course_teacher :: add_student_marks(string faculty_id){
     sqlite3 *db;
     int rc, num;
@@ -2583,8 +2706,9 @@ void course_teacher :: add_student_marks(string faculty_id){
     clear_screen();
     return;
     }
+    cout << endl;
     if(course_type == "T"){
-    c : cout << "\nEnter minor 1 marks of " << course_id << " : ";
+    c : cout << "Enter minor 1 marks of " << course_id << " : ";
     cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
@@ -2687,7 +2811,7 @@ void course_teacher :: add_student_marks(string faculty_id){
     goto c;
     }
     else{
-    s: cout << "\nEnter internal marks of " << course_id << " : ";
+    s: cout << "Enter internal marks of " << course_id << " : ";
 	cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
@@ -3178,18 +3302,19 @@ void course_teacher :: view_account(string faculty_id){
     const char *line = search_faculty.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, view_faculty_account, 0, &zErrMsg);
-    cout << "\n\n" << endl;
     sqlite3_close(db);
     return;
 }
 
-void course_teacher :: teacher_main_menu(course_teacher &t){
+void course_teacher :: teacher_main_menu(course_teacher &t, string clstchr_id){
 	int option = 0;
+    if(clstchr_id != "")
+    teacher_id = clstchr_id;
 	while(option !=5){
     a: cout << "\nWelcome " << teacher_id << "\n\n\n";
 	cout << "Personal Info : " << endl;
 	t.view_account(teacher_id);
-    cout << "Type '1' ----> Add Student Marks\n";
+    cout << "\nType '1' ----> Add Student Marks\n";
     cout << "Type '2' ----> Update Student Marks\n";
     cout << "Type '3' ----> View Overall Marks\n";
 	cout << "Type '4' ----> Update My Password\n";
@@ -3223,57 +3348,13 @@ void course_teacher :: teacher_main_menu(course_teacher &t){
     }
 	}
 	if(option == 5){
+    if(clstchr_id != "")
+	cout << "Redirecting back....\n";
+    else
 	cout << "Redirecting back to Main Menu\n";
 	clear_screen();
 	return;
 	}
-}
-
-void class_teacher :: class_teacher_main_menu(student* s, class_teacher &ct, string &clstchr_id, string &section_id){
-    course_teacher t;
-    teacher_id = clstchr_id;
-    cout << "\nWelcome " << teacher_id << "\n\n\n";
-	cout << "Personal Info : " << endl;
-	t.view_account(teacher_id);
-    /*
-    int option = 0;
-	while(option !=4){
-		a: cout << "\nWelcome " << class_teacher_id << "\n\n\n";
-		cout << "Type '1' ----> To Generate Result (Mandatory) Warning!!! : To be run only once.\n";
-		cout << "Type '2' ----> View Subject-Wise Marks\n";
-		cout << "Type '3' ----> View Student Marks (Overall)\n";
-		cout << "Type '4' ----> Back to Main Menu\n";
-		cout << "\nEnter Here : ";
-		cin >> option;
-		if(option>4 || option<1){
-		cout << "\nChoose a Valid Option (1-4)\n\n";
-		system("PAUSE");
-		system("CLS");
-		goto a;
-		}
-		else if(option == 1){
-		system("CLS");
-		generate(s,ct);
-		cout << "\n\nMarks Generated Successfully... \n\nWarning!!! : Please Don't Generate Again\n\n";
-		system("PAUSE");
-		system("CLS");
-		}
-		else if(option == 2){
-		system("CLS");
-		view_subject_wise_marks();
-		}
-		else if(option == 3){
-		system("CLS");
-		view_overall_marks();
-	}
-	if(option == 4){
-	cout << "Redirecting back to Main Menu\n";
-	system("PAUSE");
-	system("CLS");
-	return;
-	}
-  }
-  */
 }
 
 int section :: login_student(){
@@ -3379,7 +3460,6 @@ void section :: view_account(string student_id){
     const char *line = search_student.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, view_student_account, 0, &zErrMsg);
-    cout << "\n\n" << endl;
     sqlite3_close(db);
     return;
 }
@@ -3455,7 +3535,7 @@ void main_menu(){
 	course_teacher t;
 	int exist = t.login_teacher(cls,clstchr_id,section_id);
 	if(exist!=-1 && cls==false)
-	t.teacher_main_menu(t);
+	t.teacher_main_menu(t, "");
 	else if(exist!=-1 && cls==true){
     student s[60];
     class_teacher ct;
