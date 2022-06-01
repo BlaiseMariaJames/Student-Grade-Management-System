@@ -196,10 +196,34 @@ static int view_clstchr_details(void *NotUsed, int argc, char **argv, char **azC
     return 0;
 }
 
-static int view_grade_details(void *NotUsed, int argc, char **argv, char **azColName){
+static int view_theoretical_ungraded_details(void *NotUsed, int argc, char **argv, char **azColName){
 	string gbl_input[100];
 	for(int i = 0; i<argc; i++){
-    gbl_input[i] = (argv[i] ? argv[i] : "NA");
+    gbl_input[i] = (argv[i] ? argv[i] : "");
+    }
+    for(int i=0; i<argc; i++){
+    if(i%3==0)
+    cout << gbl_input[i] << "        " << gbl_input[i+1] << gbl_input[i+2] << "\t\tNA\tNA\t NA\tNA\tNA\t NA\tNA\tNA" << endl;
+    }
+    return 0;
+}
+
+static int view_practical_ungraded_details(void *NotUsed, int argc, char **argv, char **azColName){
+	string gbl_input[100];
+	for(int i = 0; i<argc; i++){
+    gbl_input[i] = (argv[i] ? argv[i] : "");
+    }
+    for(int i=0; i<argc; i++){
+    if(i%3==0)
+    cout << gbl_input[i] << "        " << gbl_input[i+1] << gbl_input[i+2] << "\t\tNA\tNA" << endl;
+    }
+    return 0;
+}
+
+static int view_graded_details(void *NotUsed, int argc, char **argv, char **azColName){
+	string gbl_input[100];
+	for(int i = 0; i<argc; i++){
+    gbl_input[i] = (argv[i] ? argv[i] : "");
     }
     for(int i=0; i<argc; i++){
     if(i%11==0)
@@ -2528,10 +2552,14 @@ void class_teacher :: view_subject_wise_marks(string section_id){
     string search_grade = "SELECT G.STUDENTID, S.STUDENTNAME, G.SECTIONID, G.M1, G.A1, G.MSE1, G.M2, G.A2, G.MSE2, G.INTERNALS, G.EXTERNALS FROM GRADEREPORT G LEFT JOIN STUDENT S ON G.STUDENTID = S.STUDENTID WHERE COURSEID = '" + course_id + "' AND SECTIONID = '" + section_id + "'";
     line = search_grade.c_str();
     sql = strdup(line);
-    rc = sqlite3_exec(db, sql, view_grade_details, 0, &zErrMsg);
+    rc = sqlite3_exec(db, sql, view_graded_details, 0, &zErrMsg);
+    search_grade = "SELECT S.STUDENTID, S.STUDENTNAME, S.SECTION FROM STUDENT S WHERE S.STUDENTID NOT IN (SELECT G.STUDENTID FROM GRADEREPORT G WHERE G.COURSEID = '"+ course_id +"' AND G.SECTIONID = '"+ section_id +"') AND S.SECTION = '"+ section_id +"';";
+    line = search_grade.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, view_theoretical_ungraded_details, 0, &zErrMsg);
     sqlite3_close(db);
     cout << endl;
-    cout << "Details of all student(s) displayed successfully..." << endl;
+    cout << "Note : NA ---> Not Awarded\n\nDetails of all student(s) displayed successfully..." << endl;
     cout << endl;
     }
     else{
@@ -2539,10 +2567,15 @@ void class_teacher :: view_subject_wise_marks(string section_id){
     string search_grade = "SELECT G.STUDENTID, S.STUDENTNAME, G.SECTIONID, G.INTERNALS, G.EXTERNALS FROM GRADEREPORT G LEFT JOIN STUDENT S ON G.STUDENTID = S.STUDENTID WHERE COURSEID = '" + course_id + "' AND SECTIONID = '" + section_id + "'";
     line = search_grade.c_str();
     sql = strdup(line);
-    rc = sqlite3_exec(db, sql, view_grade_details, 0, &zErrMsg);
+    rc = sqlite3_exec(db, sql, view_graded_details, 0, &zErrMsg);
+    search_grade = "SELECT S.STUDENTID, S.STUDENTNAME, S.SECTION FROM STUDENT S WHERE S.STUDENTID NOT IN (SELECT G.STUDENTID FROM GRADEREPORT G WHERE G.COURSEID = '"+ course_id +"' AND G.SECTIONID = '"+ section_id +"') AND S.SECTION = '"+ section_id +"';";
+    line = search_grade.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, view_practical_ungraded_details, 0, &zErrMsg);
+    cout << endl;
     sqlite3_close(db);
     cout << endl;
-    cout << "Details of all student(s) displayed successfully..." << endl;
+    cout << "Note : NA ---> Not Awarded\n\nDetails of all student(s) displayed successfully..." << endl;
     cout << endl;
     }
     clear_screen();
@@ -2994,7 +3027,7 @@ void course_teacher :: update_student_marks(string faculty_id){
     string search_grade = "SELECT G.STUDENTID, S.STUDENTNAME, G.SECTIONID, G.M1, G.A1, G.MSE1, G.M2, G.A2, G.MSE2, G.INTERNALS, G.EXTERNALS FROM GRADEREPORT G LEFT JOIN STUDENT S ON G.STUDENTID = S.STUDENTID WHERE COURSEID = '" + course_id + "' AND SECTIONID = '" + section_id + "'";
     line = search_grade.c_str();
     sql = strdup(line);
-    rc = sqlite3_exec(db, sql, view_grade_details, 0, &zErrMsg);
+    rc = sqlite3_exec(db, sql, view_graded_details, 0, &zErrMsg);
     cout << endl;
     }
     else{
@@ -3002,7 +3035,7 @@ void course_teacher :: update_student_marks(string faculty_id){
     string search_grade = "SELECT G.STUDENTID, S.STUDENTNAME, G.SECTIONID, G.INTERNALS, G.EXTERNALS FROM GRADEREPORT G LEFT JOIN STUDENT S ON G.STUDENTID = S.STUDENTID WHERE COURSEID = '" + course_id + "' AND SECTIONID = '" + section_id + "'";
     line = search_grade.c_str();
     sql = strdup(line);
-    rc = sqlite3_exec(db, sql, view_grade_details, 0, &zErrMsg);
+    rc = sqlite3_exec(db, sql, view_graded_details, 0, &zErrMsg);
     cout << endl;
     }
     cout << "Enter the ID to be updated : ";
@@ -3034,7 +3067,7 @@ void course_teacher :: update_student_marks(string faculty_id){
     string search_grade = "SELECT G.STUDENTID, S.STUDENTNAME, G.SECTIONID, G.M1, G.A1, G.MSE1, G.M2, G.A2, G.MSE2, G.INTERNALS, G.EXTERNALS FROM GRADEREPORT G LEFT JOIN STUDENT S ON G.STUDENTID = S.STUDENTID WHERE COURSEID = '" + course_id + "' AND SECTIONID = '" + section_id + "'";
     line = search_grade.c_str();
     sql = strdup(line);
-    rc = sqlite3_exec(db, sql, view_grade_details, 0, &zErrMsg);
+    rc = sqlite3_exec(db, sql, view_graded_details, 0, &zErrMsg);
     cout << endl;
     cout << "Enter the ID to be updated : " << student_id << endl;
 	goto e;
@@ -3118,7 +3151,7 @@ void course_teacher :: update_student_marks(string faculty_id){
     string search_grade = "SELECT G.STUDENTID, S.STUDENTNAME, G.SECTIONID, G.INTERNALS, G.EXTERNALS FROM GRADEREPORT G LEFT JOIN STUDENT S ON G.STUDENTID = S.STUDENTID WHERE COURSEID = '" + course_id + "' AND SECTIONID = '" + section_id + "'";
     line = search_grade.c_str();
     sql = strdup(line);
-    rc = sqlite3_exec(db, sql, view_grade_details, 0, &zErrMsg);
+    rc = sqlite3_exec(db, sql, view_graded_details, 0, &zErrMsg);
     cout << endl;
     cout << "Enter the ID to be updated : " << student_id << endl;
 	goto g;
@@ -3226,9 +3259,13 @@ void course_teacher :: view_overall_marks(string faculty_id){
     string search_grade = "SELECT G.STUDENTID, S.STUDENTNAME, G.SECTIONID, G.M1, G.A1, G.MSE1, G.M2, G.A2, G.MSE2, G.INTERNALS, G.EXTERNALS FROM GRADEREPORT G LEFT JOIN STUDENT S ON G.STUDENTID = S.STUDENTID WHERE COURSEID = '" + course_id + "' AND SECTIONID = '" + section_id + "'";
     line = search_grade.c_str();
     sql = strdup(line);
-    rc = sqlite3_exec(db, sql, view_grade_details, 0, &zErrMsg);
+    rc = sqlite3_exec(db, sql, view_graded_details, 0, &zErrMsg);
+    search_grade = "SELECT S.STUDENTID, S.STUDENTNAME, S.SECTION FROM STUDENT S WHERE S.STUDENTID NOT IN (SELECT G.STUDENTID FROM GRADEREPORT G WHERE G.COURSEID = '"+ course_id +"' AND G.SECTIONID = '"+ section_id +"') AND S.SECTION = '"+ section_id +"';";
+    line = search_grade.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, view_theoretical_ungraded_details, 0, &zErrMsg);
     cout << endl;
-    cout << "Details of all student(s) displayed successfully..." << endl;
+    cout << "Note : NA ---> Not Awarded\n\nDetails of all student(s) displayed successfully..." << endl;
     cout << endl;
     }
     else{
@@ -3236,9 +3273,13 @@ void course_teacher :: view_overall_marks(string faculty_id){
     string search_grade = "SELECT G.STUDENTID, S.STUDENTNAME, G.SECTIONID, G.INTERNALS, G.EXTERNALS FROM GRADEREPORT G LEFT JOIN STUDENT S ON G.STUDENTID = S.STUDENTID WHERE COURSEID = '" + course_id + "' AND SECTIONID = '" + section_id + "'";
     line = search_grade.c_str();
     sql = strdup(line);
-    rc = sqlite3_exec(db, sql, view_grade_details, 0, &zErrMsg);
+    rc = sqlite3_exec(db, sql, view_graded_details, 0, &zErrMsg);
+    search_grade = "SELECT S.STUDENTID, S.STUDENTNAME, S.SECTION FROM STUDENT S WHERE S.STUDENTID NOT IN (SELECT G.STUDENTID FROM GRADEREPORT G WHERE G.COURSEID = '"+ course_id +"' AND G.SECTIONID = '"+ section_id +"') AND S.SECTION = '"+ section_id +"';";
+    line = search_grade.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, view_practical_ungraded_details, 0, &zErrMsg);
     cout << endl;
-    cout << "Details of all student(s) displayed successfully..." << endl;
+    cout << "Note : NA ---> Not Awarded\n\nDetails of all student(s) displayed successfully..." << endl;
     cout << endl;
     }
     clear_screen();
