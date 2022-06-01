@@ -1,7 +1,7 @@
 #include<ctime>
-#include<sstream>
+//#include<sstream>
 #include<iostream>
-#include<stdlib.h>
+//#include<stdlib.h>
 #include<string.h>
 #include<algorithm>
 #include<sqlite3.h>
@@ -2547,8 +2547,18 @@ void course_teacher :: add_student_marks(string faculty_id){
     course_type = gbl_info[0];
     system("CLS");
     cout << "Entering details of Section" << section_id << endl;
-    cout << "\nEnter the number of student(s) : ";
-    cin >> num;
+    a: cout << "\nEnter the number of student(s) : ";
+    cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	b : error_message();
+	cout << "Entering details of Section" << section_id << endl;
+	goto a;
+	}
+	num = stoi(excp);
+	if(num>60 || num<1){
+	goto b;
+	}
     cout << "\nEntering Details of " << num << " student(s)..." << endl;
     for(int i = 0; i<num; i++){
     cout << "\nEnter Roll Number : ";
@@ -2574,95 +2584,95 @@ void course_teacher :: add_student_marks(string faculty_id){
     return;
     }
     if(course_type == "T"){
-    a : cout << "\nEnter minor 1 marks of " << course_id << " : ";
+    c : cout << "\nEnter minor 1 marks of " << course_id << " : ";
     cin >> excp;
-	roc = check_exception(excp);
-	while(roc){
-	b: cout << "Choose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
-	goto a;
-	}
-	marks[0] = stoi(excp);
-	if(marks[0]>10 || marks[0]<0){
-    goto b;
-	}
-	c : cout << "Enter assignment 1 marks of " << course_id << " : ";
-	cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
 	d: cout << "Choose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
 	goto c;
 	}
-	marks[1] = stoi(excp);
-	if(marks[1]>10 || marks[1]<0){
+	marks[0] = stoi(excp);
+	if(marks[0]>10 || marks[0]<0){
     goto d;
 	}
-	e : cout << "Enter mse 1 marks of " << course_id << " : ";
+	e : cout << "Enter assignment 1 marks of " << course_id << " : ";
 	cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
 	f: cout << "Choose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
 	goto e;
 	}
-	marks[2] = stoi(excp);
-	if(marks[2]>30 || marks[2]<0){
+	marks[1] = stoi(excp);
+	if(marks[1]>10 || marks[1]<0){
     goto f;
 	}
-	g : cout << "Enter minor 2 marks of " << course_id << " : ";
+	g : cout << "Enter mse 1 marks of " << course_id << " : ";
 	cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
 	h: cout << "Choose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
 	goto g;
 	}
-	marks[3] = stoi(excp);
-	if(marks[3]>10 || marks[3]<0){
+	marks[2] = stoi(excp);
+	if(marks[2]>30 || marks[2]<0){
     goto h;
 	}
-	i : cout << "Enter assignment 2 marks of " << course_id << " : ";
+	i : cout << "Enter minor 2 marks of " << course_id << " : ";
 	cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
 	j: cout << "Choose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
 	goto i;
 	}
-	marks[4] = stoi(excp);
-	if(marks[4]>10 || marks[4]<0){
+	marks[3] = stoi(excp);
+	if(marks[3]>10 || marks[3]<0){
     goto j;
 	}
-	k : cout << "Enter mse 2 marks of " << course_id << " : ";
+	k : cout << "Enter assignment 2 marks of " << course_id << " : ";
 	cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
 	l: cout << "Choose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
 	goto k;
 	}
-	marks[5] = stoi(excp);
-	if(marks[5]>30 || marks[5]<0){
+	marks[4] = stoi(excp);
+	if(marks[4]>10 || marks[4]<0){
     goto l;
 	}
-	m : cout << "Enter ese marks of " << course_id << " : ";
+	m : cout << "Enter mse 2 marks of " << course_id << " : ";
 	cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
 	n: cout << "Choose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
 	goto m;
 	}
-	marks[6] = stoi(excp);
-	if(marks[6]>60 || marks[6]<0){
+	marks[5] = stoi(excp);
+	if(marks[5]>30 || marks[5]<0){
     goto n;
 	}
-	o: cout << "\n\nAre you sure that the entered marks are correct  ? ";
+	o : cout << "Enter ese marks of " << course_id << " : ";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	p: cout << "Choose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
+	goto o;
+	}
+	marks[6] = stoi(excp);
+	if(marks[6]>60 || marks[6]<0){
+    goto p;
+	}
+	q: cout << "\n\nAre you sure that the entered marks are correct  ? ";
 	cout << "\nPress '1' if 'YES' or '2' if 'NO'";
 	cout << "\nEnter Here : ";
 	cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
-    p: cout << "Choose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
-	goto o;
+    r: cout << "Choose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
+	goto q;
 	}
 	int choice = stoi(excp);
 	if(choice!=1 && choice!=2){
-    goto p;
+    goto r;
 	}
     if(choice == 1){
     float teacher_assessment = (marks[0] + marks[1] + marks[3] + marks[4])/4;
@@ -2674,43 +2684,43 @@ void course_teacher :: add_student_marks(string faculty_id){
     rc = sqlite3_exec(db, sql, create_insert_table, 0, &zErrMsg);
     }
     if(choice == 2)
-    goto a;
+    goto c;
     }
     else{
-    q: cout << "\nEnter internal marks of " << course_id << " : ";
-	cin >> excp;
-	roc = check_exception(excp);
-	while(roc){
-	r: cout << "Choose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
-	goto q;
-	}
-	marks[0] = stoi(excp);
-	if(marks[0]>40 || marks[0]<0){
-    goto r;
-	}
-	s : cout << "Enter external marks of " << course_id << " : ";
+    s: cout << "\nEnter internal marks of " << course_id << " : ";
 	cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
 	t: cout << "Choose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
 	goto s;
 	}
-	marks[1] = stoi(excp);
-	if(marks[1]>60 || marks[1]<0){
+	marks[0] = stoi(excp);
+	if(marks[0]>40 || marks[0]<0){
     goto t;
 	}
-	u: cout << "\n\nAre you sure that the entered marks are correct  ? ";
+	u : cout << "Enter external marks of " << course_id << " : ";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	v: cout << "Choose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
+	goto u;
+	}
+	marks[1] = stoi(excp);
+	if(marks[1]>60 || marks[1]<0){
+    goto v;
+	}
+	w: cout << "\n\nAre you sure that the entered marks are correct  ? ";
 	cout << "\nPress '1' if 'YES' or '2' if 'NO'";
 	cout << "\nEnter Here : ";
 	cin >> excp;
 	roc = check_exception(excp);
 	while(roc){
-    v: cout << "Choose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
-	goto u;
+    x: cout << "Choose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
+	goto w;
 	}
 	int choice = stoi(excp);
 	if(choice!=1 && choice!=2){
-    goto v;
+    goto x;
 	}
     if(choice == 1){
     string insert_marks = "INSERT INTO GRADEREPORT (COURSEID,STUDENTID,SECTIONID,INTERNALS,EXTERNALS) VALUES ('" + course_id + "', '" + student_id + "', '" + section_id + "', '" + to_string(marks[0]) + "', '" + to_string(marks[1])  + "');";
@@ -2719,7 +2729,7 @@ void course_teacher :: add_student_marks(string faculty_id){
     rc = sqlite3_exec(db, sql, create_insert_table, 0, &zErrMsg);
     }
     if(choice == 2)
-    goto q;
+    goto s;
     }
     }
     sqlite3_close(db);
@@ -2731,10 +2741,10 @@ void course_teacher :: add_student_marks(string faculty_id){
 
 void course_teacher :: update_student_marks(string faculty_id){
     sqlite3 *db;
-    int rc, num;
-    float marks[7];
+    int rc, num, option = 0;
 	char *zErrMsg, *sql;
-    string student_id, section_id, course_id, course_type;
+    float marks[7], new_marks;
+    string student_id, section_id, course_id, course_type, update_marks;
     sqlite3_open("SAMS.db", &db);
     string check_crstchr = "SELECT EXISTS(SELECT * from COURSE WHERE CRSTCHR = '"+ faculty_id +"');";
     const char *line = check_crstchr.c_str();
@@ -2749,7 +2759,7 @@ void course_teacher :: update_student_marks(string faculty_id){
 	cout << "\nDisplaying Details of Course(s) you are allotted to...\n" << endl;
 	cout << "   SEC CODE" << endl;
     view_table("COURSE",faculty_id, "");
-    cout << "\nRegistering the details of Section and Course whose marks are to be updated..." << endl;
+    cout << "\nRegistering the details of Section and Course whose marks are to be displayed..." << endl;
     cout << "\nEnter Section : ";
 	cin >> section_id;
 	section_id = "  " + section_id;
@@ -2763,7 +2773,7 @@ void course_teacher :: update_student_marks(string faculty_id){
     clear_screen();
     return;
     }
-	string search_strength = "SELECT EXISTS(SELECT * from STUDENT WHERE SECTION = '"+ section_id +"' AND STUDYING = 'Y');";
+    string search_strength = "SELECT EXISTS(SELECT * from STUDENT WHERE SECTION = '"+ section_id +"' AND STUDYING = 'Y');";
     line = search_strength.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
@@ -2800,6 +2810,218 @@ void course_teacher :: update_student_marks(string faculty_id){
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
     course_type = gbl_info[0];
+    system("CLS");
+    while(option != 8){
+    if(course_type == "T"){
+    a: cout << "Selected Section :" << section_id << "  Selected Course : " << course_id << endl;
+    cout << "\nSelect the field to be updated...\n\n\n";
+	cout << "Type '1' ----> Update Minor 1 Marks\n";
+	cout << "Type '2' ----> Update Assignment 1 Marks\n";
+	cout << "Type '3' ----> Update Mse 1 Marks\n";
+	cout << "Type '4' ----> Update Minor 2 Marks\n";
+	cout << "Type '5' ----> Update Assignment 2 Marks\n";
+	cout << "Type '6' ----> Update Mse 2 Marks\n";
+	cout << "Type '7' ----> Update Ese Marks\n";
+	cout << "Type '8' ----> Back to Main Menu\n";
+	cout << "\nEnter Here : ";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	b: error_message();
+	goto a;
+	}
+	option = stoi(excp);
+	if(option>8 || option<1){
+    goto b;
+	}
+	if(option == 8){
+	cout << "Redirecting back...\n";
+	clear_screen();
+	return;
+	}
+    }
+	else{
+    c: cout << "Selected Section :" << section_id << "  Selected Course : " << course_id << endl;
+    cout << "\nSelect the field to be updated...\n\n\n";
+	cout << "Type '1' ----> Update Internal Marks\n";
+	cout << "Type '2' ----> Update External Marks\n";
+	cout << "Type '3' ----> Back to Main Menu\n";
+	cout << "\nEnter Here : ";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	d: error_message();
+	goto c;
+	}
+	option = stoi(excp);
+	if(option>3 || option<1){
+    goto d;
+	}
+    if(option == 3){
+	cout << "Redirecting back...\n";
+	clear_screen();
+	return;
+	}
+	}
+    system("CLS");
+    cout << "\nDisplaying Details of student(s)..." << endl;
+    if(course_type == "T"){
+    cout << "\nROLL NUMBER\tNAME\t\t\t\t\t SECTION\tM1\tA1\tMSE1\tM2\tA2\tMSE2\tINT\tESE"<< endl;
+    string search_grade = "SELECT G.STUDENTID, S.STUDENTNAME, G.SECTIONID, G.M1, G.A1, G.MSE1, G.M2, G.A2, G.MSE2, G.INTERNALS, G.EXTERNALS FROM GRADEREPORT G LEFT JOIN STUDENT S ON G.STUDENTID = S.STUDENTID WHERE COURSEID = '" + course_id + "' AND SECTIONID = '" + section_id + "'";
+    line = search_grade.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, view_grade_details, 0, &zErrMsg);
+    cout << endl;
+    }
+    else{
+    cout << "\nROLL NUMBER\tNAME\t\t\t\t\t SECTION\tINT\tESE"<< endl;
+    string search_grade = "SELECT G.STUDENTID, S.STUDENTNAME, G.SECTIONID, G.INTERNALS, G.EXTERNALS FROM GRADEREPORT G LEFT JOIN STUDENT S ON G.STUDENTID = S.STUDENTID WHERE COURSEID = '" + course_id + "' AND SECTIONID = '" + section_id + "'";
+    line = search_grade.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, view_grade_details, 0, &zErrMsg);
+    cout << endl;
+    }
+    cout << "Enter the ID to be updated : ";
+    cin >> student_id;
+    string search_student = "SELECT EXISTS(SELECT * from GRADEREPORT WHERE STUDENTID = '"+ student_id +"' AND SECTIONID = '"+ section_id +"' AND COURSEID = '" + course_id +"');";
+    line = search_student.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nStudent with requested ID doesn't exist..." << endl;
+    cout << "\nUnable to update requested details of student... Try Again using valid ID...\n" << endl;
+    clear_screen();
+    return;
+    }
+    if(course_type == "T"){
+    string search_type = "SELECT M1, A1, MSE1, M2, A2, MSE2 FROM GRADEREPORT WHERE COURSEID = '" + course_id +"' AND SECTIONID = '"+ section_id +"' AND STUDENTID = '"+ student_id +"';";
+    line = search_type.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
+    for(int i=0; i<6; i++)
+    marks[i] = stof(gbl_info[i]);
+    e: cout << "Enter updated marks : ";
+    cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	f: error_message();
+	cout << "\nDisplaying Details of student(s)..." << endl;
+    cout << "\nROLL NUMBER\tNAME\t\t\t\t\t SECTION\tM1\tA1\tMSE1\tM2\tA2\tMSE2\tINT\tESE"<< endl;
+    string search_grade = "SELECT G.STUDENTID, S.STUDENTNAME, G.SECTIONID, G.M1, G.A1, G.MSE1, G.M2, G.A2, G.MSE2, G.INTERNALS, G.EXTERNALS FROM GRADEREPORT G LEFT JOIN STUDENT S ON G.STUDENTID = S.STUDENTID WHERE COURSEID = '" + course_id + "' AND SECTIONID = '" + section_id + "'";
+    line = search_grade.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, view_grade_details, 0, &zErrMsg);
+    cout << endl;
+    cout << "Enter the ID to be updated : " << student_id << endl;
+	goto e;
+	}
+	new_marks = stoi(excp);
+    if(option != 7){
+    if(option == 1){
+    if(new_marks>10 || new_marks<0)
+    goto f;
+    marks[0] = new_marks;
+    update_marks = "UPDATE GRADEREPORT SET M1 = " + to_string(new_marks) + " WHERE COURSEID = '" + course_id +"' AND SECTIONID = '"+ section_id +"' AND STUDENTID = '"+ student_id +"';";
+    }
+    else if(option == 2){
+    if(new_marks>10 || new_marks<0)
+    goto f;
+    marks[1] = new_marks;
+    update_marks = "UPDATE GRADEREPORT SET A1 = " + to_string(new_marks) + " WHERE COURSEID = '" + course_id +"' AND SECTIONID = '"+ section_id +"' AND STUDENTID = '"+ student_id +"';";
+    }
+    else if(option == 3){
+    if(new_marks>30 || new_marks<0)
+    goto f;
+    marks[2] = new_marks;
+    update_marks = "UPDATE GRADEREPORT SET MSE1 = " + to_string(new_marks) + " WHERE COURSEID = '" + course_id +"' AND SECTIONID = '"+ section_id +"' AND STUDENTID = '"+ student_id +"';";
+    }
+    else if(option == 4){
+    if(new_marks>10 || new_marks<0)
+    goto f;
+    marks[3] = new_marks;
+    update_marks = "UPDATE GRADEREPORT SET M2 = " + to_string(new_marks) + " WHERE COURSEID = '" + course_id +"' AND SECTIONID = '"+ section_id +"' AND STUDENTID = '"+ student_id +"';";
+    }
+    else if(option == 5){
+    if(new_marks>10 || new_marks<0)
+    goto f;
+    marks[4] = new_marks;
+    update_marks = "UPDATE GRADEREPORT SET A2 = " + to_string(new_marks) + " WHERE COURSEID = '" + course_id +"' AND SECTIONID = '"+ section_id +"' AND STUDENTID = '"+ student_id +"';";
+    }
+    else if(option == 6){
+    if(new_marks>30 || new_marks<0)
+    goto f;
+    marks[5] = new_marks;
+    update_marks = "UPDATE GRADEREPORT SET MSE2 = " + to_string(new_marks) + " WHERE COURSEID = '" + course_id +"' AND SECTIONID = '"+ section_id +"' AND STUDENTID = '"+ student_id +"';";
+    }
+    const char *line = update_marks.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+    float teacher_assessment = (marks[0] + marks[1] + marks[3] + marks[4])/4;
+    float mid_average = (marks[2] > marks[5]) ? ((0.7 * marks[2]) + (0.3 * marks[5])) : ((0.7 * marks[5]) + (0.3 * marks[2]));
+    float internal_marks = teacher_assessment + mid_average;
+    update_marks = "UPDATE GRADEREPORT SET INTERNALS = " + to_string(internal_marks) + " WHERE COURSEID = '" + course_id +"' AND SECTIONID = '"+ section_id +"' AND STUDENTID = '"+ student_id +"';";
+    line = update_marks.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+    sqlite3_close(db);
+    cout << "\nRequested details updated successfully..." << endl;
+    cout << endl;
+    clear_screen();
+    return;
+    }
+    else{
+    if(new_marks>60 || new_marks<0)
+    goto f;
+    update_marks = "UPDATE GRADEREPORT SET EXTERNALS = " + to_string(new_marks) + " WHERE COURSEID = '" + course_id +"' AND SECTIONID = '"+ section_id +"' AND STUDENTID = '"+ student_id +"';";
+    line = update_marks.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+    sqlite3_close(db);
+    cout << "\nRequested details updated successfully..." << endl;
+    cout << endl;
+    clear_screen();
+    return;
+    }
+    }
+    else{
+    g: cout << "Enter updated marks : ";
+    cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	h: error_message();
+	cout << "\nDisplaying Details of student(s)..." << endl;
+    cout << "\nROLL NUMBER\tNAME\t\t\t\t\t SECTION\tINT\tESE"<< endl;
+    string search_grade = "SELECT G.STUDENTID, S.STUDENTNAME, G.SECTIONID, G.INTERNALS, G.EXTERNALS FROM GRADEREPORT G LEFT JOIN STUDENT S ON G.STUDENTID = S.STUDENTID WHERE COURSEID = '" + course_id + "' AND SECTIONID = '" + section_id + "'";
+    line = search_grade.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, view_grade_details, 0, &zErrMsg);
+    cout << endl;
+    cout << "Enter the ID to be updated : " << student_id << endl;
+	goto g;
+	}
+	new_marks = stoi(excp);
+    if(option == 1){
+    if(new_marks>40 || new_marks<0)
+    goto h;
+    update_marks = "UPDATE GRADEREPORT SET INTERNALS = " + to_string(new_marks) + " WHERE COURSEID = '" + course_id +"' AND SECTIONID = '"+ section_id +"' AND STUDENTID = '"+ student_id +"';";
+    }
+    else if(option == 2){
+    if(new_marks>60 || new_marks<0)
+    goto h;
+    update_marks = "UPDATE GRADEREPORT SET EXTERNALS = " + to_string(new_marks) + " WHERE COURSEID = '" + course_id +"' AND SECTIONID = '"+ section_id +"' AND STUDENTID = '"+ student_id +"';";
+    }
+    const char *line = update_marks.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+    sqlite3_close(db);
+    cout << "\nRequested details updated successfully..." << endl;
+    cout << endl;
+    clear_screen();
+    return;
+    }
+    }
+    clear_screen();
+    return;
 }
 
 void course_teacher :: view_overall_marks(string faculty_id){
