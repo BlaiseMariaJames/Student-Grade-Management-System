@@ -2606,10 +2606,38 @@ void class_teacher :: read(student &s, string student_id, string section_id){
     course_type[i] = gbl_info[1];
     course_credits[i] = stoi(gbl_info[2]);
     }
-    /*
-    for(int i=0; i<course_count; i++)
-    cout << course_id[i] << course_type[i] << course_credits[i] << endl;
-    */
+    for(int i=0; i<course_count; i++){
+    string search_student = "SELECT EXISTS(SELECT S.STUDENTID FROM STUDENT S WHERE S.SECTION = '"+ section_id +"' AND S.STUDENTID NOT IN (SELECT G.STUDENTID FROM GRADEREPORT G WHERE G.COURSEID = '"+ course_id[i] +"' AND S.STUDENTID = '"+ student_id +"'));";
+    line = search_student.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc!=0){
+    cout << "\nStudent with id " + student_id + " is not awarded with marks in the Course "+ course_id[i] +" ..." << endl;
+    cout << "\nUnable to access requested details of Student... Please wait till the corresponding faculty awards marks to students and Try Again...\n" << endl;
+    clear_screen();
+    return;
+    }
+    }
+    for(int i=0; i<course_count; i++){
+    for(string str:gbl_info)
+    str = "";
+    if(course_type[i] == "T"){
+    string search_marks = "SELECT M1, A1, MSE1, M2, A2, MSE2, INTERNALS, EXTERNALS FROM GRADEREPORT WHERE STUDENTID = '"+ student_id +"' AND SECTIONID = '" + section_id +"' AND COURSEID = '"+ course_id[i] +"'";
+    line = search_marks.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
+    m1[i] = stof(gbl_info[0]); a1[i] = stof(gbl_info[1]); ms1[i] = stof(gbl_info[2]);
+    m2[i] = stof(gbl_info[3]); a2[i] = stof(gbl_info[4]); ms2[i] = stof(gbl_info[5]);
+    internal_marks[i] = stof(gbl_info[6]); external_marks[i] = stof(gbl_info[7]);
+    }
+    else{
+    string search_marks = "SELECT INTERNALS, EXTERNALS FROM GRADEREPORT WHERE STUDENTID = '"+ student_id +"' AND SECTIONID = '" + section_id +"' AND COURSEID = '"+ course_id[i] +"'";
+    line = search_marks.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
+    internal_marks[i] = stof(gbl_info[0]); external_marks[i] = stof(gbl_info[1]);
+    }
+    }
 }
 
 void class_teacher :: calculate_student_marks(student &s){
@@ -2626,7 +2654,7 @@ void class_teacher :: write(student &s, int j, char* roll_number){
 
 void class_teacher :: generate_cgpa(student* s, class_teacher &ct, string section_id){
     ct.read(s[0], "B20IT001", section_id);
-    clear_screen();
+    //system("CLS");
     return;
 }
 
