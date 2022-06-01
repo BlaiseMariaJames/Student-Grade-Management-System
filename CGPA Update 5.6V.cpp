@@ -5,10 +5,14 @@
 #include<sqlite3.h>
 using namespace std;
 
-int gbl_data = 0;
 bool roc = false;
+int gbl_data = 0;
 string excp = "";
+int course_count = 0;
 string gbl_info[100];
+string course_id[10];
+int course_credits[10];
+string course_type[10];
 string gbl_password = "1234";
 char dept[12][4] = {"CSE","CSM","CSN","CSO","IT","ECE","EEE","ECI","CE","ME","EMH","ENG"};
 char dept_no[12][4] = {"CS","AI","CN","IN","IT","EC","EE","CI","CE","ME","MH","EN"};
@@ -25,13 +29,13 @@ class class_teacher : public student{
 	protected:
 	string teacher_id, teacher_password;
 	public:
-	void read(student &s, char* roll_number, int k);
+	void read(student &s, string student_id, string section_id);
 	void calculate_student_marks(student &s);
 	void calculate_student_cgpa(student &s, int j);
 	void write(student &s, int j, char* roll_number);
 	void view_subject_wise_marks(string section_id);
 	void view_overall_marks(string section_id);
-	void generate_cgpa(student* s, class_teacher &ct);
+	void generate_cgpa(student* s, class_teacher &ct, string section_id);
 	void class_teacher_main_menu(student* s, class_teacher &ct, string clstchr_id, string section_id);
 };
 
@@ -2582,6 +2586,50 @@ void class_teacher :: view_subject_wise_marks(string section_id){
     return;
 }
 
+void class_teacher :: read(student &s, string student_id, string section_id){
+    sqlite3 *db;
+    int rc, num;
+    float marks[7];
+	char *zErrMsg, *sql;
+    sqlite3_open("SAMS.db", &db);
+    string search_count = "SELECT COUNT(*) FROM COURSE WHERE SECTION = '"+ section_id +"';";
+    const char *line = search_count.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
+    course_count = stoi(gbl_info[0]);
+    for(int i = 0; i<course_count; i++){
+    string search_type = "SELECT COURSECODE,COURSETYPE,CREDITS FROM COURSE WHERE SECTION = '"+ section_id +"' AND ROWID = '" +  to_string(i+1) +"'";
+    line = search_type.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
+    course_id[i] = gbl_info[0];
+    course_type[i] = gbl_info[1];
+    course_credits[i] = stoi(gbl_info[2]);
+    }
+    /*
+    for(int i=0; i<course_count; i++)
+    cout << course_id[i] << course_type[i] << course_credits[i] << endl;
+    */
+}
+
+void class_teacher :: calculate_student_marks(student &s){
+
+}
+
+void class_teacher :: calculate_student_cgpa(student &s, int j){
+
+}
+
+void class_teacher :: write(student &s, int j, char* roll_number){
+
+}
+
+void class_teacher :: generate_cgpa(student* s, class_teacher &ct, string section_id){
+    ct.read(s[0], "B20IT001", section_id);
+    clear_screen();
+    return;
+}
+
 void class_teacher :: view_overall_marks(string section_id){
 
 }
@@ -2613,8 +2661,8 @@ void class_teacher :: class_teacher_main_menu(student* s, class_teacher &ct, str
 	}
     else if(option == 1){
     system("CLS");
+    generate_cgpa(s,ct,section_id);
     /*
-    generate(s,ct);
     cout << "\n\nMarks Generated Successfully... \n\nWarning!!! : Please Don't Generate Again\n\n";
     system("PAUSE");
     system("CLS");
