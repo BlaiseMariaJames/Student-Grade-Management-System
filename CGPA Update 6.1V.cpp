@@ -32,12 +32,12 @@ class class_teacher : public student{
 	public:
 	void read(student &s, string student_id, string section_id);
 	void calculate_student_marks(student &s);
-	void calculate_student_cgpa(student &s, int j);
-	void write(student &s, int j, char* roll_number);
+    void calculate_student_sgpa(student &s, int index);
+    void write(student &s, int index, string student_id);
 	void view_subject_wise_marks(string section_id);
 	void view_overall_marks(string section_id);
-	void generate_cgpa(student* s, class_teacher &ct, string section_id);
-	void class_teacher_main_menu(student* s, class_teacher &ct, string clstchr_id, string section_id);
+	void generate_sgpa(student* s, class_teacher &ct, string section_id);
+	void class_teacher_main_menu(class_teacher &ct, string clstchr_id, string section_id);
 };
 
 class section : public class_teacher{
@@ -2616,32 +2616,112 @@ void class_teacher :: read(student &s, string student_id, string section_id){
 }
 
 void class_teacher :: calculate_student_marks(student &s){
-    /*
+    float ta_index = 4, max_index = 0.7, min_index = 0.3;
     for(int i=0; i<course_count; i++){
     for(int i=0 ; i<100; i++)
     gbl_info[i] = "";
     if(course_type[i] == "T"){
-
+    resultm1[i] = m1[i] / ta_index;
+	resulta1[i] = a1[i] / ta_index;
+	resultm2[i] = m2[i] / ta_index;
+	resulta2[i] = a2[i] / ta_index;
+	if(ms1[i]>ms2[i]){
+	resultms1[i] = max_index * ms1[i];
+	resultms2[i] = min_index * ms2[i];
+	}
+	else{
+	resultms1[i] = min_index * ms1[i];
+	resultms2[i] = max_index * ms2[i];
+	}
+	finalmse[i] = resultms1[i] + resultms2[i] + external_marks[i];
+	final_marks[i] = internal_marks[i] + external_marks[i];
+	if(final_marks[i]>=90 && finalmse[i]>31 && external_marks[i]>21){
+	gradepoint[i] = 10; grade[i] = 'S';
+	}
+	else if(final_marks[i]>=80 && finalmse[i]>31 && external_marks[i]>21){
+	gradepoint[i] = 9; grade[i] = 'A';
+	}
+	else if(final_marks[i]>=70 && finalmse[i]>31 && external_marks[i]>21){
+	gradepoint[i] = 8; grade[i] = 'B';
+	}
+	else if(final_marks[i]>=60 && finalmse[i]>31 && external_marks[i]>21){
+	gradepoint[i] = 7; grade[i] = 'C';
+	}
+	else if(final_marks[i]>=45 && finalmse[i]>31 && external_marks[i]>21){
+	gradepoint[i] = 6; grade[i] = 'D';
+	}
+	else if(final_marks[i]>=35 && finalmse[i]>31 && external_marks[i]>21){
+	gradepoint[i] = 4; grade[i] = 'P';
+	}
+	else if(final_marks[i]<35 || finalmse[i]<31 || external_marks[i]<21){
+	gradepoint[i] = 0; grade[i] = 'F';
+	}
     }
     else{
-
+    final_marks[i] = internal_marks[i] + external_marks[i];
+	if(final_marks[i]>=90 && external_marks[i]>21){
+	gradepoint[i] = 10; grade[i] = 'S';
+	}
+	else if(final_marks[i]>=80 && external_marks[i]>21){
+	gradepoint[i] = 9; grade[i] = 'A';
+	}
+	else if(final_marks[i]>=70 && external_marks[i]>21){
+	gradepoint[i] = 8; grade[i] = 'B';
+	}
+	else if(final_marks[i]>=60 && external_marks[i]>21){
+	gradepoint[i] = 7; grade[i] = 'C';
+	}
+	else if(final_marks[i]>=45 && external_marks[i]>21){
+	gradepoint[i] = 6; grade[i] = 'D';
+	}
+	else if(final_marks[i]>=35 && external_marks[i]>21){
+	gradepoint[i] = 4; grade[i] = 'P';
+	}
+	else if(final_marks[i]<35 || external_marks[i]<21){
+	gradepoint[i] = 0; grade[i] = 'F';
+	}
     }
     }
-    */
 }
 
-void class_teacher :: calculate_student_cgpa(student &s, int j){
-
+void class_teacher :: calculate_student_sgpa(student &s, int index){
+    float score_sum = 0, credit_sum = 0;
+    for(int i=0;i<course_count;i++){
+    score_sum = score_sum + (gradepoint[i] * course_credits[i]);
+    credit_sum = credit_sum + course_credits[i];
+    }
+    final_gradepoint[index] = (score_sum/credit_sum);
 }
 
-void class_teacher :: write(student &s, int j, char* roll_number){
-
-}
-
-void class_teacher :: generate_cgpa(student* s, class_teacher &ct, string section_id){
+void class_teacher :: write(student &s, int index, string student_id){
     int rc;
     sqlite3 *db;
 	char *zErrMsg, *sql;
+    sqlite3_open("SAMS.db", &db);
+    for(int i=0; i<course_count; i++){
+    char grade_char = grade[i];
+    string grade(1,grade_char);
+    string update_grade = "UPDATE GRADEREPORT set GRADE = '"+ grade +"' WHERE COURSEID = '"+ course_id[i] +"' AND STUDENTID = '"+ student_id +"';";
+    const char *line = update_grade.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+    string update_gradepoint= "UPDATE GRADEREPORT set GRADEPOINT = '"+ to_string(gradepoint[i]) +"' WHERE COURSEID = '"+ course_id[i] +"' AND STUDENTID = '"+ student_id +"';";
+    line = update_gradepoint.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+    }
+    string update_sgpa = "UPDATE STUDENT set FOURTHSEM = '"+ to_string(final_gradepoint[index]) +"' WHERE STUDENTID = '"+ student_id +"';";
+    const char *line = update_sgpa.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+    sqlite3_close(db);
+    return;
+}
+
+void class_teacher :: generate_sgpa(student* s, class_teacher &ct, string section_id){
+    sqlite3 *db;
+	char *zErrMsg, *sql;
+    int rc, generated = 0;
     sqlite3_open("SAMS.db", &db);
     string search_count = "SELECT COUNT(*) FROM STUDENT WHERE SECTION = '"+ section_id +"';";
     const char *line = search_count.c_str();
@@ -2692,17 +2772,18 @@ void class_teacher :: generate_cgpa(student* s, class_teacher &ct, string sectio
     }
     }
     }
-    /*
-    for(int j=0; j<course_count; j++)
-    cout  << awarded[j] << " ";
-    cout << endl;
-    */
     for(int i=0; i<student_count; i++){
     if(available[i] != -1){
+    generated++;
     ct.read(s[i], roll_number[i], section_id);
+	ct.calculate_student_marks(s[i]);
+	ct.calculate_student_sgpa(s[i], i);
+	ct.write(s[i], i, roll_number[i]);
     }
     }
     sqlite3_close(db);
+    cout << "SGPA Generated Successfully for " << generated << " students of Section" + section_id + "..."<< endl;
+    cout << "\nDisplaying Status of Marks Updation of Section" + section_id + "..."<< endl;
     clear_screen();
     return;
 }
@@ -2711,7 +2792,8 @@ void class_teacher :: view_overall_marks(string section_id){
 
 }
 
-void class_teacher :: class_teacher_main_menu(student* s, class_teacher &ct, string clstchr_id, string section_id){
+void class_teacher :: class_teacher_main_menu(class_teacher &ct, string clstchr_id, string section_id){
+    section s[60];
     course_teacher t;
     teacher_id = clstchr_id;
     int option = 0;
@@ -2720,9 +2802,9 @@ void class_teacher :: class_teacher_main_menu(student* s, class_teacher &ct, str
 	cout << "Logged in as Class Teacher\nYou are currently accessing operations of Section :" + section_id << endl;
 	cout << "\nPersonal Info : " << endl;
 	t.view_account(teacher_id);
-    cout << "\nType '1' ----> To Generate Result (Mandatory) Warning!!! : To be run only once.\n";
-    cout << "Type '2' ----> View Subject-Wise Marks\n";
-    cout << "Type '3' ----> View Student Marks (Overall)\n";
+    cout << "\nType '1' ----> Generate SGPA\n";
+    cout << "Type '2' ----> View SGPA\n";
+    cout << "Type '3' ----> View Subject-Wise Marks\n";
     cout << "Type '4' ----> View other allotted sections/Update Password\n";
     cout << "Type '5' ----> Back to Main Menu\n";
     cout << "\nEnter Here : ";
@@ -2738,20 +2820,15 @@ void class_teacher :: class_teacher_main_menu(student* s, class_teacher &ct, str
 	}
     else if(option == 1){
     system("CLS");
-    generate_cgpa(s,ct,section_id);
-    /*
-    cout << "\n\nMarks Generated Successfully... \n\nWarning!!! : Please Don't Generate Again\n\n";
-    system("PAUSE");
-    system("CLS");
-    */
+    generate_sgpa(s,ct,section_id);
     }
     else if(option == 2){
     system("CLS");
-    view_subject_wise_marks(section_id);
+    view_overall_marks(section_id);
     }
     else if(option == 3){
     system("CLS");
-    view_overall_marks(section_id);
+    view_subject_wise_marks(section_id);
 	}
 	else if(option == 4){
     system("CLS");
@@ -3703,9 +3780,8 @@ void main_menu(){
 	if(exist!=-1 && cls==false)
 	t.teacher_main_menu(t, "");
 	else if(exist!=-1 && cls==true){
-    student s[60];
     class_teacher ct;
-    ct.class_teacher_main_menu(s, ct, clstchr_id, section_id);
+    ct.class_teacher_main_menu(ct, clstchr_id, section_id);
 	}
 	}
 	else if(option == 3){
