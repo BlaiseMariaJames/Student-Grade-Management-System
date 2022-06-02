@@ -11,6 +11,7 @@ string excp = "";
 int course_count = 0;
 string gbl_info[100];
 string course_id[10];
+int student_count = 0;
 int course_credits[10];
 string course_type[10];
 string gbl_password = "1234";
@@ -19,9 +20,8 @@ char dept_no[12][4] = {"CS","AI","CN","IN","IT","EC","EE","CI","CE","ME","MH","E
 
 class student{
     protected:
-	int gradepoint[10];
-	string awarded[10];
-	char grade[10], roll_number[20];
+	int gradepoint[10]; char grade[10];
+	string roll_number[9], awarded[10];
 	float m1[10], a1[10], ms1[10], m2[10], a2[10], ms2[10], internal_marks[10], external_marks[10];
 	float resultm1[10], resulta1[10], resultms1[10], resultm2[10], resulta2[10], resultms2[10], finalmse[10], final_marks[10], final_gradepoint[10];
 };
@@ -30,7 +30,7 @@ class class_teacher : public student{
 	protected:
 	string teacher_id, teacher_password;
 	public:
-	void read(student &s, string student_id, string section_id);
+	void read(student &s, string student_id, string section_id, int &available);
 	void calculate_student_marks(student &s);
 	void calculate_student_cgpa(student &s, int j);
 	void write(student &s, int j, char* roll_number);
@@ -2587,10 +2587,10 @@ void class_teacher :: view_subject_wise_marks(string section_id){
     return;
 }
 
-void class_teacher :: read(student &s, string student_id, string section_id){
+void class_teacher :: read(student &s, string student_id, string section_id, int &available){
+    int rc;
     sqlite3 *db;
 	char *zErrMsg, *sql;
-    int rc, available = 0;
     sqlite3_open("SAMS.db", &db);
     for(int i=0;i<10;i++)
     awarded[i] = "YES";
@@ -2625,11 +2625,11 @@ void class_teacher :: read(student &s, string student_id, string section_id){
     }
     }
     /*
-    for(int i=0; i<course_count; i++)
-    cout << awarded[i] << " ";
+    for(int j=0; j<course_count; j++)
+    cout  << awarded[j] << " ";
+    cout << endl;
     */
-    if(available == -1)
-    return;
+    if(available != -1){
     for(int i=0; i<course_count; i++){
     for(int i=0; i<100; i++)
     gbl_info[i] = "";
@@ -2650,6 +2650,7 @@ void class_teacher :: read(student &s, string student_id, string section_id){
     internal_marks[i] = stof(gbl_info[0]); external_marks[i] = stof(gbl_info[1]);
     }
     }
+    }
 }
 
 void class_teacher :: calculate_student_marks(student &s){
@@ -2657,7 +2658,7 @@ void class_teacher :: calculate_student_marks(student &s){
     for(string str:gbl_info)
     str = "";
     if(course_type[i] == "T"){
-    // Refer to line 643 in SAMS FB PROGRAM.
+
     }
     else{
 
@@ -2674,8 +2675,28 @@ void class_teacher :: write(student &s, int j, char* roll_number){
 }
 
 void class_teacher :: generate_cgpa(student* s, class_teacher &ct, string section_id){
-    ct.read(s[0], "B20IT001", section_id);
-    //system("CLS");
+    int rc;
+    sqlite3 *db;
+	char *zErrMsg, *sql;
+    sqlite3_open("SAMS.db", &db);
+    string search_count = "SELECT COUNT(*) FROM STUDENT WHERE SECTION = '"+ section_id +"';";
+    const char *line = search_count.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
+    student_count = stoi(gbl_info[0]);
+    int available[student_count];
+    for(int i=0;i<student_count;i++)
+    available[i] = 0;
+    for(int i=0; i<student_count; i++){
+    string search_student = "SELECT STUDENTID FROM STUDENT WHERE SECTION = '"+ section_id +"' AND STUDENTID LIKE '%"+ to_string(i+1) +"';";
+    const char *line = search_student.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
+    string student_id = gbl_info[0];
+    roll_number[i] = student_id;
+    ct.read(s[i], roll_number[i], section_id, available[i]);
+    }
+    clear_screen();
     return;
 }
 
