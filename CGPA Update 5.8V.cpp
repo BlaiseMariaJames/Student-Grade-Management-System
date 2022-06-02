@@ -20,6 +20,7 @@ char dept_no[12][4] = {"CS","AI","CN","IN","IT","EC","EE","CI","CE","ME","MH","E
 class student{
     protected:
 	int gradepoint[10];
+	string awarded[10];
 	char grade[10], roll_number[20];
 	float m1[10], a1[10], ms1[10], m2[10], a2[10], ms2[10], internal_marks[10], external_marks[10];
 	float resultm1[10], resulta1[10], resultms1[10], resultm2[10], resulta2[10], resultms2[10], finalmse[10], final_marks[10], final_gradepoint[10];
@@ -2588,10 +2589,11 @@ void class_teacher :: view_subject_wise_marks(string section_id){
 
 void class_teacher :: read(student &s, string student_id, string section_id){
     sqlite3 *db;
-    int rc, num;
-    float marks[7];
 	char *zErrMsg, *sql;
+    int rc, available = 0;
     sqlite3_open("SAMS.db", &db);
+    for(int i=0;i<10;i++)
+    awarded[i] = "YES";
     string search_count = "SELECT COUNT(*) FROM COURSE WHERE SECTION = '"+ section_id +"';";
     const char *line = search_count.c_str();
     sql = strdup(line);
@@ -2607,20 +2609,30 @@ void class_teacher :: read(student &s, string student_id, string section_id){
     course_credits[i] = stoi(gbl_info[2]);
     }
     for(int i=0; i<course_count; i++){
-    string search_student = "SELECT EXISTS(SELECT S.STUDENTID FROM STUDENT S WHERE S.SECTION = '"+ section_id +"' AND S.STUDENTID NOT IN (SELECT G.STUDENTID FROM GRADEREPORT G WHERE G.COURSEID = '"+ course_id[i] +"' AND S.STUDENTID = '"+ student_id +"'));";
+    string search_student = "SELECT EXISTS(SELECT S.STUDENTID FROM STUDENT S WHERE S.SECTION = '"+ section_id +"' AND S.STUDENTID NOT IN (SELECT G.STUDENTID FROM GRADEREPORT G WHERE G.COURSEID = '"+ course_id[i] +"') AND S.STUDENTID = '"+ student_id +"');";
     line = search_student.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
     if(rc!=0){
+    available = -1;
+    awarded[i] = "NO";
+    /*
     cout << "\nStudent with id " + student_id + " is not awarded with marks in the Course "+ course_id[i] +" ..." << endl;
     cout << "\nUnable to access requested details of Student... Please wait till the corresponding faculty awards marks to students and Try Again...\n" << endl;
     clear_screen();
     return;
+    */
     }
     }
+    /*
+    for(int i=0; i<course_count; i++)
+    cout << awarded[i] << " ";
+    */
+    if(available == -1)
+    return;
     for(int i=0; i<course_count; i++){
-    for(string str:gbl_info)
-    str = "";
+    for(int i=0; i<100; i++)
+    gbl_info[i] = "";
     if(course_type[i] == "T"){
     string search_marks = "SELECT M1, A1, MSE1, M2, A2, MSE2, INTERNALS, EXTERNALS FROM GRADEREPORT WHERE STUDENTID = '"+ student_id +"' AND SECTIONID = '" + section_id +"' AND COURSEID = '"+ course_id[i] +"'";
     line = search_marks.c_str();
@@ -2641,7 +2653,16 @@ void class_teacher :: read(student &s, string student_id, string section_id){
 }
 
 void class_teacher :: calculate_student_marks(student &s){
+    for(int i=0; i<course_count; i++){
+    for(string str:gbl_info)
+    str = "";
+    if(course_type[i] == "T"){
+    // Refer to line 643 in SAMS FB PROGRAM.
+    }
+    else{
 
+    }
+    }
 }
 
 void class_teacher :: calculate_student_cgpa(student &s, int j){
