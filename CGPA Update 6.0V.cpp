@@ -30,7 +30,7 @@ class class_teacher : public student{
 	protected:
 	string teacher_id, teacher_password;
 	public:
-	void read(student &s, string student_id, string section_id, int &available);
+	void read(student &s, string student_id, string section_id);
 	void calculate_student_marks(student &s);
 	void calculate_student_cgpa(student &s, int j);
 	void write(student &s, int j, char* roll_number);
@@ -2587,55 +2587,17 @@ void class_teacher :: view_subject_wise_marks(string section_id){
     return;
 }
 
-void class_teacher :: read(student &s, string student_id, string section_id, int &available){
+void class_teacher :: read(student &s, string student_id, string section_id){
     int rc;
     sqlite3 *db;
 	char *zErrMsg, *sql;
     sqlite3_open("SAMS.db", &db);
-    for(int i=0;i<10;i++)
-    awarded[i] = "YES";
-    string search_count = "SELECT COUNT(*) FROM COURSE WHERE SECTION = '"+ section_id +"';";
-    const char *line = search_count.c_str();
-    sql = strdup(line);
-    rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
-    course_count = stoi(gbl_info[0]);
-    for(int i = 0; i<course_count; i++){
-    string search_type = "SELECT COURSECODE,COURSETYPE,CREDITS FROM COURSE WHERE SECTION = '"+ section_id +"' AND ROWID = '" +  to_string(i+1) +"'";
-    line = search_type.c_str();
-    sql = strdup(line);
-    rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
-    course_id[i] = gbl_info[0];
-    course_type[i] = gbl_info[1];
-    course_credits[i] = stoi(gbl_info[2]);
-    }
-    for(int i=0; i<course_count; i++){
-    string search_student = "SELECT EXISTS(SELECT S.STUDENTID FROM STUDENT S WHERE S.SECTION = '"+ section_id +"' AND S.STUDENTID NOT IN (SELECT G.STUDENTID FROM GRADEREPORT G WHERE G.COURSEID = '"+ course_id[i] +"') AND S.STUDENTID = '"+ student_id +"');";
-    line = search_student.c_str();
-    sql = strdup(line);
-    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
-    if(rc!=0){
-    available = -1;
-    awarded[i] = "NO";
-    /*
-    cout << "\nStudent with id " + student_id + " is not awarded with marks in the Course "+ course_id[i] +" ..." << endl;
-    cout << "\nUnable to access requested details of Student... Please wait till the corresponding faculty awards marks to students and Try Again...\n" << endl;
-    clear_screen();
-    return;
-    */
-    }
-    }
-    /*
-    for(int j=0; j<course_count; j++)
-    cout  << awarded[j] << " ";
-    cout << endl;
-    */
-    if(available != -1){
     for(int i=0; i<course_count; i++){
     for(int i=0; i<100; i++)
     gbl_info[i] = "";
     if(course_type[i] == "T"){
     string search_marks = "SELECT M1, A1, MSE1, M2, A2, MSE2, INTERNALS, EXTERNALS FROM GRADEREPORT WHERE STUDENTID = '"+ student_id +"' AND SECTIONID = '" + section_id +"' AND COURSEID = '"+ course_id[i] +"'";
-    line = search_marks.c_str();
+    const char *line = search_marks.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
     m1[i] = stof(gbl_info[0]); a1[i] = stof(gbl_info[1]); ms1[i] = stof(gbl_info[2]);
@@ -2644,19 +2606,20 @@ void class_teacher :: read(student &s, string student_id, string section_id, int
     }
     else{
     string search_marks = "SELECT INTERNALS, EXTERNALS FROM GRADEREPORT WHERE STUDENTID = '"+ student_id +"' AND SECTIONID = '" + section_id +"' AND COURSEID = '"+ course_id[i] +"'";
-    line = search_marks.c_str();
+    const char *line = search_marks.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
     internal_marks[i] = stof(gbl_info[0]); external_marks[i] = stof(gbl_info[1]);
     }
     }
-    }
+    sqlite3_close(db);
 }
 
 void class_teacher :: calculate_student_marks(student &s){
+    /*
     for(int i=0; i<course_count; i++){
-    for(string str:gbl_info)
-    str = "";
+    for(int i=0 ; i<100; i++)
+    gbl_info[i] = "";
     if(course_type[i] == "T"){
 
     }
@@ -2664,6 +2627,7 @@ void class_teacher :: calculate_student_marks(student &s){
 
     }
     }
+    */
 }
 
 void class_teacher :: calculate_student_cgpa(student &s, int j){
@@ -2685,17 +2649,60 @@ void class_teacher :: generate_cgpa(student* s, class_teacher &ct, string sectio
     rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
     student_count = stoi(gbl_info[0]);
     int available[student_count];
+    for(int i=0;i<10;i++)
+    awarded[i] = "YES";
     for(int i=0;i<student_count;i++)
     available[i] = 0;
+    search_count = "SELECT COUNT(*) FROM COURSE WHERE SECTION = '"+ section_id +"';";
+    line = search_count.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
+    course_count = stoi(gbl_info[0]);
+    for(int i = 0; i<course_count; i++){
+    string search_type = "SELECT COURSECODE,COURSETYPE,CREDITS FROM COURSE WHERE SECTION = '"+ section_id +"' AND ROWID = '" +  to_string(i+1) +"'";
+    line = search_type.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
+    course_id[i] = gbl_info[0];
+    course_type[i] = gbl_info[1];
+    course_credits[i] = stoi(gbl_info[2]);
+    }
     for(int i=0; i<student_count; i++){
     string search_student = "SELECT STUDENTID FROM STUDENT WHERE SECTION = '"+ section_id +"' AND STUDENTID LIKE '%"+ to_string(i+1) +"';";
     const char *line = search_student.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
-    string student_id = gbl_info[0];
-    roll_number[i] = student_id;
-    ct.read(s[i], roll_number[i], section_id, available[i]);
+    roll_number[i] = gbl_info[0];
     }
+    for(int i=0; i<student_count; i++){
+    for(int j=0; j<course_count; j++){
+    string search_student = "SELECT EXISTS(SELECT S.STUDENTID FROM STUDENT S WHERE S.SECTION = '"+ section_id +"' AND S.STUDENTID NOT IN (SELECT G.STUDENTID FROM GRADEREPORT G WHERE G.COURSEID = '"+ course_id[j] +"') AND S.STUDENTID = '"+ roll_number[i] +"');";
+    line = search_student.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc!=0){
+    available[i] = -1;
+    awarded[j] = "NO";
+    /*
+    cout << "\nStudent with id " + student_id + " is not awarded with marks in the Course "+ course_id[i] +" ..." << endl;
+    cout << "\nUnable to access requested details of Student... Please wait till the corresponding faculty awards marks to students and Try Again...\n" << endl;
+    clear_screen();
+    return;
+    */
+    }
+    }
+    }
+    /*
+    for(int j=0; j<course_count; j++)
+    cout  << awarded[j] << " ";
+    cout << endl;
+    */
+    for(int i=0; i<student_count; i++){
+    if(available[i] != -1){
+    ct.read(s[i], roll_number[i], section_id);
+    }
+    }
+    sqlite3_close(db);
     clear_screen();
     return;
 }
