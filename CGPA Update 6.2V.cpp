@@ -2789,7 +2789,105 @@ void class_teacher :: generate_sgpa(student* s, class_teacher &ct, string sectio
 }
 
 void class_teacher :: view_overall_marks(string section_id){
-
+    sqlite3 *db;
+	char *zErrMsg, *sql;
+    string student_id, course[10];
+    int rc, num, generated = 0;
+    sqlite3_open("SAMS.db", &db);
+	cout << "Displaying details of Section" << section_id << endl;
+    a: cout << "\nEnter the number of student(s) : ";
+    cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+	b : error_message();
+	cout << "Displaying details of Section" << section_id << endl;
+	goto a;
+	}
+	num = stoi(excp);
+    if(num>60 || num<1){
+	goto b;
+	}
+    cout << "\nEntering Details of " << num << " student(s)..." << endl;
+    for(int i = 0; i<num; i++){
+    cout << "\nEnter Roll Number : ";
+    cin >> student_id;
+    string search_student = "SELECT EXISTS(SELECT * from STUDENT WHERE STUDENTID = '"+ student_id +"' AND SECTION = '"+ section_id +"' AND STUDYING = 'Y');";
+    const char *line = search_student.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nStudent with requested ID doesn't exist..." << endl;
+    cout << "\nUnable to access requested details of Student... Try Again using valid ID...\n" << endl;
+    clear_screen();
+    return;
+    }
+    search_student = "SELECT EXISTS(SELECT STUDENTID FROM STUDENT WHERE FOURTHSEM IS NOT NULL AND STUDENTID = '"+ student_id +"');";
+    line = search_student.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(rc == 0){
+    cout << "\nCGPA for the Student with requested ID is not yet generated..." << endl;
+    cout << "\nUnable to access requested details of Student... Try Again using valid ID...\n" << endl;
+    clear_screen();
+    return;
+    }
+    string search_count = "SELECT COUNT(*) FROM COURSE WHERE SECTION = '"+ section_id +"';";
+    line = search_count.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
+    course_count = stoi(gbl_info[0]);
+    for(int i = 0; i<course_count; i++){
+    string search_type = "SELECT COURSECODE,COURSETYPE,CREDITS FROM COURSE WHERE SECTION = '"+ section_id +"' AND ROWID = '" +  to_string(i+1) +"'";
+    line = search_type.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
+    course_id[i] = gbl_info[0];
+    course_type[i] = gbl_info[1];
+    course_credits[i] = stoi(gbl_info[2]);
+    }
+    for(int i=0; i<course_count; i++){
+    for(int i=0; i<100; i++)
+    gbl_info[i] = "";
+    if(course_type[i] == "T"){
+    string search_marks = "SELECT COURSEID, M1, A1, MSE1, M2, A2, MSE2, INTERNALS, EXTERNALS, GRADE, GRADEPOINT FROM GRADEREPORT WHERE STUDENTID = '"+ student_id +"' AND SECTIONID = '" + section_id +"' AND COURSEID = '"+ course_id[i] +"'";
+    const char *line = search_marks.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
+    m1[i] = stof(gbl_info[1]); a1[i] = stof(gbl_info[2]); ms1[i] = stof(gbl_info[3]);
+    m2[i] = stof(gbl_info[4]); a2[i] = stof(gbl_info[5]); ms2[i] = stof(gbl_info[6]);
+    course[i] = gbl_info[0]; internal_marks[i] = stof(gbl_info[7]); external_marks[i] = stof(gbl_info[8]);
+    char grade_array[gbl_info[9].size() + 1];
+    strcpy(grade_array, gbl_info[9].c_str());
+    grade[i] = grade_array[0]; gradepoint[i] = stof(gbl_info[10]);
+    }
+    else{
+    string search_marks = "SELECT COURSEID, INTERNALS, EXTERNALS, GRADE, GRADEPOINT FROM GRADEREPORT WHERE STUDENTID = '"+ student_id +"' AND SECTIONID = '" + section_id +"' AND COURSEID = '"+ course_id[i] +"'";
+    const char *line = search_marks.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
+    course[i] = gbl_info[0], internal_marks[i] = stof(gbl_info[1]); external_marks[i] = stof(gbl_info[2]);
+    char grade_array[gbl_info[3].size() + 1];
+    strcpy(grade_array, gbl_info[3].c_str());
+    grade[i] = grade_array[0]; gradepoint[i] = stof(gbl_info[4]);
+    }
+    }
+    cout << "\nDisplaying marks of " << student_id << "..." << endl;
+    cout << "\n\n";
+    cout << "Course\t\tM1\tA1\tMse1\tM2\tA2\tMse2\tInternal\tExternal\tGrade\tGradepoint" << endl;
+    for(int i=0; i<course_count; i++){
+    int len = course[i].length();
+    char data[len+1];
+    strcpy(data,course[i].c_str());
+    padded_input_string(data,16);
+    course[i] = data;
+    }
+    for(int i=0; i<course_count; i++){
+    if(course_type[i] == "T")
+    cout << course[i] << m1[i] << a1[i] << ms1[i] << m2[i] << a2[i] << ms2[i] << internal_marks[i] << external_marks[i] << grade[i] << gradepoint[i] << endl;
+    else
+    cout << course[i] << internal_marks[i] << external_marks[i] << grade[i] << gradepoint[i] << endl;
+    }
+    }
 }
 
 void class_teacher :: class_teacher_main_menu(class_teacher &ct, string clstchr_id, string section_id){
