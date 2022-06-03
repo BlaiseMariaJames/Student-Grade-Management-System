@@ -1,3 +1,30 @@
+/*********************************************************************************************************************
+    Welcome to SQLITE3 BASED C++ PROJECT ON COLLEGE MANAGEMENT SYSTEM MODULE 1.0 (STUDENT GRADE MANAGEMENT SYSTEM)
+**********************************************************************************************************************
+
+    Project Meta Data:
+    TOTAL NO. OF LINES : 4200
+    TOTAL NO. OF EMPTY LINES : 100
+    TOTAL NO. OF COMMENT LINES : 50
+    TOTAL NO. OF ACTUAL CODE LINES : 4050
+    TOTAL NO. OF HEADER FILES INCLUDED : 5
+    TOTAL NO. OF CLASSES USED : 5
+    TOTAL NO. OF ADMIN CLASS FUNCTIONS : 29
+	TOTAL NO. OF CLASS TEACHER CLASS FUNCTIONS : 8
+	TOTAL NO. OF COURSE TEACHER CLASS FUNCTIONS : 7
+	TOTAL NO. OF STUDENT CLASS FUNCTIONS : 5
+	TOTAL NO. OF CLASS FUNCTIONS : 49
+    TOTAL NO. OF GLOBAL VARIABLES : 13
+    TOTAL NO. OF GLOBAL FUNCTIONS : 36
+    C++ (FRONT-END) OFFLINE IDE USED : CODE::BLOCKS v20.30
+    RDBMS (BACK-END) OFFLINE LIBRARY USED :  SQLITE v3.38.0
+    TOTAL SIZE OF "main.cpp" SOURCE CODE : 165KB
+    TOTAL SIZE OF "SAMS.db" DATABASE FILE (at creation) : 52KB
+
+*********************************************************************************************************************
+*/
+
+//header files
 #include<ctime>
 #include<iostream>
 #include<string.h>
@@ -5,6 +32,7 @@
 #include<sqlite3.h>
 using namespace std;
 
+//global variables
 bool roc = false;
 int gbl_data = 0;
 string excp = "";
@@ -15,11 +43,12 @@ int student_count = 0;
 int course_credits[10];
 string course_type[10];
 string gbl_password = "1234";
-char dept[14][4] = {"CSE","CSM","CSN","CSO","IT","ECE","EEE","ECI","CE","ME","EMH","SCI","ENG","PED"};
-char dept_no[14][4] = {"CS","AI","CN","IN","IT","EC","EE","CI","CE","ME","MH","PS","EN","PE"};
 char semester[8][8] = {"FIRST","SECOND","THIRD","FOURTH","FIFTH","SIXTH","SEVENTH","EIGHTH"};
+char dept_no[14][4] = {"CS","AI","CN","IN","IT","EC","EE","CI","CE","ME","MH","PS","EN","PE"};
+char dept[14][4] = {"CSE","CSM","CSN","CSO","IT","ECE","EEE","ECI","CE","ME","EMH","SCI","ENG","PED"};
 
-class student{
+//classes
+class section{
     protected:
 	int gradepoint[10]; char grade[10];
 	string roll_number[9], awarded[10];
@@ -27,25 +56,25 @@ class student{
 	float resultm1[10], resulta1[10], resultms1[10], resultm2[10], resulta2[10], resultms2[10], finalmse[10], final_marks[10], final_gradepoint[10];
 };
 
-class class_teacher : public student{
+class class_teacher : public section{
 	protected:
 	string teacher_id, teacher_password;
 	public:
-	void read(student &s, string student_id, string section_id);
-	void calculate_student_marks(student &s);
-    void calculate_student_sgpa(student &s, int index);
-    void write(student &s, int index, string student_id);
+	void read(section &s, string student_id, string section_id);
+	void calculate_student_marks(section &s);
+    void calculate_student_sgpa(section &s, int index);
+    void write(section &s, int index, string student_id);
 	void view_subject_wise_marks(string section_id);
 	void view_overall_marks(string section_id);
-	void generate_sgpa(student* s, class_teacher &ct, string section_id);
+	void generate_sgpa(section* s, class_teacher &ct, string section_id);
 	void class_teacher_main_menu(class_teacher &ct, string clstchr_id, string section_id);
 };
 
-class section : public class_teacher{
+class student : public class_teacher{
     string student_id, student_password, subject;
 	public:
 	int login_student();
-	void student_main_menu(section &s);
+	void student_main_menu(student &s);
 	void view_marks(string student_id);
 	void view_account(string student_id);
 	void update_stdpass(string student_id);
@@ -98,16 +127,9 @@ class admin{
 	void master_main_menu(admin &a);
 };
 
-bool check_exception(string exp){
-	int len = exp.size();
-	for(int i = 0; i < len; i++){
-	int c = exp[i];
-	if(c<48 || c>57)
-	return true;
-	}
-	return false;
-}
+//global functions
 
+//CATEGORY 1: USED FOR FORMATTING OR EXTRACTING VALID INPUT
 void clear_screen(){
 	system("PAUSE");
 	system("CLS");
@@ -117,6 +139,16 @@ void error_message(){
 	cout << "\nChoose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
 	clear_screen();
 	return;
+}
+
+bool check_exception(string exp){
+	int len = exp.size();
+	for(int i = 0; i < len; i++){
+	int c = exp[i];
+	if(c<48 || c>57)
+	return true;
+	}
+	return false;
 }
 
 void padded_input_string(char str[], int num){
@@ -129,6 +161,7 @@ void padded_input_string(char str[], int num){
     str[len] = '\0';
 }
 
+//CATEGORY 2: USED FOR TABLE RELATED QUERY
 static int create_insert_table(void *NotUsed, int argc, char **argv, char **azColName) {
     for(int i = 0; i<argc; i++) {
     printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
@@ -162,6 +195,14 @@ static int exist_table(void *NotUsed, int argc, char **argv, char **azColName){
     return 1;
 }
 
+void set_foreignkeys(sqlite3 *db){
+    int rc;
+    char *sql;
+    sql = strdup("PRAGMA FOREIGN_KEYS = ON;");
+    rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
+}
+
+//CATEGORY 3: USED FOR SPECIFIC DATA EXTRACTION
 static int view_course_details(void *NotUsed, int argc, char **argv, char **azColName){
 	string gbl_input[100];
 	for(int i = 0; i<argc; i++){
@@ -269,13 +310,7 @@ static int extract_details(void *NotUsed, int argc, char **argv, char **azColNam
     return 0;
 }
 
-void set_foreignkeys(sqlite3 *db){
-    int rc;
-    char *sql;
-    sql = strdup("PRAGMA FOREIGN_KEYS = ON;");
-    rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
-}
-
+//CATEGORY 4: USED FOR DISPLAYING DATA
 void faculty_select_branch_function(){
 	cout << "\nSelect Branch \n\n";
 	cout << "Type '1' -----> CSE\n";
@@ -405,6 +440,9 @@ void view_table(string str, string id, string id2){
     sqlite3_close(db);
 }
 
+//class functions
+
+//ADMIN CLASS FUNCTIONS
 void admin :: login_master(){
 	int count = 3;
 	a: cout << "WELCOME TO ADMIN LOGIN PAGE\n";
@@ -430,6 +468,9 @@ void admin :: login_master(){
 	return;
 }
 
+//CATEGORY 1: FACULTY EDIT OPERATION FUNCTIONS
+
+//global function
 void add_faculty_function(string &faculty_id, string faculty_deptno){
     int rc = 0;
     sqlite3 *db;
@@ -557,6 +598,7 @@ void admin :: add_faculty(){
 	return;
 }
 
+//global function
 int update_faculty_function(string &faculty_id, int id, string faculty_deptno){
     int rc = 1;
     sqlite3 *db;
@@ -897,6 +939,7 @@ void admin :: master_faculty_edit_menu(admin &a){
 	}
 }
 
+//CATEGORY 2: FACULTY ASSIGN OPERATION FUNCTIONS
 void admin :: assign_course(){
     sqlite3 *db;
     char *zErrMsg = 0, *sql;
@@ -1046,6 +1089,12 @@ void admin :: assign_course(){
     line = update_faculty.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+    if(cls != 0){
+    update_faculty = "UPDATE SECTION set CLSTCHR = NULL WHERE SECTIONID = '"+ section_id +"';";
+    line = update_faculty.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, select_table, 0, &zErrMsg);
+    }
 	sqlite3_close(db);
     cout << "\nRequested faculty made as Course Teacher successfully..." << endl;
     cout << endl;
@@ -1259,6 +1308,7 @@ void admin :: master_assign_course_menu(admin &a){
 	}
 }
 
+//global function
 void clstchr_confirmation(int &choice, string dept_id, string faculty_deptno, string faculty_id, string section_id){
 	a: cout << "\n\nAre you sure to make the requested faculty with id " + faculty_id + " as CLASS TEACHER of" + section_id + " ? ";
 	cout << "\nPress '1' if 'YES' or '2' if 'NO'";
@@ -1282,6 +1332,7 @@ void clstchr_confirmation(int &choice, string dept_id, string faculty_deptno, st
     return;
 }
 
+//global function
 void check_clstchr(string dept_id, string faculty_deptno, string faculty_id, string section_id){
     sqlite3 *db;
     int rc, choice;
@@ -1619,6 +1670,7 @@ void admin :: master_assign_clstchr_menu(admin &a){
 	}
 }
 
+//global function
 void check_hod(string faculty_deptno, string branch_id){
     int rc;
     sqlite3 *db;
@@ -1901,6 +1953,9 @@ void admin :: master_faculty_menu(admin &a){
 	}
 }
 
+//CATEGORY 3: STUDENT EDIT OPERATION FUNCTIONS
+
+//global function
 void add_student_function(string &student_id, string &section, string year, string semester){
     int rc=0;
     sqlite3 *db;
@@ -1992,7 +2047,7 @@ void admin :: add_student(){
 	cout << "\nEntering Details of student " << i+1 << endl;
 	student_select_branch_function();
 	cout << dept[id] << endl;
-	cout << "Enter Year Joined : " << yearjoined << endl;
+	cout << "Enter Year Joined (>=2015): " << yearjoined << endl;
 	goto e;
 	}
 	sem = stoi(excp);
@@ -2022,8 +2077,9 @@ void admin :: add_student(){
 	cout << "\nEntering Details of student " << i+1 << endl;
 	student_select_branch_function();
 	cout << dept[id] << endl;
-	cout << "Enter Year Joined : " << yearjoined << endl;
-	cout << "Enter Name : " << name << endl;
+	cout << "Enter Year Joined (>=2015): " << yearjoined << endl;
+	cout << "Enter Semester : " << sem << endl;
+	cout << "Enter Student Name : " << name << endl;
 	goto g;
 	}
 	contact = stoll(excp);
@@ -2070,6 +2126,7 @@ void admin :: add_student(){
 	return;
 }
 
+//global function
 int update_student_function(string &student_id, int id, string student_deptno){
     int rc = 1;
     sqlite3 *db;
@@ -2336,6 +2393,7 @@ void admin :: master_student_menu(admin &a){
 	}
 }
 
+//CATEGORY 4: ARCHIVES OPERATION FUNCTIONS
 void admin :: view_archived_faculty(){
     sqlite3 *db;
     int rc, dept_id;
@@ -2457,66 +2515,7 @@ void admin :: master_main_menu(admin &a){
 	}
 }
 
-int course_teacher :: login_teacher(bool &cls, string &clstchr_id, string &section_id){
-    sqlite3 *db;
-    int rc, count = 3;
-    string faculty_deptno;
-    char *zErrMsg = 0, *sql;
-    rc = sqlite3_open("SAMS.db", &db);
-	string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE WORKING = 'Y');";
-    const char *line = search_faculty.c_str();
-    sql = strdup(line);
-    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
-    sqlite3_close(db);
-	if(rc == 0){
-    cout << "\nERROR: No Faculty Details Found...." << endl;
-	cout << endl;
-	clear_screen();
-	return -1;
-    }
-	a: cout << "WELCOME TO FACULTY PAGE\n";
-	cout << "\nEnter Faculty ID : ";
-	cin >> teacher_id;
-    cout << "Enter Password : ";
-	cin >> teacher_password;
-	rc = sqlite3_open("SAMS.db", &db);
-	search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ teacher_id +"' AND FACULTYPASSWORD = '"+ teacher_password +"'  AND WORKING = 'Y');";
-    line = search_faculty.c_str();
-    sql = strdup(line);
-    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
-	if(rc == 0){
-    cout << "Login Unsuccessful!!!";
-	if(count <= 0){
-	cout << "\n\nLogin Failed... Max no. of Attempts Reached!!!\n";
-	cout << "Exiting Program for Security Reasons...\n";
-	exit(0);
-	}
-	count--;
-	cout << "\n\nYou have '" << count + 1 << "' more chances!!!\n";
-	clear_screen();
-	goto a;
-	}
-	else{
-	cout << "\nLogin Successful!!!\n";
-	string search_cls = "SELECT EXISTS(SELECT * from SECTION WHERE CLSTCHR = '"+ teacher_id +"');";
-	line = search_cls.c_str();
-    sql = strdup(line);
-    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
-	if(rc != 0){
-    cls = true;
-    clstchr_id = teacher_id;
-    search_cls = "SELECT SECTIONID FROM SECTION WHERE CLSTCHR = '"+ teacher_id +"'";
-    line = search_cls.c_str();
-    sql = strdup(line);
-    rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
-    sqlite3_close(db);
-    section_id = gbl_info[0];
-	}
-	}
-	clear_screen();
-	return 0;
-}
-
+//CLASS TEACHER CLASS FUNCTIONS
 void class_teacher :: view_subject_wise_marks(string section_id){
     int rc;
     sqlite3 *db;
@@ -2594,7 +2593,7 @@ void class_teacher :: view_subject_wise_marks(string section_id){
     return;
 }
 
-void class_teacher :: read(student &s, string student_id, string section_id){
+void class_teacher :: read(section &s, string student_id, string section_id){
     int rc;
     sqlite3 *db;
 	char *zErrMsg, *sql;
@@ -2608,22 +2607,28 @@ void class_teacher :: read(student &s, string student_id, string section_id){
     const char *line = search_marks.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
-    m1[i] = stof(gbl_info[0]); a1[i] = stof(gbl_info[1]); ms1[i] = stof(gbl_info[2]);
-    m2[i] = stof(gbl_info[3]); a2[i] = stof(gbl_info[4]); ms2[i] = stof(gbl_info[5]);
-    internal_marks[i] = stof(gbl_info[6]); external_marks[i] = stof(gbl_info[7]);
+    m1[i] = stof(gbl_info[0]);
+    a1[i] = stof(gbl_info[1]);
+    ms1[i] = stof(gbl_info[2]);
+    m2[i] = stof(gbl_info[3]);
+    a2[i] = stof(gbl_info[4]);
+    ms2[i] = stof(gbl_info[5]);
+    internal_marks[i] = stof(gbl_info[6]);
+    external_marks[i] = stof(gbl_info[7]);
     }
     else{
     string search_marks = "SELECT INTERNALS, EXTERNALS FROM GRADEREPORT WHERE STUDENTID = '"+ student_id +"' AND SECTIONID = '" + section_id +"' AND COURSEID = '"+ course_id[i] +"'";
     const char *line = search_marks.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
-    internal_marks[i] = stof(gbl_info[0]); external_marks[i] = stof(gbl_info[1]);
+    internal_marks[i] = stof(gbl_info[0]);
+    external_marks[i] = stof(gbl_info[1]);
     }
     }
     sqlite3_close(db);
 }
 
-void class_teacher :: calculate_student_marks(student &s){
+void class_teacher :: calculate_student_marks(section &s){
     float ta_index = 4, max_index = 0.7, min_index = 0.3;
     for(int i=0; i<course_count; i++){
     for(int i=0 ; i<100; i++)
@@ -2692,7 +2697,7 @@ void class_teacher :: calculate_student_marks(student &s){
     }
 }
 
-void class_teacher :: calculate_student_sgpa(student &s, int index){
+void class_teacher :: calculate_student_sgpa(section &s, int index){
     float score_sum = 0, credit_sum = 0;
     for(int i=0;i<course_count;i++){
     score_sum = score_sum + (gradepoint[i] * course_credits[i]);
@@ -2701,7 +2706,7 @@ void class_teacher :: calculate_student_sgpa(student &s, int index){
     final_gradepoint[index] = (score_sum/credit_sum);
 }
 
-void class_teacher :: write(student &s, int index, string student_id){
+void class_teacher :: write(section &s, int index, string student_id){
     int rc;
     sqlite3 *db;
 	char *zErrMsg, *sql;
@@ -2727,7 +2732,7 @@ void class_teacher :: write(student &s, int index, string student_id){
     return;
 }
 
-void class_teacher :: generate_sgpa(student* s, class_teacher &ct, string section_id){
+void class_teacher :: generate_sgpa(section* s, class_teacher &ct, string section_id){
     sqlite3 *db;
 	char *zErrMsg, *sql;
     int rc, generated = 0;
@@ -2820,8 +2825,8 @@ void class_teacher :: generate_sgpa(student* s, class_teacher &ct, string sectio
 void class_teacher :: view_overall_marks(string section_id){
     sqlite3 *db;
 	char *zErrMsg, *sql;
-    string student_id, course[10];
     int rc, num, generated = 0;
+    string student_id, course[10];
     sqlite3_open("SAMS.db", &db);
 	cout << "Displaying details of Section" << section_id << endl;
     a: cout << "\nEnter the number of student(s) : ";
@@ -2882,26 +2887,35 @@ void class_teacher :: view_overall_marks(string section_id){
     const char *line = search_marks.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
-    m1[i] = stof(gbl_info[1]); a1[i] = stof(gbl_info[2]); ms1[i] = stof(gbl_info[3]);
-    m2[i] = stof(gbl_info[4]); a2[i] = stof(gbl_info[5]); ms2[i] = stof(gbl_info[6]);
-    course[i] = gbl_info[0]; internal_marks[i] = stof(gbl_info[7]); external_marks[i] = stof(gbl_info[8]);
+    course[i] = gbl_info[0];
+    m1[i] = stof(gbl_info[1]);
+    a1[i] = stof(gbl_info[2]);
+    ms1[i] = stof(gbl_info[3]);
+    m2[i] = stof(gbl_info[4]);
+    a2[i] = stof(gbl_info[5]);
+    ms2[i] = stof(gbl_info[6]);
+    internal_marks[i] = stof(gbl_info[7]);
+    external_marks[i] = stof(gbl_info[8]);
     char grade_array[gbl_info[9].size() + 1];
     strcpy(grade_array, gbl_info[9].c_str());
-    grade[i] = grade_array[0]; gradepoint[i] = stof(gbl_info[10]);
+    grade[i] = grade_array[0];
+    gradepoint[i] = stof(gbl_info[10]);
     }
     else{
     string search_marks = "SELECT COURSEID, INTERNALS, EXTERNALS, GRADE, GRADEPOINT FROM GRADEREPORT WHERE STUDENTID = '"+ student_id +"' AND SECTIONID = '" + section_id +"' AND COURSEID = '"+ course_id[i] +"'";
     const char *line = search_marks.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
-    course[i] = gbl_info[0], internal_marks[i] = stof(gbl_info[1]); external_marks[i] = stof(gbl_info[2]);
+    course[i] = gbl_info[0],
+    internal_marks[i] = stof(gbl_info[1]);
+    external_marks[i] = stof(gbl_info[2]);
     char grade_array[gbl_info[3].size() + 1];
     strcpy(grade_array, gbl_info[3].c_str());
-    grade[i] = grade_array[0]; gradepoint[i] = stof(gbl_info[4]);
+    grade[i] = grade_array[0];
+    gradepoint[i] = stof(gbl_info[4]);
     }
     }
-    cout << "\nDisplaying marks of " << student_id << "..." << endl;
-    cout << "\n\n";
+    cout << "\nDisplaying marks of " << student_id << "...\n\n" << endl;
     cout << "Course\t\tM1\tA1\tMse1\tM2\tA2\tMse2\tInternal\tExternal\tGrade\tGradepoint" << endl;
     for(int i=0; i<course_count; i++){
     int len = course[i].length();
@@ -2938,7 +2952,7 @@ void class_teacher :: view_overall_marks(string section_id){
 }
 
 void class_teacher :: class_teacher_main_menu(class_teacher &ct, string clstchr_id, string section_id){
-    section s[60];
+    student s[60];
     course_teacher t;
     teacher_id = clstchr_id;
     int option = 0;
@@ -2988,6 +3002,69 @@ void class_teacher :: class_teacher_main_menu(class_teacher &ct, string clstchr_
 	clear_screen();
 	return;
 	}
+}
+
+//COURSE TEACHER CLASS FUNCTIONS
+
+//COURSE TEACHER - CLASS TEACHER COMMON LOGIN FUNCTION
+int course_teacher :: login_teacher(bool &cls, string &clstchr_id, string &section_id){
+    sqlite3 *db;
+    int rc, count = 3;
+    string faculty_deptno;
+    char *zErrMsg = 0, *sql;
+    rc = sqlite3_open("SAMS.db", &db);
+	string search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE WORKING = 'Y');";
+    const char *line = search_faculty.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    sqlite3_close(db);
+	if(rc == 0){
+    cout << "\nERROR: No Faculty Details Found...." << endl;
+	cout << endl;
+	clear_screen();
+	return -1;
+    }
+	a: cout << "WELCOME TO FACULTY PAGE\n";
+	cout << "\nEnter Faculty ID : ";
+	cin >> teacher_id;
+    cout << "Enter Password : ";
+	cin >> teacher_password;
+	rc = sqlite3_open("SAMS.db", &db);
+	search_faculty = "SELECT EXISTS(SELECT * from FACULTY WHERE FACULTYID = '"+ teacher_id +"' AND FACULTYPASSWORD = '"+ teacher_password +"'  AND WORKING = 'Y');";
+    line = search_faculty.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+	if(rc == 0){
+    cout << "Login Unsuccessful!!!";
+	if(count <= 0){
+	cout << "\n\nLogin Failed... Max no. of Attempts Reached!!!\n";
+	cout << "Exiting Program for Security Reasons...\n";
+	exit(0);
+	}
+	count--;
+	cout << "\n\nYou have '" << count + 1 << "' more chances!!!\n";
+	clear_screen();
+	goto a;
+	}
+	else{
+	cout << "\nLogin Successful!!!\n";
+	string search_cls = "SELECT EXISTS(SELECT * from SECTION WHERE CLSTCHR = '"+ teacher_id +"');";
+	line = search_cls.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+	if(rc != 0){
+    cls = true;
+    clstchr_id = teacher_id;
+    search_cls = "SELECT SECTIONID FROM SECTION WHERE CLSTCHR = '"+ teacher_id +"'";
+    line = search_cls.c_str();
+    sql = strdup(line);
+    rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
+    sqlite3_close(db);
+    section_id = gbl_info[0];
+	}
+	}
+	clear_screen();
+	return 0;
 }
 
 void course_teacher :: add_student_marks(string faculty_id){
@@ -3752,7 +3829,8 @@ void course_teacher :: teacher_main_menu(course_teacher &t, string clstchr_id){
 	}
 }
 
-int section :: login_student(){
+//STUDENT CLASS FUNCTIONS
+int student :: login_student(){
 	sqlite3 *db;
     int rc, count = 3;
     string student_deptno;
@@ -3798,7 +3876,7 @@ int section :: login_student(){
 	return 0;
 }
 
-void section :: view_marks(string student_id){
+void student :: view_marks(string student_id){
     sqlite3 *db;
     int rc, num;
 	char *zErrMsg, *sql;
@@ -3841,22 +3919,26 @@ void section :: view_marks(string student_id){
     const char *line = search_marks.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
+    course[i] = gbl_info[0];
     m1[i] = stof(gbl_info[1]); a1[i] = stof(gbl_info[2]); ms1[i] = stof(gbl_info[3]);
     m2[i] = stof(gbl_info[4]); a2[i] = stof(gbl_info[5]); ms2[i] = stof(gbl_info[6]);
-    course[i] = gbl_info[0]; internal_marks[i] = stof(gbl_info[7]); external_marks[i] = stof(gbl_info[8]);
+    internal_marks[i] = stof(gbl_info[7]); external_marks[i] = stof(gbl_info[8]);
     char grade_array[gbl_info[9].size() + 1];
     strcpy(grade_array, gbl_info[9].c_str());
-    grade[i] = grade_array[0]; gradepoint[i] = stof(gbl_info[10]);
+    grade[i] = grade_array[0];
+    gradepoint[i] = stof(gbl_info[10]);
     }
     else{
     string search_marks = "SELECT COURSEID, INTERNALS, EXTERNALS, GRADE, GRADEPOINT FROM GRADEREPORT WHERE STUDENTID = '"+ student_id +"' AND SECTIONID = '" + section_id +"' AND COURSEID = '"+ course_id[i] +"'";
     const char *line = search_marks.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
-    course[i] = gbl_info[0], internal_marks[i] = stof(gbl_info[1]); external_marks[i] = stof(gbl_info[2]);
+    course[i] = gbl_info[0],
+    internal_marks[i] = stof(gbl_info[1]); external_marks[i] = stof(gbl_info[2]);
     char grade_array[gbl_info[3].size() + 1];
     strcpy(grade_array, gbl_info[3].c_str());
-    grade[i] = grade_array[0]; gradepoint[i] = stof(gbl_info[4]);
+    grade[i] = grade_array[0];
+    gradepoint[i] = stof(gbl_info[4]);
     }
     }
     cout << "\nDisplaying your marks..." << endl;
@@ -3888,7 +3970,7 @@ void section :: view_marks(string student_id){
     return;
 }
 
-void section :: update_stdpass(string student_id){
+void student :: update_stdpass(string student_id){
     int rc, choice = 0;
     sqlite3 *db;
 	char *zErrMsg, *sql;
@@ -3936,7 +4018,7 @@ void section :: update_stdpass(string student_id){
     return;
 }
 
-void section :: view_account(string student_id){
+void student :: view_account(string student_id){
     int rc;
     sqlite3 *db;
 	char *zErrMsg, *sql;
@@ -3949,7 +4031,7 @@ void section :: view_account(string student_id){
     return;
 }
 
-void section :: student_main_menu(section &s){
+void student :: student_main_menu(student &s){
 	int option = 0;
 	while(option !=3){
 	a: cout << "\nWelcome " << student_id << "\n\n\n";
@@ -3985,6 +4067,7 @@ void section :: student_main_menu(section &s){
 	}
 }
 
+//global functions
 void main_menu(){
 	int option = 0;
 	while(option !=4){
@@ -4029,7 +4112,7 @@ void main_menu(){
 	else if(option == 3){
 	cout << "Redirecting to Student Login Page\n";
 	clear_screen();
-	section s;
+	student s;
 	int exist = s.login_student();
 	if(exist!=-1)
 	s.student_main_menu(s);
@@ -4109,6 +4192,7 @@ void database_creation_function(){
     sqlite3_close(db);
 }
 
+// MAIN FUNCTION
 int main(){
     database_creation_function();
 	main_menu();
