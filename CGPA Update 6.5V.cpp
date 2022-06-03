@@ -15,8 +15,8 @@ int student_count = 0;
 int course_credits[10];
 string course_type[10];
 string gbl_password = "1234";
-char dept[12][4] = {"CSE","CSM","CSN","CSO","IT","ECE","EEE","ECI","CE","ME","EMH","ENG"};
-char dept_no[12][4] = {"CS","AI","CN","IN","IT","EC","EE","CI","CE","ME","MH","EN"};
+char dept[14][4] = {"CSE","CSM","CSN","CSO","IT","ECE","EEE","ECI","CE","ME","EMH","SCI","ENG","PED"};
+char dept_no[14][4] = {"CS","AI","CN","IN","IT","EC","EE","CI","CE","ME","MH","PS","EN","PE"};
 char semester[8][8] = {"FIRST","SECOND","THIRD","FOURTH","FIFTH","SIXTH","SEVENTH","EIGHTH"};
 
 class student{
@@ -289,8 +289,10 @@ void faculty_select_branch_function(){
 	cout << "Type '9' -----> CIV\n";
 	cout << "Type '10' ---->  ME\n";
 	cout << "Type '11' ----> EMH\n";
-	cout << "Type '12' ----> ENG\n";
-	cout << "\nEnter Here : ";
+	cout << "Type '12' ----> SCI\n";
+    cout << "Type '13' ----> ENG\n";
+    cout << "Type '14' ----> PED\n";
+    cout << "\nEnter Here : ";
 }
 
 void student_select_branch_function(){
@@ -321,7 +323,7 @@ void select_branch_insert_function(int i, int n, string str1, string str2, int &
 	goto a;
 	}
 	dept_id = stoi(excp);
-    if((str2 == "faculty") ? (dept_id>12 || dept_id<1) : (dept_id>10 || dept_id<1)){
+    if((str2 == "faculty") ? (dept_id>14 || dept_id<1) : (dept_id>10 || dept_id<1)){
     goto b;
 	}
 }
@@ -336,7 +338,7 @@ void select_branch_view_function(int &dept_id, string str){
 	goto a;
 	}
 	dept_id = stoi(excp);
-    if((str == "faculty") ? (dept_id>12 || dept_id<1) : (dept_id>10 || dept_id<1)){
+    if((str == "faculty") ? (dept_id>14 || dept_id<1) : (dept_id>10 || dept_id<1)){
     goto b;
 	}
 }
@@ -897,8 +899,8 @@ void admin :: master_faculty_edit_menu(admin &a){
 
 void admin :: assign_course(){
     sqlite3 *db;
-    int rc, dept_id, sem;
     char *zErrMsg = 0, *sql;
+    int rc, cls, dept_id, sem;
     string faculty_id, section_id, course_id;
     sqlite3_open("SAMS.db", &db);
     a: cout << "Registering Course Details..." << endl;
@@ -955,12 +957,16 @@ void admin :: assign_course(){
     clear_screen();
     return;
     }
+    string search_clstchr = "SELECT EXISTS(SELECT * FROM SECTION WHERE CLSTCHR = (SELECT CRSTCHR from COURSE WHERE CRSTCHR IS NOT NULL AND COURSECODE = '"+ course_id +"' AND SECTION = '"+ section_id +"'));";
+    line = search_clstchr.c_str();
+    sql = strdup(line);
+    cls = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
     string search_faculty = "SELECT EXISTS(SELECT * from COURSE WHERE CRSTCHR IS NULL AND COURSECODE = '"+ course_id +"' AND SECTION = '"+ section_id +"');";
     line = search_faculty.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
     if(rc == 0){
-    c: cout << "\nCourse with requested Code is already allotted to a faculty..." << endl;
+    c: if((cls != 0) ? (cout << "\nThe Faculty allotted to the Course with requested Code is CLASS TEACHER..." << endl) : (cout << "\nCourse with requested Code is already allotted to a faculty..." << endl));
     cout << "\nAre you sure to make changes to " + course_id << " of Section" + section_id + " ? ";
 	cout << "\nPress '1' if 'YES' or '2' if 'NO'";
 	cout << "\nEnter Here : ";
@@ -3184,8 +3190,10 @@ void course_teacher :: add_student_marks(string faculty_id){
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, create_insert_table, 0, &zErrMsg);
     }
-    if(choice == 2)
+    if(choice == 2){
+    cout << endl;
     goto c;
+    }
     }
     else{
     s: cout << "Enter internal marks of " << course_id << " : ";
@@ -3229,8 +3237,10 @@ void course_teacher :: add_student_marks(string faculty_id){
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, create_insert_table, 0, &zErrMsg);
     }
-    if(choice == 2)
+    if(choice == 2){
+    cout << endl;
     goto s;
+    }
     }
     }
     sqlite3_close(db);
@@ -3865,7 +3875,9 @@ void section :: view_marks(string student_id){
     else
     cout << course[i] << "--\t--\t --\t--\t--\t --\t   " << internal_marks[i] << "\t\t   " << external_marks[i] << "\t\t  " << grade[i] << "\t    " << gradepoint[i] << endl;
     }
-    string search_sgpa = "SELECT FOURTHSEM FROM STUDENT WHERE STUDENTID = '"+ student_id +"' AND SECTION = '" + section_id +"'";
+	gbl_data = stoi(section_id.substr(2,1));
+    string sem_index = semester[gbl_data-1];
+    string search_sgpa = "SELECT " + sem_index + "SEM FROM STUDENT WHERE STUDENTID = '"+ student_id +"' AND SECTION = '" + section_id +"'";
     line = search_sgpa.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
@@ -4055,8 +4067,10 @@ void table_creation_function(sqlite3 *db){
     INSERT INTO BRANCH (BRANCHID,BRANCHCODE,BRANCHNAME,PHONE) VALUES ('ME', '  MECH', 'Mechanical Engineering', '90898441300'); \
     INSERT INTO BRANCH (BRANCHID,BRANCHCODE,BRANCHNAME,PHONE) VALUES ('CE', '   CIV', 'Civil Engineering', '9666263740'); \
     INSERT INTO BRANCH (BRANCHID,BRANCHCODE,BRANCHNAME,PHONE) VALUES ('MH', '  MATH', 'Mathematics', '8634401872'); \
-    INSERT INTO BRANCH (BRANCHID,BRANCHCODE,BRANCHNAME,PHONE) VALUES ('EN', '   ENG', 'English', '9774340001');");
-    rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
+    INSERT INTO BRANCH (BRANCHID,BRANCHCODE,BRANCHNAME,PHONE) VALUES ('PS', '   SCI', 'Physical Sciences', '8634203872'); \
+	INSERT INTO BRANCH (BRANCHID,BRANCHCODE,BRANCHNAME,PHONE) VALUES ('EN', '   ENG', 'English', '9774340001'); \
+    INSERT INTO BRANCH (BRANCHID,BRANCHCODE,BRANCHNAME,PHONE) VALUES ('PE', '  PE/S', 'Physical Education & Sports', '9774340942');");
+	rc = sqlite3_exec(db, sql, create_insert_table, 0, 0);
     sql = strdup("INSERT INTO SECTION (SECTIONID,SEMESTER,DEPTNO) VALUES ('  1CSE1',1,'CS'); \ INSERT INTO SECTION (SECTIONID,SEMESTER,DEPTNO) VALUES ('  2CSE1',2,'CS'); \ INSERT INTO SECTION (SECTIONID,SEMESTER,DEPTNO) VALUES ('  3CSE1',3,'CS'); \ INSERT INTO SECTION (SECTIONID,SEMESTER,DEPTNO) VALUES ('  4CSE1',4,'CS'); \ INSERT INTO SECTION (SECTIONID,SEMESTER,DEPTNO) VALUES ('  5CSE1',5,'CS'); \ INSERT INTO SECTION (SECTIONID,SEMESTER,DEPTNO) VALUES ('  6CSE1',6,'CS'); \ INSERT INTO SECTION (SECTIONID,SEMESTER,DEPTNO) VALUES ('  7CSE1',7,'CS'); \ INSERT INTO SECTION (SECTIONID,SEMESTER,DEPTNO) VALUES ('  8CSE1',8,'CS'); \
     INSERT INTO SECTION (SECTIONID,SEMESTER,DEPTNO) VALUES ('  1CSE2',1,'CS'); \ INSERT INTO SECTION (SECTIONID,SEMESTER,DEPTNO) VALUES ('  2CSE2',2,'CS'); \ INSERT INTO SECTION (SECTIONID,SEMESTER,DEPTNO) VALUES ('  3CSE2',3,'CS'); \ INSERT INTO SECTION (SECTIONID,SEMESTER,DEPTNO) VALUES ('  4CSE2',4,'CS'); \ INSERT INTO SECTION (SECTIONID,SEMESTER,DEPTNO) VALUES ('  5CSE2',5,'CS'); \ INSERT INTO SECTION (SECTIONID,SEMESTER,DEPTNO) VALUES ('  6CSE2',6,'CS'); \ INSERT INTO SECTION (SECTIONID,SEMESTER,DEPTNO) VALUES ('  7CSE2',7,'CS'); \ INSERT INTO SECTION (SECTIONID,SEMESTER,DEPTNO) VALUES ('  8CSE2',8,'CS'); \
     INSERT INTO SECTION (SECTIONID,SEMESTER,DEPTNO) VALUES ('  1CSE3',1,'CS'); \ INSERT INTO SECTION (SECTIONID,SEMESTER,DEPTNO) VALUES ('  2CSE3',2,'CS'); \ INSERT INTO SECTION (SECTIONID,SEMESTER,DEPTNO) VALUES ('  3CSE3',3,'CS'); \ INSERT INTO SECTION (SECTIONID,SEMESTER,DEPTNO) VALUES ('  4CSE3',4,'CS'); \ INSERT INTO SECTION (SECTIONID,SEMESTER,DEPTNO) VALUES ('  5CSE3',5,'CS'); \ INSERT INTO SECTION (SECTIONID,SEMESTER,DEPTNO) VALUES ('  6CSE3',6,'CS'); \ INSERT INTO SECTION (SECTIONID,SEMESTER,DEPTNO) VALUES ('  7CSE3',7,'CS'); \ INSERT INTO SECTION (SECTIONID,SEMESTER,DEPTNO) VALUES ('  8CSE3',8,'CS'); \
