@@ -3,10 +3,10 @@
 **********************************************************************************************************************
 
     Project Meta Data:
-    TOTAL NO. OF LINES : 4200
+    TOTAL NO. OF LINES : 4250
     TOTAL NO. OF EMPTY LINES : 100
     TOTAL NO. OF COMMENT LINES : 50
-    TOTAL NO. OF ACTUAL CODE LINES : 4050
+    TOTAL NO. OF ACTUAL CODE LINES : 4100
     TOTAL NO. OF HEADER FILES INCLUDED : 5
     TOTAL NO. OF CLASSES USED : 5
     TOTAL NO. OF ADMIN CLASS FUNCTIONS : 29
@@ -18,7 +18,7 @@
     TOTAL NO. OF GLOBAL FUNCTIONS : 36
     C++ (FRONT-END) OFFLINE IDE USED : CODE::BLOCKS v20.30
     RDBMS (BACK-END) OFFLINE LIBRARY USED :  SQLITE v3.38.0
-    TOTAL SIZE OF "main.cpp" SOURCE CODE : 165KB
+    TOTAL SIZE OF "main.cpp" SOURCE CODE : 167KB
     TOTAL SIZE OF "SAMS.db" DATABASE FILE (at creation) : 52KB
 
 *********************************************************************************************************************
@@ -2735,18 +2735,21 @@ void class_teacher :: write(section &s, int index, string student_id){
 void class_teacher :: generate_sgpa(section* s, class_teacher &ct, string section_id){
     sqlite3 *db;
 	char *zErrMsg, *sql;
-    int rc, generated = 0;
     sqlite3_open("SAMS.db", &db);
+    int rc, generated = 0, already = 0, generated_count = 0;
     string search_count = "SELECT COUNT(*) FROM STUDENT WHERE SECTION = '"+ section_id +"';";
     const char *line = search_count.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
     student_count = stoi(gbl_info[0]);
     int available[student_count];
+    int sgpa_done[student_count];
     for(int i=0;i<10;i++)
     awarded[i] = "YES";
-    for(int i=0;i<student_count;i++)
+    for(int i=0;i<student_count;i++){
     available[i] = 0;
+    sgpa_done[i] = -1;
+    }
     search_count = "SELECT COUNT(*) FROM COURSE WHERE SECTION = '"+ section_id +"';";
     line = search_count.c_str();
     sql = strdup(line);
@@ -2780,6 +2783,16 @@ void class_teacher :: generate_sgpa(section* s, class_teacher &ct, string sectio
     cout << endl;
     for(int i=0; i<student_count; i++){
     cout << roll_number[i] << "     ";
+    gbl_data = stoi(section_id.substr(2,1));
+    string sem_index = semester[gbl_data-1];
+    string search_already = "SELECT EXISTS(SELECT * FROM STUDENT WHERE STUDENTID = '"+ roll_number[i] +"' AND " + sem_index + "SEM IS NULL);";
+    line = search_already.c_str();
+    sql = strdup(line);
+    already = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(already == 0){
+    sgpa_done[i] = 0;
+    generated_count++;
+    }
     for(int j=0; j<course_count; j++){
     string search_student = "SELECT EXISTS(SELECT S.STUDENTID FROM STUDENT S WHERE S.SECTION = '"+ section_id +"' AND S.STUDENTID NOT IN (SELECT G.STUDENTID FROM GRADEREPORT G WHERE G.COURSEID = '"+ course_id[j] +"') AND S.STUDENTID = '"+ roll_number[i] +"');";
     line = search_student.c_str();
@@ -2804,9 +2817,34 @@ void class_teacher :: generate_sgpa(section* s, class_teacher &ct, string sectio
     }
     cout << endl;
     }
-    for(int i=0; i<student_count; i++){
-    if(available[i] != -1){
+    for(int i=0; i<student_count; i++)
+    if(available[i] != -1)
     generated++;
+    cout << "\n\nTotal No. of Students : " << student_count << endl;
+    cout << "\nNo of. Students with all marks available to generate SGPA : " << generated << endl;
+    cout << "\nNo of. Students with SGPA already generated : " << generated_count << endl;
+    if(generated - generated_count == 0){
+    if((generated_count == 0) ? (cout << "\n\nNOTE: Cannot Generate SGPA. Since, No student has all marks available to generate SGPA...\n" << endl) : (cout << "\n\nNOTE: Cannot Generate SGPA. Since, SGPA is already generated to student(s) with all marks available...\n" << endl));
+    clear_screen();
+    return;
+    }
+    cout << "\nNo of. students whose SGPA can be generated : " << (generated - generated_count) << endl;
+    a: cout << "\nWARNING: STUDENT MARKS CANNOT BE UPDATED, ONCE SGPA IS GENERATED...\n\nAre you sure to continue? ";
+	cout << "\nPress '1' if 'YES' or '2' if 'NO'";
+	cout << "\nEnter Here : ";
+	cin >> excp;
+	roc = check_exception(excp);
+	while(roc){
+    b: cout << "Choose a Valid Input (ERROR : Input Data Type or Range Mismatch)\n\n";
+	goto a;
+	}
+	int choice = stoi(excp);
+	if(choice!=1 && choice!=2){
+    goto b;
+	}
+    if(choice == 1){
+    for(int i=0; i<student_count; i++){
+    if(available[i] != -1 && sgpa_done[i] != 0){
     ct.read(s[i], roll_number[i], section_id);
 	ct.calculate_student_marks(s[i]);
 	ct.calculate_student_sgpa(s[i], i);
@@ -2814,10 +2852,10 @@ void class_teacher :: generate_sgpa(section* s, class_teacher &ct, string sectio
     }
     }
     sqlite3_close(db);
-    cout << "\n\nTotal No. of Students : " << student_count << endl;
-    cout << "\nNo of. Students with all marks available to generate SGPA : " << generated << endl;
-    cout << "\nSGPA Generated Successfully for " << generated << " students of Section" + section_id + "..."<< endl;
-    cout << endl;
+    cout << "\nSGPA Generated Successfully for " << (generated - generated_count)  << " student(s) of Section" + section_id + "..."<< endl;
+    }
+    if(choice == 2)
+    cout << "\nNo changes were made....\n" << endl;
     clear_screen();
     return;
 }
@@ -3329,9 +3367,9 @@ void course_teacher :: add_student_marks(string faculty_id){
 
 void course_teacher :: update_student_marks(string faculty_id){
     sqlite3 *db;
-    int rc, num, option = 0;
 	char *zErrMsg, *sql;
     float marks[7], new_marks;
+    int rc, num, option = 0, already = 0;
     string student_id, section_id, course_id, course_type, update_marks;
     sqlite3_open("SAMS.db", &db);
     string check_crstchr = "SELECT EXISTS(SELECT * from COURSE WHERE CRSTCHR = '"+ faculty_id +"');";
@@ -3477,6 +3515,18 @@ void course_teacher :: update_student_marks(string faculty_id){
     rc = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
     if(rc == 0){
     cout << "\nStudent with requested ID doesn't exist..." << endl;
+    cout << "\nUnable to update requested details of student... Try Again using valid ID...\n" << endl;
+    clear_screen();
+    return;
+    }
+    gbl_data = stoi(section_id.substr(2,1));
+    string sem_index = semester[gbl_data-1];
+    string search_already = "SELECT EXISTS(SELECT * FROM STUDENT WHERE STUDENTID = '"+ student_id +"' AND " + sem_index + "SEM IS NULL);";
+    line = search_already.c_str();
+    sql = strdup(line);
+    already = sqlite3_exec(db, sql, exist_table, 0, &zErrMsg);
+    if(already == 0){
+    cout << "\nSGPA of Student with requested ID is already generated..." << endl;
     cout << "\nUnable to update requested details of student... Try Again using valid ID...\n" << endl;
     clear_screen();
     return;
@@ -3915,35 +3965,35 @@ void student :: view_marks(string student_id){
     for(int i=0; i<100; i++)
     gbl_info[i] = "";
     if(course_type[i] == "T"){
-    string search_marks = "SELECT COURSEID, M1, A1, MSE1, M2, A2, MSE2, INTERNALS, EXTERNALS, GRADE, GRADEPOINT FROM GRADEREPORT WHERE STUDENTID = '"+ student_id +"' AND SECTIONID = '" + section_id +"' AND COURSEID = '"+ course_id[i] +"'";
+    string search_marks = "SELECT COURSEID, M1, A1, MSE1, M2, A2, MSE2, INTERNALS, GRADE, GRADEPOINT FROM GRADEREPORT WHERE STUDENTID = '"+ student_id +"' AND SECTIONID = '" + section_id +"' AND COURSEID = '"+ course_id[i] +"'";
     const char *line = search_marks.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
     course[i] = gbl_info[0];
     m1[i] = stof(gbl_info[1]); a1[i] = stof(gbl_info[2]); ms1[i] = stof(gbl_info[3]);
     m2[i] = stof(gbl_info[4]); a2[i] = stof(gbl_info[5]); ms2[i] = stof(gbl_info[6]);
-    internal_marks[i] = stof(gbl_info[7]); external_marks[i] = stof(gbl_info[8]);
-    char grade_array[gbl_info[9].size() + 1];
-    strcpy(grade_array, gbl_info[9].c_str());
+    internal_marks[i] = stof(gbl_info[7]);
+    char grade_array[gbl_info[8].size() + 1];
+    strcpy(grade_array, gbl_info[8].c_str());
     grade[i] = grade_array[0];
-    gradepoint[i] = stof(gbl_info[10]);
+    gradepoint[i] = stof(gbl_info[9]);
     }
     else{
-    string search_marks = "SELECT COURSEID, INTERNALS, EXTERNALS, GRADE, GRADEPOINT FROM GRADEREPORT WHERE STUDENTID = '"+ student_id +"' AND SECTIONID = '" + section_id +"' AND COURSEID = '"+ course_id[i] +"'";
+    string search_marks = "SELECT COURSEID, INTERNALS, GRADE, GRADEPOINT FROM GRADEREPORT WHERE STUDENTID = '"+ student_id +"' AND SECTIONID = '" + section_id +"' AND COURSEID = '"+ course_id[i] +"'";
     const char *line = search_marks.c_str();
     sql = strdup(line);
     rc = sqlite3_exec(db, sql, extract_details, 0, &zErrMsg);
     course[i] = gbl_info[0],
-    internal_marks[i] = stof(gbl_info[1]); external_marks[i] = stof(gbl_info[2]);
-    char grade_array[gbl_info[3].size() + 1];
-    strcpy(grade_array, gbl_info[3].c_str());
+    internal_marks[i] = stof(gbl_info[1]);
+    char grade_array[gbl_info[2].size() + 1];
+    strcpy(grade_array, gbl_info[2].c_str());
     grade[i] = grade_array[0];
-    gradepoint[i] = stof(gbl_info[4]);
+    gradepoint[i] = stof(gbl_info[3]);
     }
     }
     cout << "\nDisplaying your marks..." << endl;
     cout << "\n\n";
-    cout << "Course\t\tM1\tA1\tMse1\tM2\tA2\tMse2\tInternal\tExternal\tGrade\tGradepoint" << endl;
+    cout << "Course\t\tM1\tA1\tMse1\tM2\tA2\tMse2\tInternal   Grade   Gradepoint" << endl;
     for(int i=0; i<course_count; i++){
     int len = course[i].length();
     char data[len+1];
@@ -3953,9 +4003,9 @@ void student :: view_marks(string student_id){
     }
     for(int i=0; i<course_count; i++){
     if(course_type[i] == "T")
-    cout << course[i] << m1[i] << "\t" << a1[i] << "\t " << ms1[i] << "\t" << m2[i] << "\t" << a2[i] << "\t " << ms2[i] << "\t   " << internal_marks[i] << "\t\t   " << external_marks[i] << "\t\t  " << grade[i] << "\t    " << gradepoint[i] << endl;
+    cout << course[i] << m1[i] << "\t" << a1[i] << "\t " << ms1[i] << "\t" << m2[i] << "\t" << a2[i] << "\t " << ms2[i] << "\t   " << internal_marks[i] << "  \t     " << grade[i] << "\t       " << gradepoint[i] << endl;
     else
-    cout << course[i] << "--\t--\t --\t--\t--\t --\t   " << internal_marks[i] << "\t\t   " << external_marks[i] << "\t\t  " << grade[i] << "\t    " << gradepoint[i] << endl;
+    cout << course[i] << "--\t--\t --\t--\t--\t --\t   " << internal_marks[i] << "  \t     " << grade[i] << "\t       " << gradepoint[i] << endl;
     }
 	gbl_data = stoi(section_id.substr(2,1));
     string sem_index = semester[gbl_data-1];
